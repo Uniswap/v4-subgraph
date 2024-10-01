@@ -178,6 +178,9 @@ type Transaction @entity {
   # derived values
   modifyLiquiditys: [ModifyLiquidity]! @derivedFrom(field: "transaction")
   swaps: [Swap]! @derivedFrom(field: "transaction")
+  transfers: [Transfer]! @derivedFrom(field: "transaction")
+  subscriptions: [Subscribe]! @derivedFrom(field: "transaction")
+  unsubscriptions: [Unsubscribe]! @derivedFrom(field: "transaction")
 }
 
 type Swap @entity {
@@ -408,4 +411,82 @@ type TokenHourData @entity {
   low: BigDecimal!
   # close price USD
   close: BigDecimal!
+}
+
+type Position @entity {
+  # tokenId
+  id: ID!
+  # tokenId
+  tokenId: BigInt!
+  # address of current owner
+  owner: String!
+  # the EOA that minted the position
+  origin: String!
+  # created time
+  createdAtTimestamp: BigInt!
+  # subscribe events
+  subscriptions: [Subscribe!]! @derivedFrom(field: "position")
+  # unsubscription events
+  unsubscriptions: [Unsubscribe!]! @derivedFrom(field: "position")
+  # transfer events
+  transfers: [Transfer!]! @derivedFrom(field: "position")
+}
+
+type Subscribe @entity {
+  # transaction hash + '-' + log index
+  id: ID!
+  # token id of position subscribed to
+  tokenId: BigInt!
+  # address of subscriber
+  address: String!
+  # pointer to transaction
+  transaction: Transaction!
+  # log index
+  logIndex: BigInt!
+  # time of tx
+  timestamp: BigInt!
+  # the EOA that initiated the tx
+  origin: String!
+  # pointer to position
+  position: Position!
+}
+
+type Unsubscribe @entity {
+  # transaction hash + '-' + log index
+  id: ID!
+  # token id of position unsubscribed from
+  tokenId: BigInt!
+  # address of unsubscriber
+  address: String!
+  # pointer to transaction
+  transaction: Transaction!
+  # log index
+  logIndex: BigInt!
+  # time of tx
+  timestamp: BigInt!
+  # the EOA that initiated the tx
+  origin: String!
+  # pointer to position
+  position: Position!
+}
+
+type Transfer @entity {
+  # transaction hash + '-' + log index
+  id: ID!
+  # token id of position
+  tokenId: BigInt!
+  # address of previous owner
+  from: String!
+  # address of new owner
+  to: String!
+  # pointer to transaction
+  transaction: Transaction!
+  # log index
+  logIndex: BigInt!
+  # time of tx
+  timestamp: BigInt!
+  # the EOA that initiated the tx
+  origin: String!
+  # pointer to position
+  position: Position!
 }

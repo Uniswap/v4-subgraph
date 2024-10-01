@@ -113,6 +113,29 @@ export const WBTC_WETH_03_MAINNET_POOL_FIXTURE: PoolFixture = {
   tick: '1',
 }
 
+export class PoolKeyFixture {
+  id: string
+  token0: string
+  token1: string
+  fee: i32
+  tickSpacing: i32
+  hooks: string
+}
+
+export class PositionConfigFixture {
+  id: string
+  poolKey: PoolKeyFixture
+  tickLower: i32
+  tickUpper: i32
+}
+
+export class PositionFixture {
+  id: string
+  tokenId: BigInt
+  owner: Address
+  origin: Address
+}
+
 export const getPoolFixture = (poolAddress: string): PoolFixture => {
   if (poolAddress == WBTC_WETH_POOL_ID) {
     return WBTC_WETH_03_MAINNET_POOL_FIXTURE
@@ -128,6 +151,13 @@ export const TEST_USDC_DERIVED_ETH = BigDecimal.fromString('1').div(BigDecimal.f
 export const TEST_WETH_DERIVED_ETH = BigDecimal.fromString('1')
 
 export const MOCK_EVENT = newMockEvent()
+
+export const POSITION_FIXTURE: PositionFixture = {
+  id: '1',
+  tokenId: BigInt.fromI32(1 as i32),
+  origin: MOCK_EVENT.address,
+  owner: MOCK_EVENT.address,
+}
 
 export const invokePoolCreatedWithMockedEthCalls = (
   mockEvent: ethereum.Event,

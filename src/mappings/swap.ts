@@ -3,7 +3,7 @@ import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ONE_BI, ZERO_BD } from '../utils/constants'
+import { MAX_LP_FEE, ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
   updatePoolDayData,
@@ -69,8 +69,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
     const amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
 
-    const feesETH = amountTotalETHTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
-    const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+    const currentFeeTier = BigInt.fromI32(event.params.fee as i32).toBigDecimal()
+    const feesETH = amountTotalETHTracked.times(currentFeeTier).div(MAX_LP_FEE)
+    const feesUSD = amountTotalUSDTracked.times(currentFeeTier).div(MAX_LP_FEE)
 
     // global updates
     poolManager.txCount = poolManager.txCount.plus(ONE_BI)
@@ -155,6 +156,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     swap.amount0 = amount0
     swap.amount1 = amount1
     swap.amountUSD = amountTotalUSDTracked
+    swap.feeTier = BigInt.fromI32(event.params.fee as i32)
     swap.tick = BigInt.fromI32(event.params.tick as i32)
     swap.sqrtPriceX96 = event.params.sqrtPriceX96
     swap.logIndex = event.logIndex
@@ -211,7 +213,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolHourData.save()
     token0HourData.save()
     token1HourData.save()
-    poolHourData.save()
     poolManager.save()
     pool.save()
     token0.save()

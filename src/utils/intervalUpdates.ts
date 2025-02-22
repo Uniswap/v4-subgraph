@@ -1,4 +1,4 @@
-import { ethereum } from '@graphprotocol/graph-ts'
+import { Address, Bytes, ethereum } from '@graphprotocol/graph-ts'
 
 import {
   Bundle,
@@ -17,7 +17,7 @@ import { ONE_BI, ZERO_BD, ZERO_BI } from './constants'
  * Tracks global aggregate data over daily windows
  * @param event
  */
-export function updateUniswapDayData(event: ethereum.Event, poolId: string): UniswapDayData {
+export function updateUniswapDayData(event: ethereum.Event, poolId: Bytes): UniswapDayData {
   const uniswap = PoolManager.load(poolId)!
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400 // rounded
@@ -37,11 +37,11 @@ export function updateUniswapDayData(event: ethereum.Event, poolId: string): Uni
   return uniswapDayData as UniswapDayData
 }
 
-export function updatePoolDayData(poolId: string, event: ethereum.Event): PoolDayData {
+export function updatePoolDayData(poolId: Bytes, event: ethereum.Event): PoolDayData {
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400
   const dayStartTimestamp = dayID * 86400
-  const dayPoolID = poolId.concat('-').concat(dayID.toString())
+  const dayPoolID = poolId.toHexString().concat('-').concat(dayID.toString())
   const pool = Pool.load(poolId)!
   let poolDayData = PoolDayData.load(dayPoolID)
   if (poolDayData === null) {
@@ -79,11 +79,11 @@ export function updatePoolDayData(poolId: string, event: ethereum.Event): PoolDa
   return poolDayData as PoolDayData
 }
 
-export function updatePoolHourData(poolId: string, event: ethereum.Event): PoolHourData {
+export function updatePoolHourData(poolId: Bytes, event: ethereum.Event): PoolHourData {
   const timestamp = event.block.timestamp.toI32()
   const hourIndex = timestamp / 3600 // get unique hour within unix history
   const hourStartUnix = hourIndex * 3600 // want the rounded effect
-  const hourPoolID = poolId.concat('-').concat(hourIndex.toString())
+  const hourPoolID = poolId.toHexString().concat('-').concat(hourIndex.toString())
   const pool = Pool.load(poolId)!
   let poolHourData = PoolHourData.load(hourPoolID)
   if (poolHourData === null) {
@@ -123,7 +123,7 @@ export function updatePoolHourData(poolId: string, event: ethereum.Event): PoolH
 }
 
 export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDayData {
-  const bundle = Bundle.load('1')!
+  const bundle = Bundle.load(Bytes.fromI32(1))!
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400
   const dayStartTimestamp = dayID * 86400
@@ -163,7 +163,7 @@ export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDa
 }
 
 export function updateTokenHourData(token: Token, event: ethereum.Event): TokenHourData {
-  const bundle = Bundle.load('1')!
+  const bundle = Bundle.load(Bytes.fromI32(1))!
   const timestamp = event.block.timestamp.toI32()
   const hourIndex = timestamp / 3600 // get unique hour within unix history
   const hourStartUnix = hourIndex * 3600 // want the rounded effect

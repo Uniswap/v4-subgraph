@@ -13,7 +13,7 @@ export function fetchTokenSymbol(
   tokenOverrides: StaticTokenDefinition[],
   nativeTokenDetails: NativeTokenDetails,
 ): string {
-  if (tokenAddress.equals(Address.fromString(ADDRESS_ZERO))) {
+  if (tokenAddress.equals(ADDRESS_ZERO)) {
     return nativeTokenDetails.symbol
   }
   // try with the static definition
@@ -48,7 +48,7 @@ export function fetchTokenName(
   tokenOverrides: StaticTokenDefinition[],
   nativeTokenDetails: NativeTokenDetails,
 ): string {
-  if (tokenAddress.equals(Address.fromString(ADDRESS_ZERO))) {
+  if (tokenAddress.equals(ADDRESS_ZERO)) {
     return nativeTokenDetails.name
   }
   // try with the static definition
@@ -79,7 +79,7 @@ export function fetchTokenName(
 }
 
 export function fetchTokenTotalSupply(tokenAddress: Address): BigInt {
-  if (tokenAddress.equals(Address.fromString(ADDRESS_ZERO))) {
+  if (tokenAddress.equals(ADDRESS_ZERO)) {
     return ZERO_BI
   }
   const contract = ERC20.bind(tokenAddress)
@@ -96,7 +96,7 @@ export function fetchTokenDecimals(
   tokenOverrides: StaticTokenDefinition[],
   nativeTokenDetails: NativeTokenDetails,
 ): BigInt | null {
-  if (tokenAddress.equals(Address.fromString(ADDRESS_ZERO))) {
+  if (tokenAddress.equals(ADDRESS_ZERO)) {
     return nativeTokenDetails.decimals
   }
   // try with the static definition

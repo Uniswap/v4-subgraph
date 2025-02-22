@@ -18,13 +18,13 @@ export const USDC_WETH_POOL_ID = '0x85c41d6535ebab7661979fa7a5d331e4cb229b4d1e7d
 export const WBTC_WETH_POOL_ID = '0x0dac90a31985829dc2bbeb5e70fd7e302ef8ca149f58dc485e71f53735bad8e4'
 
 export const TEST_CONFIG: SubgraphConfig = {
-  poolManagerAddress: POOL_MANAGER_ADDRESS,
-  stablecoinWrappedNativePoolId: USDC_WETH_POOL_ID,
+  poolManagerAddress: Address.fromString(POOL_MANAGER_ADDRESS),
+  stablecoinWrappedNativePoolId: Bytes.fromHexString(USDC_WETH_POOL_ID),
   stablecoinIsToken0: true,
-  wrappedNativeAddress: WETH_MAINNET_ADDRESS,
+  wrappedNativeAddress: Address.fromString(WETH_MAINNET_ADDRESS),
   minimumNativeLocked: ZERO_BD,
-  stablecoinAddresses: [USDC_MAINNET_ADDRESS],
-  whitelistTokens: [WETH_MAINNET_ADDRESS, USDC_MAINNET_ADDRESS],
+  stablecoinAddresses: [Address.fromString(USDC_MAINNET_ADDRESS)],
+  whitelistTokens: [Address.fromString(WETH_MAINNET_ADDRESS), Address.fromString(USDC_MAINNET_ADDRESS)],
   tokenOverrides: [],
   poolsToSkip: [],
   poolMappings: [],

@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
 
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 import { Bundle, Pool, Token } from './../types/schema'
@@ -23,7 +23,7 @@ export function sqrtPriceX96ToTokenPrices(
   return [price0, price1]
 }
 
-export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stablecoinIsToken0: boolean): BigDecimal {
+export function getNativePriceInUSD(stablecoinWrappedNativePoolId: Bytes, stablecoinIsToken0: boolean): BigDecimal {
   const stablecoinWrappedNativePool = Pool.load(stablecoinWrappedNativePoolId)
   if (stablecoinWrappedNativePool !== null) {
     return stablecoinIsToken0 ? stablecoinWrappedNativePool.token0Price : stablecoinWrappedNativePool.token1Price
@@ -38,8 +38,8 @@ export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stabl
  **/
 export function findNativePerToken(
   token: Token,
-  wrappedNativeAddress: string,
-  stablecoinAddresses: string[],
+  wrappedNativeAddress: Bytes,
+  stablecoinAddresses: Bytes[],
   minimumNativeLocked: BigDecimal,
 ): BigDecimal {
   if (token.id == wrappedNativeAddress || token.id == ADDRESS_ZERO) {
@@ -50,7 +50,7 @@ export function findNativePerToken(
   // need to update this to actually detect best rate based on liquidity distribution
   let largestLiquidityETH = ZERO_BD
   let priceSoFar = ZERO_BD
-  const bundle = Bundle.load('1')!
+  const bundle = Bundle.load(Bytes.fromI32(1))!
 
   // hardcoded fix for incorrect rates
   // if whitelist includes token - get the safe price
@@ -106,9 +106,9 @@ export function getTrackedAmountUSD(
   token0: Token,
   tokenAmount1: BigDecimal,
   token1: Token,
-  whitelistTokens: string[],
+  whitelistTokens: Bytes[],
 ): BigDecimal {
-  const bundle = Bundle.load('1')!
+  const bundle = Bundle.load(Bytes.fromI32(1))!
   const price0USD = token0.derivedETH.times(bundle.ethPriceUSD)
   const price1USD = token1.derivedETH.times(bundle.ethPriceUSD)
 

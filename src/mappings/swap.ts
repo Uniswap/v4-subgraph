@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
 
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
@@ -33,9 +33,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const whitelistTokens = subgraphConfig.whitelistTokens
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
 
-  const bundle = Bundle.load('1')!
+  const bundle = Bundle.load(Bytes.fromI32(1))!
   const poolManager = PoolManager.load(poolManagerAddress)!
-  const poolId = event.params.id.toHexString()
+  const poolId = event.params.id
   const pool = Pool.load(poolId)!
 
   const token0 = Token.load(pool.token0)
@@ -144,7 +144,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // create Swap event
     const transaction = loadTransaction(event)
-    const swap = new Swap(transaction.id + '-' + event.logIndex.toString())
+    const swap = new Swap(transaction.id.concatI32(event.logIndex.toI32()))
     swap.transaction = transaction.id
     swap.timestamp = transaction.timestamp
     swap.pool = pool.id
@@ -161,8 +161,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // interval data
     const uniswapDayData = updateUniswapDayData(event, poolManagerAddress)
-    const poolDayData = updatePoolDayData(event.params.id.toHexString(), event)
-    const poolHourData = updatePoolHourData(event.params.id.toHexString(), event)
+    const poolDayData = updatePoolDayData(event.params.id, event)
+    const poolHourData = updatePoolHourData(event.params.id, event)
     const token0DayData = updateTokenDayData(token0, event)
     const token1DayData = updateTokenDayData(token1, event)
     const token0HourData = updateTokenHourData(token0, event)

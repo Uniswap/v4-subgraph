@@ -1,6 +1,6 @@
 type PoolManager @entity {
   # poolManager address
-  id: ID!
+  id: Bytes!
   # amount of pools created
   poolCount: BigInt!
   # amoutn of transactions all time
@@ -24,19 +24,19 @@ type PoolManager @entity {
   # TVL derived in ETH untracked
   totalValueLockedETHUntracked: BigDecimal!
   # current owner of the factory
-  owner: ID!
+  owner: Bytes!
 }
 
 # stores for USD calculations
 type Bundle @entity {
-  id: ID!
+  id: Bytes!
   # price of ETH in usd
   ethPriceUSD: BigDecimal!
 }
 
 type Token @entity {
   # token address
-  id: ID!
+  id: Bytes!
   # token symbol
   symbol: String!
   # token name
@@ -75,7 +75,7 @@ type Token @entity {
 
 type Pool @entity {
   # pool address
-  id: ID!
+  id: Bytes!
   # creation
   createdAtTimestamp: BigInt!
   # block pool was created at
@@ -135,7 +135,7 @@ type Pool @entity {
   # daily snapshots of pool data
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   # hooks address
-  hooks: String!
+  hooks: Bytes!
   # derived fields
   modifyLiquiditys: [ModifyLiquidity!]! @derivedFrom(field: "pool")
   swaps: [Swap!]! @derivedFrom(field: "pool")
@@ -144,9 +144,9 @@ type Pool @entity {
 
 type Tick @entity {
   # format: <pool address>#<tick index>
-  id: ID!
+  id: Bytes!
   # pool address
-  poolAddress: String
+  poolAddress: Bytes
   # tick index
   tickIdx: BigInt!
   # pointer to pool
@@ -165,9 +165,9 @@ type Tick @entity {
   createdAtBlockNumber: BigInt!
 }
 
-type Transaction @entity {
+type Transaction @entity(immutable: true) {
   # txn hash
-  id: ID!
+  id: Bytes!
   # block txn was included in
   blockNumber: BigInt!
   # timestamp txn was confirmed
@@ -183,9 +183,9 @@ type Transaction @entity {
   unsubscriptions: [Unsubscribe]! @derivedFrom(field: "transaction")
 }
 
-type Swap @entity {
+type Swap @entity(immutable: true) {
   # transaction hash + "#" + index in swaps Transaction array
-  id: ID!
+  id: Bytes!
   # pointer to transaction
   transaction: Transaction!
   # timestamp of transaction
@@ -218,7 +218,7 @@ type Swap @entity {
 
 type ModifyLiquidity @entity {
   # transaction hash + "#" + index in mints Transaction array
-  id: ID!
+  id: Bytes!
   # which txn the ModifyLiquidity was included in
   transaction: Transaction!
   # time of txn
@@ -419,9 +419,9 @@ type Position @entity {
   # tokenId
   tokenId: BigInt!
   # address of current owner
-  owner: String!
+  owner: Bytes!
   # the EOA that minted the position
-  origin: String!
+  origin: Bytes!
   # created time
   createdAtTimestamp: BigInt!
   # subscribe events
@@ -432,13 +432,13 @@ type Position @entity {
   transfers: [Transfer!]! @derivedFrom(field: "position")
 }
 
-type Subscribe @entity {
+type Subscribe @entity(immutable: true) {
   # transaction hash + '-' + log index
-  id: ID!
+  id: Bytes!
   # token id of position subscribed to
   tokenId: BigInt!
   # address of subscriber
-  address: String!
+  address: Bytes!
   # pointer to transaction
   transaction: Transaction!
   # log index
@@ -446,18 +446,18 @@ type Subscribe @entity {
   # time of tx
   timestamp: BigInt!
   # the EOA that initiated the tx
-  origin: String!
+  origin: Bytes!
   # pointer to position
   position: Position!
 }
 
-type Unsubscribe @entity {
+type Unsubscribe @entity(immutable: true) {
   # transaction hash + '-' + log index
-  id: ID!
+  id: Bytes!
   # token id of position unsubscribed from
   tokenId: BigInt!
   # address of unsubscriber
-  address: String!
+  address: Bytes!
   # pointer to transaction
   transaction: Transaction!
   # log index
@@ -465,20 +465,20 @@ type Unsubscribe @entity {
   # time of tx
   timestamp: BigInt!
   # the EOA that initiated the tx
-  origin: String!
+  origin: Bytes!
   # pointer to position
   position: Position!
 }
 
-type Transfer @entity {
+type Transfer @entity(immutable: true) {
   # transaction hash + '-' + log index
-  id: ID!
+  id: Bytes!
   # token id of position
   tokenId: BigInt!
   # address of previous owner
-  from: String!
+  from: Bytes!
   # address of new owner
-  to: String!
+  to: Bytes!
   # pointer to transaction
   transaction: Transaction!
   # log index
@@ -486,7 +486,7 @@ type Transfer @entity {
   # time of tx
   timestamp: BigInt!
   # the EOA that initiated the tx
-  origin: String!
+  origin: Bytes!
   # pointer to position
   position: Position!
 }

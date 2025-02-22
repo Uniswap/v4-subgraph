@@ -18,19 +18,19 @@ export function handleTransferHelper(event: TransferEvent): void {
   if (position === null) {
     position = new Position(tokenId)
     position.tokenId = event.params.id
-    position.origin = event.transaction.from.toHexString()
+    position.origin = event.transaction.from
     position.createdAtTimestamp = event.block.timestamp
   }
 
-  position.owner = to.toHexString()
+  position.owner = to
 
   const transaction = loadTransaction(event)
 
   const transfer = new Transfer(eventId(event.transaction.hash, event.logIndex))
   transfer.tokenId = event.params.id
-  transfer.from = from.toHexString()
-  transfer.to = to.toHexString()
-  transfer.origin = event.transaction.from.toHexString()
+  transfer.from = from
+  transfer.to = to
+  transfer.origin = event.transaction.from
   transfer.transaction = transaction.id
   transfer.logIndex = event.logIndex
   transfer.timestamp = transaction.timestamp

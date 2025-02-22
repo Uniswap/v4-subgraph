@@ -15,8 +15,8 @@ export function handleUnsubscriptionHelper(event: UnsubscriptionEvent): void {
   const transaction = loadTransaction(event)
 
   unsubscription.tokenId = event.params.tokenId
-  unsubscription.address = event.params.subscriber.toHexString()
-  unsubscription.origin = event.transaction.from.toHexString()
+  unsubscription.address = event.params.subscriber
+  unsubscription.origin = event.transaction.from
   unsubscription.transaction = transaction.id
   unsubscription.logIndex = event.logIndex
   unsubscription.timestamp = transaction.timestamp

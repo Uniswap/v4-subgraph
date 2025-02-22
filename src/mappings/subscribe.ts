@@ -15,8 +15,8 @@ export function handleSubscriptionHelper(event: SubscriptionEvent): void {
   const transaction = loadTransaction(event)
 
   subscription.tokenId = event.params.tokenId
-  subscription.address = event.params.subscriber.toHexString()
-  subscription.origin = event.transaction.from.toHexString()
+  subscription.address = event.params.subscriber
+  subscription.origin = event.transaction.from
   subscription.transaction = transaction.id
   subscription.logIndex = event.logIndex
   subscription.timestamp = transaction.timestamp

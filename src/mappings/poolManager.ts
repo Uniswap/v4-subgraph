@@ -1,4 +1,4 @@
-import { BigInt, log } from '@graphprotocol/graph-ts'
+import { BigInt, Bytes, log } from '@graphprotocol/graph-ts'
 
 import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
 import { PoolManager } from '../types/schema'
@@ -29,7 +29,7 @@ export function handleInitializeHelper(
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
-  const poolId = event.params.id.toHexString()
+  const poolId = event.params.id
 
   if (poolsToSkip.includes(poolId)) {
     return
@@ -53,19 +53,19 @@ export function handleInitializeHelper(
     poolManager.owner = ADDRESS_ZERO
 
     // create new bundle for tracking eth price
-    const bundle = new Bundle('1')
+    const bundle = new Bundle(Bytes.fromI32(1))
     bundle.ethPriceUSD = ZERO_BD
     bundle.save()
   }
 
   poolManager.poolCount = poolManager.poolCount.plus(ONE_BI)
   const pool = new Pool(poolId)
-  let token0 = Token.load(event.params.currency0.toHexString())
-  let token1 = Token.load(event.params.currency1.toHexString())
+  let token0 = Token.load(event.params.currency0)
+  let token1 = Token.load(event.params.currency1)
 
   // fetch info if null
   if (token0 === null) {
-    token0 = new Token(event.params.currency0.toHexString())
+    token0 = new Token(event.params.currency0)
     token0.symbol = fetchTokenSymbol(event.params.currency0, tokenOverrides, nativeTokenDetails)
     token0.name = fetchTokenName(event.params.currency0, tokenOverrides, nativeTokenDetails)
     token0.totalSupply = fetchTokenTotalSupply(event.params.currency0)
@@ -92,7 +92,7 @@ export function handleInitializeHelper(
   }
 
   if (token1 === null) {
-    token1 = new Token(event.params.currency1.toHexString())
+    token1 = new Token(event.params.currency1)
     token1.symbol = fetchTokenSymbol(event.params.currency1, tokenOverrides, nativeTokenDetails)
     token1.name = fetchTokenName(event.params.currency1, tokenOverrides, nativeTokenDetails)
     token1.totalSupply = fetchTokenTotalSupply(event.params.currency1)
@@ -132,7 +132,7 @@ export function handleInitializeHelper(
   pool.token0 = token0.id
   pool.token1 = token1.id
   pool.feeTier = BigInt.fromI32(event.params.fee)
-  pool.hooks = event.params.hooks.toHexString()
+  pool.hooks = event.params.hooks
   pool.tickSpacing = BigInt.fromI32(event.params.tickSpacing)
   pool.createdAtTimestamp = event.block.timestamp
   pool.createdAtBlockNumber = event.block.number
@@ -172,7 +172,7 @@ export function handleInitializeHelper(
 
   // update prices
   // update ETH price now that prices could have changed
-  const bundle = Bundle.load('1')!
+  const bundle = Bundle.load(Bytes.fromI32(1))!
   bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
   bundle.save()
   updatePoolDayData(poolId, event)

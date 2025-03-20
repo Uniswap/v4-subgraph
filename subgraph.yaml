@@ -12,8 +12,8 @@ dataSources:
     network: sepolia
     source:
       abi: PoolManager
-      address: "0x8C4BcBE6b9eF47855f97E675296FA3F6fafa5F1A"
-      startBlock: 6894393
+      address: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"
+      startBlock: 7910058
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -46,8 +46,8 @@ dataSources:
     network: sepolia
     source:
       abi: PositionManager
-      address: "0x1B1C77B606d13b09C84d1c7394B96b147bC03147"
-      startBlock: 6894479
+      address: "0x62E252DDC87948CF12748cec24C096AAFa7052FD"
+      startBlock: 7913058
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

@@ -78,10 +78,17 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/mappings/index.ts
       entities:
-        - BankAsset
+        - BorrowAsset
+        - Token
       abis:
         - name: KittycornBank
           file: ./abis/KittycornBank.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
       eventHandlers:
         - event: SetConfigBorrowToken(indexed address,bool,uint256)
           handler: handleConfigBorrowToken

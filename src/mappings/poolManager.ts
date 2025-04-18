@@ -30,7 +30,6 @@ export function handleInitializeHelper(
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
   const poolId = event.params.id.toHexString()
-
   if (poolsToSkip.includes(poolId)) {
     return
   }

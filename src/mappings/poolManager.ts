@@ -12,8 +12,6 @@ import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSu
 // The subgraph handler must have this signature to be able to handle events,
 // however, we invoke a helper in order to inject dependencies for unit tests.
 export function handleInitialize(event: InitializeEvent): void {
-  log.info('handleInitialize ==>', [])
-  return
   handleInitializeHelper(event)
 }
 
@@ -32,7 +30,6 @@ export function handleInitializeHelper(
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
   const poolId = event.params.id.toHexString()
-  log.info('handleInitializeHelper ==>', [])
   if (poolsToSkip.includes(poolId)) {
     return
   }
@@ -56,7 +53,6 @@ export function handleInitializeHelper(
 
     // create new bundle for tracking eth price
     const bundle = new Bundle('1')
-    log.info('Bundle Initial ==>', [])
     bundle.ethPriceUSD = ZERO_BD
     bundle.save()
   }

@@ -17,8 +17,6 @@ import { calculateAmountUSD } from '../utils/pricing'
 import { createTick } from '../utils/tick'
 
 export function handleModifyLiquidity(event: ModifyLiquidityEvent): void {
-  log.info('handleModifyLiquidity ==>', [])
-  return
   handleModifyLiquidityHelper(event)
 }
 

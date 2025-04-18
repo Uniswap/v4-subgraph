@@ -20,7 +20,7 @@ services:
       ethereum: "sepolia:https://sepolia.0xnode.cloud/"
       GRAPH_LOG: debug
   ipfs:
-    image: ipfs/go-ipfs:v0.10.0
+    image: ipfs/go-ipfs:latest
     ports:
       - "5001:5001"
     volumes:

@@ -17,7 +17,7 @@ export function handleTransferHelper(event: TransferEvent, subgraphConfig: Subgr
   const from = event.params.from
   const to = event.params.to
 
-  const kittycornBankAddress = Address.fromString(subgraphConfig.kittycornBankAddress).toHexString()
+  const kittycornBankAddress = Address.fromString(subgraphConfig.kittycornBankAddress)
 
   let position = Position.load(tokenId)
   if (position === null) {
@@ -28,7 +28,9 @@ export function handleTransferHelper(event: TransferEvent, subgraphConfig: Subgr
     position.owner = to.toHexString()
   }
 
-  if (to.toHexString() !== kittycornBankAddress) position.owner = to.toHexString()
+  if (to.notEqual(kittycornBankAddress)) {
+    position.owner = to.toHexString()
+  }
 
   const transaction = loadTransaction(event)
 

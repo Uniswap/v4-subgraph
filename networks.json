@@ -7,66 +7,10 @@
     "PositionManager": {
       "address": "0x62E252DDC87948CF12748cec24C096AAFa7052FD",
       "startBlock": 7760438
-    }
-  },
-  "unichain-sepolia": {
-    "PoolManager": {
-      "address": "0x00b036b58a818b1bc34d502d3fe730db729e62ac",
-      "startBlock": 7092034
     },
-    "PositionManager": {
-      "address": "0xf969aee60879c54baaed9f3ed26147db216fd664",
-      "startBlock": 7094939
-    }
-  },
-  "arbitrum-sepolia": {
-    "PoolManager": {
-      "address": "0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317",
-      "startBlock": 105909222
-    },
-    "PositionManager": {
-      "address": "0xAc631556d3d4019C95769033B5E719dD77124BAc",
-      "startBlock": 105920123
-    }
-  },
-  "base-sepolia": {
-    "PoolManager": {
-      "address": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
-      "startBlock": 19088197
-    },
-    "PositionManager": {
-      "address": "0x4b2c77d209d3405f41a037ec6c77f7f5b8e2ca80",
-      "startBlock": 20214494
-    }
-  },
-  "arbitrum-one": {
-    "PoolManager": {
-      "address": "0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32",
-      "startBlock": 297842872
-    },
-    "PositionManager": {
-      "address": "0xd88F38F930b7952f2DB2432Cb002E7abbF3dD869",
-      "startBlock": 297842893
-    }
-  },
-  "base": {
-    "PoolManager": {
-      "address": "0x498581fF718922c3f8e6A244956aF099B2652b2b",
-      "startBlock": 25350988
-    },
-    "PositionManager": {
-      "address": "0x7C5f5A4bBd8fD63184577525326123B519429bDc",
-      "startBlock": 25350993
-    }
-  },
-  "matic": {
-    "PoolManager": {
-      "address": "0x67366782805870060151383F4BbFF9daB53e5cD6",
-      "startBlock": 66980384
-    },
-    "PositionManager": {
-      "address": "0x1Ec2eBf4F37E7363FDfe3551602425af0B3ceef9",
-      "startBlock": 66980394
+    "KittycornBank": {
+      "address": "0x7edE11c1BFBfEF87b32B224686DD7c6d75E21d31",
+      "startBlock": 7760438
     }
   },
   "bsc": {
@@ -79,46 +23,6 @@
       "startBlock": 45970613
     }
   },
-  "optimism": {
-    "PoolManager": {
-      "address": "0x9a13F98Cb987694C9F086b1F5eB990EeA8264Ec3",
-      "startBlock": 130947675
-    },
-    "PositionManager": {
-      "address": "0x3C3Ea4B57a46241e54610e5f022E5c45859A1017",
-      "startBlock": 130947681
-    }
-  },
-  "avalanche": {
-    "PoolManager": {
-      "address": "0x06380C0e0912312B5150364B9DC4542BA0DbBc85",
-      "startBlock": 56195376
-    },
-    "PositionManager": {
-      "address": "0xB74b1F14d2754AcfcbBe1a221023a5cf50Ab8ACD",
-      "startBlock": 56195382
-    }
-  },
-  "worldchain-mainnet": {
-    "PoolManager": {
-      "address": "0xb1860D529182ac3BC1F51Fa2ABd56662b7D13f33",
-      "startBlock": 9111872
-    },
-    "PositionManager": {
-      "address": "0xC585E0f504613b5fBf874F21Af14c65260fB41fA",
-      "startBlock": 9111885
-    }
-  },
-  "zora-mainnet": {
-    "PoolManager": {
-      "address": "0x0575338e4C17006aE181B47900A84404247CA30f",
-      "startBlock": 25434534
-    },
-    "PositionManager": {
-      "address": "0xf66C7b99e2040f0D9b326B3b7c152E9663543D63",
-      "startBlock": 25434540
-    }
-  },
   "mainnet": {
     "PoolManager": {
       "address": "0x000000000004444c5dc75cB358380D2e3dE08A90",
@@ -127,36 +31,6 @@
     "PositionManager": {
       "address": "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e",
       "startBlock": 21689089
-    }
-  },
-  "blast-mainnet": {
-    "PoolManager": {
-      "address": "0x1631559198A9e474033433b2958daBC135ab6446",
-      "startBlock": 14377311
-    },
-    "PositionManager": {
-      "address": "0x4AD2F4CcA2682cBB5B950d660dD458a1D3f1bAaD",
-      "startBlock": 14377316
-    }
-  },
-  "unichain-mainnet": {
-    "PoolManager": {
-      "address": "0x1F98400000000000000000000000000000000004",
-      "startBlock": 25500
-    },
-    "PositionManager": {
-      "address": "0x4529A01c7A0410167c5740C487A8DE60232617bf",
-      "startBlock": 6819670
-    }
-  },
-  "soneium-mainnet": {
-    "PoolManager": {
-      "address": "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
-      "startBlock": 2473300
-    },
-    "PositionManager": {
-      "address": "0x1b35d13a2e2528f192637f14b05f0dc0e7deb566",
-      "startBlock": 2473310
     }
   }
 }

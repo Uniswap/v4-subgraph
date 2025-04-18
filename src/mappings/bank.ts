@@ -62,9 +62,9 @@ export function handleConfigBorrowTokenHelper(
     borrowAsset.borrowAPY = ZERO_BI
     borrowAsset.borrowFee = ZERO_BI
   }
-
   borrowAsset.allowBorrow = allowBorrow
   borrowAsset.borrowFee = borrowFee
 
+  token.save()
   borrowAsset.save()
 }

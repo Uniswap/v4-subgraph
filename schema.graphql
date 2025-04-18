@@ -491,8 +491,7 @@ type Transfer @entity {
   position: Position!
 }
 
-type BankAsset @entity {
-  # bank address
+type BorrowAsset @entity {
   id: ID!
   token: Token!
   totalSupply: BigInt!

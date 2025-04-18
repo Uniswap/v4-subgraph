@@ -1,7 +1,7 @@
 import { log } from '@graphprotocol/graph-ts'
 
 import { SetConfigBorrowToken as SetConfigBorrowTokenEvent } from '../types/KittycornBank/KittycornBank'
-import { BankAsset, Token } from '../types/schema'
+import { BorrowAsset, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ZERO_BD, ZERO_BI } from '../utils/constants'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
@@ -53,18 +53,18 @@ export function handleConfigBorrowTokenHelper(
     token.whitelistPools = []
   }
 
-  let bank = BankAsset.load(assetId)
-  if (bank === null) {
-    bank = new BankAsset(assetId)
-    bank.token = token.id
-    bank.totalSupply = ZERO_BI
-    bank.supplyAPY = ZERO_BI
-    bank.borrowAPY = ZERO_BI
-    bank.borrowFee = ZERO_BI
+  let borrowAsset = BorrowAsset.load(assetId)
+  if (borrowAsset === null) {
+    borrowAsset = new BorrowAsset(assetId)
+    borrowAsset.token = token.id
+    borrowAsset.totalSupply = ZERO_BI
+    borrowAsset.supplyAPY = ZERO_BI
+    borrowAsset.borrowAPY = ZERO_BI
+    borrowAsset.borrowFee = ZERO_BI
   }
 
-  bank.allowBorrow = allowBorrow
-  bank.borrowFee = borrowFee
+  borrowAsset.allowBorrow = allowBorrow
+  borrowAsset.borrowFee = borrowFee
 
-  bank.save()
+  borrowAsset.save()
 }

@@ -65,3 +65,30 @@ dataSources:
           handler: handleUnsubscription
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+  - kind: ethereum/contract
+    name: KittycornBank
+    network: sepolia
+    source:
+      abi: KittycornBank
+      address: "0x7edE11c1BFBfEF87b32B224686DD7c6d75E21d31"
+      startBlock: 7760438
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/index.ts
+      entities:
+        - BorrowAsset
+        - Token
+      abis:
+        - name: KittycornBank
+          file: ./abis/KittycornBank.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: SetConfigBorrowToken(indexed address,bool,uint256)
+          handler: handleConfigBorrowToken

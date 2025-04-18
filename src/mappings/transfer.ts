@@ -1,6 +1,9 @@
+import { Address } from '@graphprotocol/graph-ts'
+
 import { Transfer as TransferEvent } from '../types/PositionManager/PositionManager'
 import { Position, Transfer } from '../types/schema'
 import { loadTransaction } from '../utils'
+import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { eventId, positionId } from '../utils/id'
 
 // The subgraph handler must have this signature to be able to handle events,
@@ -9,10 +12,12 @@ export function handleTransfer(event: TransferEvent): void {
   handleTransferHelper(event)
 }
 
-export function handleTransferHelper(event: TransferEvent): void {
+export function handleTransferHelper(event: TransferEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
   const tokenId = positionId(event.params.id)
   const from = event.params.from
   const to = event.params.to
+
+  const kittycornBankAddress = Address.fromString(subgraphConfig.kittycornBankAddress).toHexString()
 
   let position = Position.load(tokenId)
   if (position === null) {
@@ -20,9 +25,10 @@ export function handleTransferHelper(event: TransferEvent): void {
     position.tokenId = event.params.id
     position.origin = event.transaction.from.toHexString()
     position.createdAtTimestamp = event.block.timestamp
+    position.owner = to.toHexString()
   }
 
-  position.owner = to.toHexString()
+  if (to.toHexString() !== kittycornBankAddress) position.owner = to.toHexString()
 
   const transaction = loadTransaction(event)
 

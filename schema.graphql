@@ -490,3 +490,13 @@ type Transfer @entity {
   # pointer to position
   position: Position!
 }
+
+type BorrowAsset @entity {
+  id: ID!
+  token: Token!
+  totalSupply: BigInt!
+  supplyAPY: BigInt!
+  borrowAPY: BigInt!
+  allowBorrow: Boolean!
+  borrowFee: BigInt!
+}

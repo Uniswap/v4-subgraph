@@ -6,6 +6,19 @@
   },
   {
     "type": "function",
+    "name": "FRACTION_PRECISION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "PERCENT_PRECISION",
     "inputs": [],
     "outputs": [
@@ -381,35 +394,6 @@
   },
   {
     "type": "function",
-    "name": "getDebtRepayFee",
-    "inputs": [
-      {
-        "name": "_ulToken",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_share",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getDebtShareToAmount",
     "inputs": [
       {
@@ -574,6 +558,25 @@
         "name": "_positionId",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOraclePrice",
+    "inputs": [
+      {
+        "name": "_token",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
@@ -828,6 +831,11 @@
             "internalType": "bytes"
           }
         ]
+      },
+      {
+        "name": "_permitData",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -1698,7 +1706,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "liquidateFeeVaule",
+        "name": "liquidateFeeValue",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"

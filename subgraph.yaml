@@ -46,8 +46,8 @@ dataSources:
     network: mainnet
     source:
       abi: PositionManager
-      address: "0x137a906E06EC20808c8F156F9024196427429220"
-      startBlock: 22425263
+      address: "0x390102D1D4cff14a54bBe7219AB22fe583109FFB"
+      startBlock: 22426272
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -70,8 +70,8 @@ dataSources:
     network: mainnet
     source:
       abi: KittycornBank
-      address: "0x8a2D75bAadcd2C71b2aCF715fc3Da68964CEA48e"
-      startBlock: 22425263
+      address: "0xc78C603644b59CCbC869fa36B72adE24C9e04C40"
+      startBlock: 22426272
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

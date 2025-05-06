@@ -17,7 +17,7 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: "ipfs:5001"
-      ethereum: "mainnet:https://virtual.mainnet.rpc.tenderly.co/c944ade3-5da1-4d5e-8c77-a5b86d527231"
+      ethereum: "mainnet-fork:https://virtual.mainnet.rpc.tenderly.co/c944ade3-5da1-4d5e-8c77-a5b86d527231"
       GRAPH_LOG: debug
   ipfs:
     image: ipfs/go-ipfs:latest

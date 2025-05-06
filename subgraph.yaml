@@ -9,7 +9,7 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: PoolManager
-    network: mainnet
+    network: mainnet-fork
     source:
       abi: PoolManager
       address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
@@ -43,11 +43,11 @@ dataSources:
           handler: handleSwap
   - kind: ethereum/contract
     name: PositionManager
-    network: mainnet
+    network: mainnet-fork
     source:
       abi: PositionManager
       address: "0x390102D1D4cff14a54bBe7219AB22fe583109FFB"
-      startBlock: 22426272
+      startBlock: 22426273
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -67,7 +67,7 @@ dataSources:
           handler: handleTransfer
   - kind: ethereum/contract
     name: KittycornBank
-    network: mainnet
+    network: mainnet-fork
     source:
       abi: KittycornBank
       address: "0xc78C603644b59CCbC869fa36B72adE24C9e04C40"

@@ -11,6 +11,7 @@ export enum ChainId {
 const SEPOLIA_NETWORK_NAME = 'sepolia'
 const BSC_NETWORK_NAME = 'bsc'
 const MAINNET_NETWORK_NAME = 'mainnet'
+const MAINNET_FORK_NETWORK_NAME = 'mainnet-fork'
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
   // deployment address
@@ -116,7 +117,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
       kittycornBankAddress: '0x0',
     }
-  } else if (selectedNetwork == MAINNET_NETWORK_NAME) {
+  } else if (selectedNetwork == MAINNET_NETWORK_NAME || selectedNetwork == MAINNET_FORK_NETWORK_NAME) {
     return {
       poolManagerAddress: '0x000000000004444c5dc75cb358380d2e3de08a90',
       stablecoinWrappedNativePoolId: '0x4f88f7c99022eace4740c6898f59ce6a2e798a1e64ce54589720b7153eb224a7', // https://etherscan.io/tx/0x4e63fcc0dd42a2b317e77d17e236cadf77464a08ccece33a354bd8648b5f7419#eventlog
@@ -199,7 +200,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0x0',
+      kittycornBankAddress: '0xc78C603644b59CCbC869fa36B72adE24C9e04C40',
     }
   } else {
     throw new Error('Unsupported Network')

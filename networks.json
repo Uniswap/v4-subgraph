@@ -27,14 +27,20 @@
     "PoolManager": {
       "address": "0x000000000004444c5dc75cB358380D2e3dE08A90",
       "startBlock": 21688329
+    }
+  },
+  "mainnet-fork": {
+    "PoolManager": {
+      "address": "0x000000000004444c5dc75cB358380D2e3dE08A90",
+      "startBlock": 21688329
     },
     "PositionManager": {
-      "address": "0x137a906E06EC20808c8F156F9024196427429220",
-      "startBlock": 22425263
+      "address": "0x390102D1D4cff14a54bBe7219AB22fe583109FFB",
+      "startBlock": 22426273
     },
     "KittycornBank": {
-      "address": "0x8a2D75bAadcd2C71b2aCF715fc3Da68964CEA48e",
-      "startBlock": 22425263
+      "address": "0xc78C603644b59CCbC869fa36B72adE24C9e04C40",
+      "startBlock": 22426272
     }
   }
 }

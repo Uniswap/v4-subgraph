@@ -32,6 +32,19 @@
   },
   {
     "type": "function",
+    "name": "RESERVE_PRECISION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "borrow",
     "inputs": [
       {
@@ -697,6 +710,25 @@
   },
   {
     "type": "function",
+    "name": "getReserveBalance",
+    "inputs": [
+      {
+        "name": "_ibToken",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getSupportTokenizeByUnderlying",
     "inputs": [
       {
@@ -871,7 +903,26 @@
   },
   {
     "type": "function",
-    "name": "lastDebtAmount",
+    "name": "lastDebtBalance",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastReserveBalance",
     "inputs": [
       {
         "name": "",

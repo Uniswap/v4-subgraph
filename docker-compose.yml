@@ -17,7 +17,7 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: "ipfs:5001"
-      ethereum: "sepolia:https://sepolia.0xnode.cloud/"
+      ethereum: "mainnet:http://176.9.123.115:8545"
       GRAPH_LOG: debug
   ipfs:
     image: ipfs/go-ipfs:latest

@@ -9,11 +9,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: PoolManager
-    network: mainnet-fork
+    network: sepolia
     source:
       abi: PoolManager
-      address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
-      startBlock: 21688329
+      address: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"
+      startBlock: 7258946
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -43,11 +43,11 @@ dataSources:
           handler: handleSwap
   - kind: ethereum/contract
     name: PositionManager
-    network: mainnet-fork
+    network: sepolia
     source:
       abi: PositionManager
-      address: "0x390102D1D4cff14a54bBe7219AB22fe583109FFB"
-      startBlock: 22429882
+      address: "0x26eAE73734B0f6cb526f2Ddd227ea0C8c5901aA2"
+      startBlock: 8162932
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -67,11 +67,11 @@ dataSources:
           handler: handleTransfer
   - kind: ethereum/contract
     name: KittycornBank
-    network: mainnet-fork
+    network: sepolia
     source:
       abi: KittycornBank
-      address: "0xc78C603644b59CCbC869fa36B72adE24C9e04C40"
-      startBlock: 22429882
+      address: "0x7B7aC536fE387286BbbAd2b98cBf1c1D52C0DBe7"
+      startBlock: 8162932
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

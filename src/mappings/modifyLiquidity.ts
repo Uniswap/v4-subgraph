@@ -1,10 +1,10 @@
-import { BigInt, log } from '@graphprotocol/graph-ts'
+import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
-import { Bundle, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
+import { Bundle, LiquidityPosition, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
-import { convertTokenToDecimal, loadTransaction } from '../utils/index'
+import { convertTokenToDecimal, hexToBigInt, loadTransaction } from '../utils/index'
 import {
   updatePoolDayData,
   updatePoolHourData,
@@ -25,6 +25,7 @@ export function handleModifyLiquidityHelper(
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
   const poolManagerAddress = subgraphConfig.poolManagerAddress
+  const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
 
   const bundle = Bundle.load('1')!
   const poolId = event.params.id.toHexString()
@@ -162,6 +163,23 @@ export function handleModifyLiquidityHelper(
     updateTokenDayData(token1, event)
     updateTokenHourData(token0, event)
     updateTokenHourData(token1, event)
+
+    // Convert salt (Bytes) to BigInt
+    const salt = event.params.salt.toHexString()
+    const saltBigInt = hexToBigInt(salt)
+    const tokenId = saltBigInt.toString()
+
+    if (event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))) {
+      let liquidityPosition = LiquidityPosition.load(tokenId)
+      if (liquidityPosition === null) {
+        liquidityPosition = new LiquidityPosition(tokenId)
+        liquidityPosition.tokenId = BigInt.fromString(tokenId)
+        liquidityPosition.pool = pool.id
+        liquidityPosition.tickLower = modifyLiquidity.tickLower
+        liquidityPosition.tickUpper = modifyLiquidity.tickUpper
+      }
+      liquidityPosition.save()
+    }
 
     token0.save()
     token1.save()

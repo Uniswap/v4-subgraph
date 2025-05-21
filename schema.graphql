@@ -430,6 +430,7 @@ type Position @entity {
   unsubscriptions: [Unsubscribe!]! @derivedFrom(field: "position")
   # transfer events
   transfers: [Transfer!]! @derivedFrom(field: "position")
+  liquidatePosition: LiquidatePosition @derivedFrom(field: "position")
 }
 
 type Subscribe @entity {
@@ -500,3 +501,59 @@ type BorrowAsset @entity {
   allowBorrow: Boolean!
   borrowFee: BigInt!
 }
+
+type LiquidatePosition @entity {
+  id: ID!
+  tokenId: BigInt!
+  positionId: BigInt!
+  owner: String!
+  liquidator: String!
+  repayToken: Token!
+  liquidatePrice: BigInt!
+  positionValue: BigInt!
+  repayValue: BigDecimal!
+  liquidateFeeValue: BigInt!
+  protocolFee: BigInt!
+  txHash: String!
+  timestamp: BigInt!
+  token0: Token!
+  token1: Token!
+  feeTier: BigInt!
+  tickSpacing: BigInt!
+  hooks: String!
+  tickLower: BigInt!
+  tickUpper: BigInt!
+  sqrtPrice: BigInt!
+  tick: BigInt!
+  poolId: String!
+  position: Position! 
+}
+
+type LiquidatePositionDaily @entity {
+  id: ID!
+  totalCount: BigInt!
+  liquidateValueAccumulate: BigInt!
+  liquidateFeeValueAccumulate: BigInt!
+  protocolFeeAccumulate: BigInt!
+}
+
+type LiquidityPosition @entity {
+  id: ID!
+  tokenId: BigInt!
+  pool: Pool!
+  tickLower: BigInt!
+  tickUpper: BigInt!
+}
+
+type BankPosition @entity {
+  id: ID!
+  tokenId: BigInt!
+  positionId: BigInt!
+  currency0: Token!
+  currency1: Token!
+  fee: BigInt!
+  tickSpacing: BigInt!
+  hooks: String!
+  positionInfo: BigInt!
+}
+

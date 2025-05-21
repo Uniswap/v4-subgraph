@@ -1763,6 +1763,12 @@
         "internalType": "uint256"
       },
       {
+        "name": "liquidateRepayAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
         "name": "liquidateFeeValue",
         "type": "uint256",
         "indexed": false,

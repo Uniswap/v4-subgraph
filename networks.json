@@ -5,12 +5,12 @@
       "startBlock": 7258946
     },
     "PositionManager": {
-      "address": "0x2fC120eA9104fC97632bEb3Fb84061471E8f6826",
-      "startBlock": 8368539
+      "address": "0xff92b1dCB26C83C9629bDFd61bc2416cbA85d568",
+      "startBlock": 8409420
     },
     "KittycornBank": {
-      "address": "0x294CcC71134c9131A8fF7e092b8Ec2E288E2c01C",
-      "startBlock": 8368539
+      "address": "0x94811F25fD67BBa92aC07b55E1565bD403a1Ea0f",
+      "startBlock": 8409420
     }
   },
   "bsc": {

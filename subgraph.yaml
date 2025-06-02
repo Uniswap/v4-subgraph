@@ -65,3 +65,25 @@ dataSources:
           handler: handleUnsubscription
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+  # https://github.com/euler-xyz/euler-swap?tab=readme-ov-file#deployments
+  # NOTE I made not changes to networks.json. Use the link above to grab data for that if desired
+  - kind: ethereum/contract
+    name: EulerSwapFactory
+    network: sepolia
+    source:
+      abi: EulerSwapFactory
+      address: "0x..." # TODO fill out the right address for the right network
+      startBlock: 12345 # TODO fill out the start block for the right network
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/index.ts
+      entities:
+        - Position
+      abis:
+        - name: EulerSwapFactory
+          file: ./abis/EulerSwapFactory.json
+      eventHandlers:
+        - event: PoolDeployed(indexed address,indexed address,indexed address,address)
+          handler: handleHookDeployed

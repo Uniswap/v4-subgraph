@@ -490,3 +490,16 @@ type Transfer @entity {
   # pointer to position
   position: Position!
 }
+
+type EulerSwapHook @entity {
+  # Composite key = eulerAccount-asset0-asset1
+  id: ID!
+  # The latest hook address for this key
+  hook: String!
+  # address of the euler account
+  eulerAccount: String!
+  # address of token0
+  asset0: String!
+  # address of token1
+  asset1: String!
+}

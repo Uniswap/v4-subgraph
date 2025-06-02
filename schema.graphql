@@ -498,8 +498,8 @@ type EulerSwapHook @entity {
   hook: String!
   # address of the euler account
   eulerAccount: String!
-  # address of token0
+  # address of asset0
   asset0: String!
-  # address of token1
+  # address of asset1
   asset1: String!
 }

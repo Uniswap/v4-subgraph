@@ -3,13 +3,13 @@ import { EulerSwapHook } from '../types/schema'
 
 export function handleHookDeployed(event: HookDeployedEvent): void {
   // ──────────────────────────────────────────────────────────────
-  // Build the composite ID: eulerAccount-token0-token1
+  // Build the composite ID: eulerAccount-asset0-asset1
   // ──────────────────────────────────────────────────────────────
-  const account = event.params.account.toHexString()
-  const token0  = event.params.token0.toHexString()
-  const token1  = event.params.token1.toHexString()
+  const account = event.params.eulerAccount.toHexString()
+  const asset0  = event.params.asset0.toHexString()
+  const asset1  = event.params.asset1.toHexString()
 
-  const id = `${account}-${token0}-${token1}`          // <- entity id
+  const id = `${account}-${asset0}-${asset1}`          // <- entity id
 
   // ──────────────────────────────────────────────────────────────
   // Load (or create) the row for this tuple
@@ -18,8 +18,8 @@ export function handleHookDeployed(event: HookDeployedEvent): void {
   if (entity == null) {
     entity = new EulerSwapHook(id)
     entity.eulerAccount = account
-    entity.asset0       = token0
-    entity.asset1       = token1
+    entity.asset0       = asset0
+    entity.asset1       = asset1
   }
 
   // Always overwrite the hook address so the latest hook is used

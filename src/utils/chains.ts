@@ -160,6 +160,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x0000000000000000000000000000000000000000', // Native ETH
         '0x036cbd53842c5426634e7929541ec2318f3dcf7e', // USDC
         '0x4200000000000000000000000000000000000006', // WETH
+        '0x1111111111166b7FE7bd91427724B487980aFc69', // ZORA
       ],
       tokenOverrides: [],
       poolsToSkip: [],
@@ -227,6 +228,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x4200000000000000000000000000000000000006', // WETH
         '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
         '0x0000000000000000000000000000000000000000', // Native ETH
+        '0x1111111111166b7FE7bd91427724B487980aFc69', // ZORA
       ],
       tokenOverrides: [],
       poolsToSkip: [],

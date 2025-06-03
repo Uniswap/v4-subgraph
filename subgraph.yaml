@@ -9,11 +9,19 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: PoolManager
+<<<<<<< HEAD
     network: mainnet
     source:
       abi: PoolManager
       address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
       startBlock: 21688329
+=======
+    network: base
+    source:
+      abi: PoolManager
+      address: "0x498581fF718922c3f8e6A244956aF099B2652b2b"
+      startBlock: 25350988
+>>>>>>> 354236e (commit this?)
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -43,11 +51,19 @@ dataSources:
           handler: handleSwap
   - kind: ethereum/contract
     name: PositionManager
+<<<<<<< HEAD
     network: mainnet
     source:
       abi: PositionManager
       address: "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e"
       startBlock: 21689089
+=======
+    network: base
+    source:
+      abi: PositionManager
+      address: "0x7C5f5A4bBd8fD63184577525326123B519429bDc"
+      startBlock: 25350993
+>>>>>>> 354236e (commit this?)
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -92,4 +108,8 @@ dataSources:
 graft:
   base: Qma59Z22pNddhZzvzeL6Ljesa9q5LFj9irdNadhTncu7Po
   block: 29099355
+<<<<<<< HEAD
 >>>>>>> 5cbe5b9 (fix yaml)
+=======
+>>>>>>> 354236e (commit this?)
+>>>>>>> 93843cc (commit this?)

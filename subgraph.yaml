@@ -67,4 +67,4 @@ dataSources:
           handler: handleTransfer
 graft:
   base: Qma59Z22pNddhZzvzeL6Ljesa9q5LFj9irdNadhTncu7Po
-  blockNumber: 29099355
+  block: 29099355

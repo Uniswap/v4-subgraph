@@ -87,3 +87,5 @@ dataSources:
       eventHandlers:
         - event: PoolDeployed(indexed address,indexed address,indexed address,address)
           handler: handleHookDeployed
+        - event: PoolUninstalled(indexed address,indexed address,indexed address,address)
+          handler: handleHookUninstalled

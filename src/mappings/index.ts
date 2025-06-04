@@ -4,6 +4,15 @@ import { handleSubscription } from './subscribe'
 import { handleSwap } from './swap'
 import { handleTransfer } from './transfer'
 import { handleUnsubscription } from './unsubscribe'
-import { handleHookDeployed } from './euler'
+import { handleHookDeployed, handleHookUninstalled } from './euler'
 
-export { handleInitialize, handleModifyLiquidity, handleSubscription, handleSwap, handleTransfer, handleUnsubscription, handleHookDeployed }
+export {
+    handleInitialize,
+    handleModifyLiquidity,
+    handleSubscription,
+    handleSwap,
+    handleTransfer,
+    handleUnsubscription,
+    handleHookDeployed,
+    handleHookUninstalled
+}

@@ -98,7 +98,7 @@ export function handleInitializeHelper(
     const decimals = fetchTokenDecimals(event.params.currency1, tokenOverrides, nativeTokenDetails)
 
     if (decimals === null) {
-      log.debug('mybug the decimal on token 0 was null', [])
+      log.debug('mybug the decimal on token 1 was null', [])
       return
     }
 

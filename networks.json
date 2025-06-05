@@ -32,15 +32,15 @@
   "mainnet-fork": {
     "PoolManager": {
       "address": "0x000000000004444c5dc75cB358380D2e3dE08A90",
-      "startBlock": 21688329
+      "startBlock": 22430000
     },
     "PositionManager": {
       "address": "0x390102D1D4cff14a54bBe7219AB22fe583109FFB",
-      "startBlock": 22429882
+      "startBlock": 22430000
     },
     "KittycornBank": {
       "address": "0xc78C603644b59CCbC869fa36B72adE24C9e04C40",
-      "startBlock": 22429882
+      "startBlock": 22430000
     }
   }
 }

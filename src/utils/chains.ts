@@ -57,6 +57,9 @@ export class SubgraphConfig {
 
   // address of the kittycorn bank contract
   kittycornBankAddress: string
+
+  // address of the kittycorn position manager contract
+  kittycornPositionManagerAddress: string
 }
 
 export function getSubgraphConfig(): SubgraphConfig {
@@ -89,6 +92,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         decimals: BigInt.fromI32(18),
       },
       kittycornBankAddress: '0x94811F25fD67BBa92aC07b55E1565bD403a1Ea0f',
+      kittycornPositionManagerAddress: '0xff92b1dCB26C83C9629bDFd61bc2416cbA85d568',
     }
   } else if (selectedNetwork == BSC_NETWORK_NAME) {
     return {
@@ -116,6 +120,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         decimals: BigInt.fromI32(18),
       },
       kittycornBankAddress: '0x0',
+      kittycornPositionManagerAddress: '0x0',
     }
   } else if (selectedNetwork == MAINNET_NETWORK_NAME || selectedNetwork == MAINNET_FORK_NETWORK_NAME) {
     return {
@@ -201,6 +206,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         decimals: BigInt.fromI32(18),
       },
       kittycornBankAddress: '0xc78C603644b59CCbC869fa36B72adE24C9e04C40',
+      kittycornPositionManagerAddress: '0x0',
     }
   } else {
     throw new Error('Unsupported Network')

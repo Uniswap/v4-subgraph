@@ -80,6 +80,7 @@ dataSources:
       entities:
         - BorrowAsset
         - Token
+        - LiquidatePosition
       abis:
         - name: KittycornBank
           file: ./abis/KittycornBank.json
@@ -92,3 +93,6 @@ dataSources:
       eventHandlers:
         - event: SetConfigBorrowToken(indexed address,bool,uint256)
           handler: handleConfigBorrowToken
+        - event: LiquidatePosition(indexed uint256,indexed uint256,indexed
+            address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleLiquidatePosition

@@ -91,8 +91,8 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0x94811F25fD67BBa92aC07b55E1565bD403a1Ea0f',
-      kittycornPositionManagerAddress: '0xff92b1dCB26C83C9629bDFd61bc2416cbA85d568',
+      kittycornBankAddress: '0x9e09Ea7d3AaDEDA139c69F5b06aBA5546705a56E',
+      kittycornPositionManagerAddress: '0x9217f722bcd5812FA14538BFDc5f2c4D0546594e',
     }
   } else if (selectedNetwork == BSC_NETWORK_NAME) {
     return {

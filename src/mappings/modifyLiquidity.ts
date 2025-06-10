@@ -43,6 +43,7 @@ export function handleModifyLiquidityHelper(
 
   const poolCollateral = PoolAllowCollateral.load(poolId)
   const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
+  const isKittycornPMAddress = event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))
 
   if (pool === null) {
     log.debug('handleModifyLiquidityHelper: pool not found {}', [poolId])
@@ -83,6 +84,16 @@ export function handleModifyLiquidityHelper(
 
     // reset tvl aggregates until new amounts calculated
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(pool.totalValueLockedETH)
+    if (isKittycornPMAddress) {
+      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.minus(
+        pool.totalValueLockedETH,
+      )
+    }
+    if (poolCollateral !== null) {
+      kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.minus(
+        pool.totalValueLockedETH,
+      )
+    }
 
     // update globals
     poolManager.txCount = poolManager.txCount.plus(ONE_BI)
@@ -121,7 +132,6 @@ export function handleModifyLiquidityHelper(
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
 
-    const isKittycornPMAddress = event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))
     if (isKittycornPMAddress || poolCollateral !== null) {
       kittycornPositionManager.txCount = kittycornPositionManager.txCount.plus(ONE_BI)
     }

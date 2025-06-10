@@ -1,10 +1,19 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
-import { Bundle, LiquidityPosition, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
+import {
+  Bundle,
+  LiquidityPosition,
+  ModifyLiquidity,
+  Pool,
+  PoolAllowCollateral,
+  PoolManager,
+  Tick,
+  Token,
+} from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
-import { convertTokenToDecimal, hexToBigInt, loadTransaction } from '../utils/index'
+import { convertTokenToDecimal, hexToBigInt, loadKittycornPositionManager, loadTransaction } from '../utils/index'
 import {
   updatePoolDayData,
   updatePoolHourData,
@@ -31,6 +40,9 @@ export function handleModifyLiquidityHelper(
   const poolId = event.params.id.toHexString()
   const pool = Pool.load(poolId)
   const poolManager = PoolManager.load(poolManagerAddress)
+
+  const poolCollateral = PoolAllowCollateral.load(poolId)
+  const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
 
   if (pool === null) {
     log.debug('handleModifyLiquidityHelper: pool not found {}', [poolId])
@@ -108,6 +120,23 @@ export function handleModifyLiquidityHelper(
     // reset aggregates with new amounts
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
+
+    const isKittycornPMAddress = event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))
+    if (isKittycornPMAddress || poolCollateral !== null) {
+      kittycornPositionManager.txCount = kittycornPositionManager.txCount.plus(ONE_BI)
+    }
+
+    if (isKittycornPMAddress) {
+      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedUSD.plus(
+        pool.totalValueLockedUSD,
+      )
+    }
+
+    if (poolCollateral !== null) {
+      kittycornPositionManager.totalCollateralUSD = kittycornPositionManager.totalCollateralUSD.plus(
+        pool.totalValueLockedUSD,
+      )
+    }
 
     const transaction = loadTransaction(event)
     const modifyLiquidity = new ModifyLiquidity(transaction.id.toString() + '-' + event.logIndex.toString())

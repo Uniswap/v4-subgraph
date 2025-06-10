@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt, ethereum } from '@graphprotocol/graph-ts'
 
-import { Transaction } from '../types/schema'
+import { KittycornPositionManager, Transaction } from '../types/schema'
 import { ONE_BD, ZERO_BD, ZERO_BI } from '../utils/constants'
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
@@ -91,4 +91,18 @@ export function loadTransaction(event: ethereum.Event): Transaction {
   transaction.gasPrice = event.transaction.gasPrice
   transaction.save()
   return transaction as Transaction
+}
+
+export function loadKittycornPositionManager(kittycornPositionManagerAddress: string): KittycornPositionManager {
+  let kittycornPositionManager = KittycornPositionManager.load(kittycornPositionManagerAddress)
+  if (kittycornPositionManager === null) {
+    kittycornPositionManager = new KittycornPositionManager(kittycornPositionManagerAddress)
+    kittycornPositionManager.poolCount = ZERO_BI
+    kittycornPositionManager.txCount = ZERO_BI
+    kittycornPositionManager.totalVolumeUSD = ZERO_BD
+    kittycornPositionManager.totalFeesUSD = ZERO_BD
+    kittycornPositionManager.totalValueLockedUSD = ZERO_BD
+    kittycornPositionManager.totalCollateralUSD = ZERO_BD
+  }
+  return kittycornPositionManager
 }

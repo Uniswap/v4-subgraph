@@ -526,7 +526,7 @@ type LiquidatePosition @entity {
   sqrtPrice: BigInt!
   tick: BigInt!
   poolId: String!
-  position: Position! 
+  position: Position!
 }
 
 type LiquidatePositionDaily @entity {
@@ -557,3 +557,49 @@ type BankPosition @entity {
   positionInfo: BigInt!
 }
 
+type PoolAllowCollateral @entity {
+  # poolId
+  id: ID!
+  pool: Pool!
+  allowCollateral: Boolean!
+  maxLTV: BigInt!
+  liquidationThreshold: BigInt!
+  liquidationFee: BigInt!
+}
+
+type KittycornPositionManager @entity {
+  # positionManager address
+  id: ID!
+  # amount of pools created
+  poolCount: BigInt!
+  # amoutn of transactions all time
+  txCount: BigInt!
+  # total volume all time in derived USD
+  totalVolumeUSD: BigDecimal!
+  # total swap fees all time in USD
+  totalFeesUSD: BigDecimal!
+  # TVL derived in USD
+  totalValueLockedUSD: BigDecimal!
+  totalCollateralUSD: BigDecimal!
+}
+
+type KittycornDayData @entity {
+  # timestamp rounded to current day by dividing by 86400
+  id: ID!
+  # timestamp rounded to current day by dividing by 86400
+  date: Int!
+  # total daily volume in Uniswap derived in terms of USD
+  volumeUSD: BigDecimal!
+  # fees in USD (swap)
+  feesUSD: BigDecimal!
+  # borrowfees in USD
+  borrowFeesUSD: BigDecimal!
+  # liquidate fee in USD
+  liquidateFeesUSD: BigDecimal!
+  # number of daily transactions
+  txCount: BigInt!
+  # tvl in terms of USD
+  tvlUSD: BigDecimal!
+  # collateral in terms of USD
+  collateralUSD: BigDecimal!
+}

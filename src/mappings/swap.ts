@@ -1,11 +1,12 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
-import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
+import { Bundle, Pool, PoolAllowCollateral, PoolManager, Swap, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD } from '../utils/constants'
-import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
+import { convertTokenToDecimal, loadKittycornPositionManager, loadTransaction, safeDiv } from '../utils/index'
 import {
+  updateKittycornDayData,
   updatePoolDayData,
   updatePoolHourData,
   updateTokenDayData,
@@ -25,6 +26,7 @@ export function handleSwap(event: SwapEvent): void {
 
 export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
   const poolManagerAddress = subgraphConfig.poolManagerAddress
+  const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
   const stablecoinWrappedNativePoolId = subgraphConfig.stablecoinWrappedNativePoolId
   const stablecoinIsToken0 = subgraphConfig.stablecoinIsToken0
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
@@ -37,6 +39,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const poolManager = PoolManager.load(poolManagerAddress)!
   const poolId = event.params.id.toHexString()
   const pool = Pool.load(poolId)!
+  const poolCollateral = PoolAllowCollateral.load(poolId)
+  const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
 
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)
@@ -79,6 +83,11 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolManager.untrackedVolumeUSD = poolManager.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
     poolManager.totalFeesETH = poolManager.totalFeesETH.plus(feesETH)
     poolManager.totalFeesUSD = poolManager.totalFeesUSD.plus(feesUSD)
+
+    if (poolCollateral !== null) {
+      kittycornPositionManager.totalVolumeUSD = kittycornPositionManager.totalVolumeUSD.plus(amountTotalUSDTracked)
+      kittycornPositionManager.totalFeesUSD = kittycornPositionManager.totalFeesUSD.plus(feesUSD)
+    }
 
     // reset aggregate tvl before individual pool tvl updates
     const currentPoolTvlETH = pool.totalValueLockedETH
@@ -161,6 +170,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // interval data
     const uniswapDayData = updateUniswapDayData(event, poolManagerAddress)
+    const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
     const poolDayData = updatePoolDayData(event.params.id.toHexString(), event)
     const poolHourData = updatePoolHourData(event.params.id.toHexString(), event)
     const token0DayData = updateTokenDayData(token0, event)
@@ -172,6 +182,11 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     uniswapDayData.volumeETH = uniswapDayData.volumeETH.plus(amountTotalETHTracked)
     uniswapDayData.volumeUSD = uniswapDayData.volumeUSD.plus(amountTotalUSDTracked)
     uniswapDayData.feesUSD = uniswapDayData.feesUSD.plus(feesUSD)
+
+    if (poolCollateral !== null) {
+      kittycornDayData.volumeUSD = kittycornDayData.volumeUSD.plus(amountTotalUSDTracked)
+      kittycornDayData.feesUSD = kittycornDayData.feesUSD.plus(feesUSD)
+    }
 
     poolDayData.volumeUSD = poolDayData.volumeUSD.plus(amountTotalUSDTracked)
     poolDayData.volumeToken0 = poolDayData.volumeToken0.plus(amount0Abs)
@@ -207,6 +222,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token0DayData.save()
     token1DayData.save()
     uniswapDayData.save()
+    kittycornDayData.save()
     poolDayData.save()
     poolHourData.save()
     token0HourData.save()

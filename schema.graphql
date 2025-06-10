@@ -579,7 +579,9 @@ type KittycornPositionManager @entity {
   # total swap fees all time in USD
   totalFeesUSD: BigDecimal!
   # TVL derived in USD
+  totalValueLockedETH: BigDecimal!
   totalValueLockedUSD: BigDecimal!
+  totalCollateralETH: BigDecimal!
   totalCollateralUSD: BigDecimal!
 }
 

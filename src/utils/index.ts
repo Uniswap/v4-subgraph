@@ -101,7 +101,9 @@ export function loadKittycornPositionManager(kittycornPositionManagerAddress: st
     kittycornPositionManager.txCount = ZERO_BI
     kittycornPositionManager.totalVolumeUSD = ZERO_BD
     kittycornPositionManager.totalFeesUSD = ZERO_BD
+    kittycornPositionManager.totalValueLockedETH = ZERO_BD
     kittycornPositionManager.totalValueLockedUSD = ZERO_BD
+    kittycornPositionManager.totalCollateralETH = ZERO_BD
     kittycornPositionManager.totalCollateralUSD = ZERO_BD
   }
   return kittycornPositionManager

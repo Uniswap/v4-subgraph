@@ -127,14 +127,20 @@ export function handleModifyLiquidityHelper(
     }
 
     if (isKittycornPMAddress) {
-      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedUSD.plus(
-        pool.totalValueLockedUSD,
+      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
+        bundle.ethPriceUSD,
       )
     }
 
     if (poolCollateral !== null) {
-      kittycornPositionManager.totalCollateralUSD = kittycornPositionManager.totalCollateralUSD.plus(
-        pool.totalValueLockedUSD,
+      kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalCollateralUSD = kittycornPositionManager.totalCollateralUSD.times(
+        bundle.ethPriceUSD,
       )
     }
 

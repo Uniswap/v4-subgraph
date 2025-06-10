@@ -3,7 +3,6 @@ import { ethereum } from '@graphprotocol/graph-ts'
 import {
   Bundle,
   KittycornDayData,
-  KittycornPositionManager,
   Pool,
   PoolDayData,
   PoolHourData,
@@ -13,13 +12,17 @@ import {
   TokenHourData,
   UniswapDayData,
 } from './../types/schema'
+import { loadKittycornPositionManager } from '.'
 import { ONE_BI, ZERO_BD, ZERO_BI } from './constants'
 
 /**
  * Tracks global aggregate data over daily windows
  * @param event
  */
-export function updateUniswapDayData(event: ethereum.Event, poolId: string): UniswapDayData {
+export function updateUniswapDayData(
+  event: ethereum.Event,
+  poolId: string,
+): UniswapDayData {
   const uniswap = PoolManager.load(poolId)!
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400 // rounded
@@ -47,7 +50,9 @@ export function updateKittycornDayData(
   event: ethereum.Event,
   kittycornPositionManagerAddress: string,
 ): KittycornDayData {
-  const kittycorn = KittycornPositionManager.load(kittycornPositionManagerAddress)!
+  const kittycorn = loadKittycornPositionManager(
+    kittycornPositionManagerAddress,
+  )
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400 // rounded
   const dayStartTimestamp = dayID * 86400
@@ -68,7 +73,10 @@ export function updateKittycornDayData(
   return kittycornDayData
 }
 
-export function updatePoolDayData(poolId: string, event: ethereum.Event): PoolDayData {
+export function updatePoolDayData(
+  poolId: string,
+  event: ethereum.Event,
+): PoolDayData {
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400
   const dayStartTimestamp = dayID * 86400
@@ -110,7 +118,10 @@ export function updatePoolDayData(poolId: string, event: ethereum.Event): PoolDa
   return poolDayData as PoolDayData
 }
 
-export function updatePoolHourData(poolId: string, event: ethereum.Event): PoolHourData {
+export function updatePoolHourData(
+  poolId: string,
+  event: ethereum.Event,
+): PoolHourData {
   const timestamp = event.block.timestamp.toI32()
   const hourIndex = timestamp / 3600 // get unique hour within unix history
   const hourStartUnix = hourIndex * 3600 // want the rounded effect
@@ -153,7 +164,10 @@ export function updatePoolHourData(poolId: string, event: ethereum.Event): PoolH
   return poolHourData as PoolHourData
 }
 
-export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDayData {
+export function updateTokenDayData(
+  token: Token,
+  event: ethereum.Event,
+): TokenDayData {
   const bundle = Bundle.load('1')!
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400
@@ -196,7 +210,10 @@ export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDa
   return tokenDayData as TokenDayData
 }
 
-export function updateTokenHourData(token: Token, event: ethereum.Event): TokenHourData {
+export function updateTokenHourData(
+  token: Token,
+  event: ethereum.Event,
+): TokenHourData {
   const bundle = Bundle.load('1')!
   const timestamp = event.block.timestamp.toI32()
   const hourIndex = timestamp / 3600 // get unique hour within unix history

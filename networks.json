@@ -127,6 +127,10 @@
     "PositionManager": {
       "address": "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e",
       "startBlock": 21689089
+    },
+    "EulerSwapFactory": {
+      "address": "0xb013be1D0D380C13B58e889f412895970A2Cf228",
+      "startBlock": 22676162
     }
   },
   "blast-mainnet": {
@@ -147,6 +151,10 @@
     "PositionManager": {
       "address": "0x4529A01c7A0410167c5740C487A8DE60232617bf",
       "startBlock": 6819670
+    },
+    "EulerSwapFactory": {
+      "address": "0x45b146BC07c9985589B52df651310e75C6BE066A",
+      "startBlock": 18413401
     }
   },
   "soneium-mainnet": {

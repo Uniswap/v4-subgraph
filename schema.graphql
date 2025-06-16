@@ -431,6 +431,10 @@ type Position @entity {
   # transfer events
   transfers: [Transfer!]! @derivedFrom(field: "position")
   liquidatePosition: LiquidatePosition @derivedFrom(field: "position")
+
+  isLiquidated: Boolean!
+  liquidatedOwner: String
+  isCollateral: Boolean!
 }
 
 type Subscribe @entity {

@@ -98,3 +98,7 @@ dataSources:
           handler: handleLiquidatePosition
         - event: SetConfigCollateral(indexed bytes32,bool,uint256,uint256,uint256)
           handler: handleSetConfigCollateral
+        - event: EnableCollateral(indexed uint256,indexed uint256,indexed address)
+          handler: handleEnableCollateral
+        - event: DisableCollateral(indexed uint256,indexed uint256,indexed address)
+          handler: handleDisableCollateral

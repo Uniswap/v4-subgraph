@@ -1,6 +1,8 @@
 import { BigDecimal, log } from '@graphprotocol/graph-ts'
 
 import {
+  DisableCollateral,
+  EnableCollateral,
   LiquidatePosition as LiquidatePositionEvent,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
   SetConfigCollateral as SetConfigCollateralCallEvent,
@@ -31,6 +33,25 @@ export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
 
 export function handleSetConfigCollateral(event: SetConfigCollateralCallEvent): void {
   handleSetConfigCollateralHelper(event)
+}
+
+export function handleEnableCollateral(event: EnableCollateral): void {
+  handleCollateralEnableDisable(event, true)
+}
+
+export function handleDisableCollateral(event: DisableCollateral): void {
+  handleCollateralEnableDisable(event, false)
+}
+
+function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: boolean): void {
+  const tokenId = event.params.tokenId.toString()
+  const position = Position.load(tokenId)
+  if (position === null) {
+    log.error('handleCollateralEnableDisable: position not found for tokenId {}', [tokenId])
+    return
+  }
+  position.isCollateral = isCollateral
+  position.save()
 }
 
 function handleSetConfigCollateralHelper(
@@ -240,6 +261,9 @@ export function handleLiquidatePositionHelper(
   liqPosition.poolId = pool.id
   liqPosition.position = position.id
 
+  position.isLiquidated = true
+  position.liquidatedOwner = event.params.owner.toHexString()
+
   kittycornDayData.liquidateFeesUSD = kittycornDayData.liquidateFeesUSD.plus(
     BigDecimal.fromString(event.params.liquidateFeeValue.toString()),
   )
@@ -264,6 +288,7 @@ export function handleLiquidatePositionHelper(
   )
   positionDaily.protocolFeeAccumulate = positionDaily.protocolFeeAccumulate.plus(liqPosition.protocolFee)
 
+  position.save()
   kittycornDayData.save()
   liqPosition.save()
   positionDaily.save()

@@ -502,4 +502,6 @@ type EulerSwapHook @entity {
   asset0: String!
   # address of asset1
   asset1: String!
+  # the pool id attached to the hook
+  poolId: Bytes 
 }

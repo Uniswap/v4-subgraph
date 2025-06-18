@@ -16,6 +16,7 @@ import {
 import {
   findNativePerToken,
   getNativePriceInUSD,
+  getTokenizeRefToken,
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../utils/pricing'
@@ -34,6 +35,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const whitelistTokens = subgraphConfig.whitelistTokens
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
+  const tokenizes = subgraphConfig.tokenizes
 
   const bundle = Bundle.load('1')!
   const poolManager = PoolManager.load(poolManagerAddress)!
@@ -59,6 +61,16 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     let amount1Abs = amount1
     if (amount1.lt(ZERO_BD)) {
       amount1Abs = amount1.times(BigDecimal.fromString('-1'))
+    }
+
+    const tokenize0Ref = getTokenizeRefToken(token0.id, tokenizes)
+    if (tokenize0Ref !== null) {
+      token0.derivedETH = tokenize0Ref.derivedETH
+    }
+
+    const tokenize1Ref = getTokenizeRefToken(token1.id, tokenizes)
+    if (tokenize1Ref !== null) {
+      token1.derivedETH = tokenize1Ref.derivedETH
     }
 
     const amount0ETH = amount0Abs.times(token0.derivedETH)
@@ -218,6 +230,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
     token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
 
+    kittycornPositionManager.save()
     swap.save()
     token0DayData.save()
     token1DayData.save()

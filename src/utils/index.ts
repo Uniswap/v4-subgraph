@@ -105,6 +105,7 @@ export function loadKittycornPositionManager(kittycornPositionManagerAddress: st
     kittycornPositionManager.totalValueLockedUSD = ZERO_BD
     kittycornPositionManager.totalCollateralETH = ZERO_BD
     kittycornPositionManager.totalCollateralUSD = ZERO_BD
+    kittycornPositionManager.save()
   }
   return kittycornPositionManager
 }

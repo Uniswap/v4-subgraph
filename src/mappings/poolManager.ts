@@ -1,7 +1,7 @@
 import { BigInt, log } from '@graphprotocol/graph-ts'
 
 import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
-import { PoolManager } from '../types/schema'
+import { PoolAllowCollateral, PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
@@ -163,6 +163,11 @@ export function handleInitializeHelper(
   const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
   pool.token0Price = prices[0]
   pool.token1Price = prices[1]
+  const poolCollateral = PoolAllowCollateral.load(poolId)
+  if (poolCollateral !== null) {
+    poolCollateral.pool = pool.id
+    poolCollateral.save()
+  }
 
   pool.save()
   token0.save()

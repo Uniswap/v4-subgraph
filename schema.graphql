@@ -564,7 +564,7 @@ type BankPosition @entity {
 type PoolAllowCollateral @entity {
   # poolId
   id: ID!
-  pool: Pool!
+  pool: Pool
   allowCollateral: Boolean!
   maxLTV: BigInt!
   liquidationThreshold: BigInt!

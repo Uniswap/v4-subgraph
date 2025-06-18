@@ -22,7 +22,7 @@ import {
   updateUniswapDayData,
 } from '../utils/intervalUpdates'
 import { getAmount0, getAmount1 } from '../utils/liquidityMath/liquidityAmounts'
-import { calculateAmountUSD } from '../utils/pricing'
+import { calculateAmountUSD, getTokenizeRefToken } from '../utils/pricing'
 import { createTick } from '../utils/tick'
 
 export function handleModifyLiquidity(event: ModifyLiquidityEvent): void {
@@ -35,6 +35,7 @@ export function handleModifyLiquidityHelper(
 ): void {
   const poolManagerAddress = subgraphConfig.poolManagerAddress
   const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
+  const tokenizes = subgraphConfig.tokenizes
 
   const bundle = Bundle.load('1')!
   const poolId = event.params.id.toHexString()
@@ -79,6 +80,16 @@ export function handleModifyLiquidityHelper(
     )
     const amount0 = convertTokenToDecimal(amount0Raw, token0.decimals)
     const amount1 = convertTokenToDecimal(amount1Raw, token1.decimals)
+
+    const tokenize0Ref = getTokenizeRefToken(token0.id, tokenizes)
+    if (tokenize0Ref !== null) {
+      token0.derivedETH = tokenize0Ref.derivedETH
+    }
+
+    const tokenize1Ref = getTokenizeRefToken(token1.id, tokenizes)
+    if (tokenize1Ref !== null) {
+      token1.derivedETH = tokenize1Ref.derivedETH
+    }
 
     const amountUSD = calculateAmountUSD(amount0, amount1, token0.derivedETH, token1.derivedETH, bundle.ethPriceUSD)
 
@@ -226,6 +237,7 @@ export function handleModifyLiquidityHelper(
       liquidityPosition.save()
     }
 
+    kittycornPositionManager.save()
     token0.save()
     token1.save()
     pool.save()

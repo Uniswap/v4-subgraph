@@ -140,3 +140,13 @@ export function calculateAmountUSD(
 ): BigDecimal {
   return amount0.times(token0DerivedETH.times(ethPriceUSD)).plus(amount1.times(token1DerivedETH.times(ethPriceUSD)))
 }
+
+export function getTokenizeRefToken(tokenizeAddress: string, tokenizeConfig: Array<string[]>): Token | null {
+  let token: Token | null
+  for (let tokenizeConfigIndex = 0; tokenizeConfigIndex < tokenizeConfig.length; tokenizeConfigIndex++) {
+    if (tokenizeAddress == tokenizeConfig[tokenizeConfigIndex][0]) {
+      token = Token.load(tokenizeConfig[tokenizeConfigIndex][1])
+    }
+  }
+  return token
+}

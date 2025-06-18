@@ -1,7 +1,6 @@
 import { BigDecimal, log } from '@graphprotocol/graph-ts'
 
 import {
-  DisableCollateral,
   EnableCollateral,
   LiquidatePosition as LiquidatePositionEvent,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
@@ -39,7 +38,8 @@ export function handleEnableCollateral(event: EnableCollateral): void {
   handleCollateralEnableDisable(event, true)
 }
 
-export function handleDisableCollateral(event: DisableCollateral): void {
+// actual type is DisableCollateral but graphnode cannot combine types
+export function handleDisableCollateral(event: EnableCollateral): void {
   handleCollateralEnableDisable(event, false)
 }
 
@@ -63,18 +63,19 @@ function handleSetConfigCollateralHelper(
   let poolCollateral = PoolAllowCollateral.load(poolId)
   const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
   const pool = Pool.load(poolId)
-  if (poolCollateral !== null) {
+  if (poolCollateral === null) {
     kittycornPositionManager.poolCount = kittycornPositionManager.poolCount.plus(ONE_BI)
+    kittycornPositionManager.save()
     poolCollateral = new PoolAllowCollateral(poolId)
   }
   if (pool !== null) {
     poolCollateral.pool = pool.id
-    poolCollateral.allowCollateral = event.params.allowCollateral
-    poolCollateral.maxLTV = event.params.maxLTV
-    poolCollateral.liquidationThreshold = event.params.liquidationThreshold
-    poolCollateral.liquidationFee = event.params.liquidationFee
-    poolCollateral.save()
   }
+  poolCollateral.allowCollateral = event.params.allowCollateral
+  poolCollateral.maxLTV = event.params.maxLTV
+  poolCollateral.liquidationThreshold = event.params.liquidationThreshold
+  poolCollateral.liquidationFee = event.params.liquidationFee
+  poolCollateral.save()
 }
 
 export function handleConfigBorrowTokenHelper(

@@ -1,4 +1,10 @@
-import { handleConfigBorrowToken, handleLiquidatePosition } from './bank'
+import {
+  handleConfigBorrowToken,
+  handleDisableCollateral,
+  handleEnableCollateral,
+  handleLiquidatePosition,
+  handleSetConfigCollateral,
+} from './bank'
 import { handleModifyLiquidity } from './modifyLiquidity'
 import { handleInitialize } from './poolManager'
 import { handleSubscription } from './subscribe'
@@ -8,9 +14,12 @@ import { handleUnsubscription } from './unsubscribe'
 
 export {
   handleConfigBorrowToken,
+  handleDisableCollateral,
+  handleEnableCollateral,
   handleInitialize,
   handleLiquidatePosition,
   handleModifyLiquidity,
+  handleSetConfigCollateral,
   handleSubscription,
   handleSwap,
   handleTransfer,

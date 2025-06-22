@@ -67,6 +67,7 @@ export function handleInitializeHelper(
     token0 = new Token(event.params.currency0.toHexString())
     token0.symbol = fetchTokenSymbol(event.params.currency0, tokenOverrides, nativeTokenDetails)
     token0.name = fetchTokenName(event.params.currency0, tokenOverrides, nativeTokenDetails)
+    token0.address = event.params.currency0.toHexString()
     token0.totalSupply = fetchTokenTotalSupply(event.params.currency0)
     const decimals = fetchTokenDecimals(event.params.currency0, tokenOverrides, nativeTokenDetails)
 
@@ -94,6 +95,7 @@ export function handleInitializeHelper(
     token1 = new Token(event.params.currency1.toHexString())
     token1.symbol = fetchTokenSymbol(event.params.currency1, tokenOverrides, nativeTokenDetails)
     token1.name = fetchTokenName(event.params.currency1, tokenOverrides, nativeTokenDetails)
+    token1.address = event.params.currency1.toHexString()
     token1.totalSupply = fetchTokenTotalSupply(event.params.currency1)
     const decimals = fetchTokenDecimals(event.params.currency1, tokenOverrides, nativeTokenDetails)
 

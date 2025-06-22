@@ -3,6 +3,7 @@ import {
   handleDisableCollateral,
   handleEnableCollateral,
   handleLiquidatePosition,
+  handleRepay,
   handleSetConfigCollateral,
 } from './bank'
 import { handleModifyLiquidity } from './modifyLiquidity'
@@ -19,6 +20,7 @@ export {
   handleInitialize,
   handleLiquidatePosition,
   handleModifyLiquidity,
+  handleRepay,
   handleSetConfigCollateral,
   handleSubscription,
   handleSwap,

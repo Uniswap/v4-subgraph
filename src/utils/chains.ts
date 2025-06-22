@@ -85,6 +85,12 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238', // USDC
         '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0', // USDT,
         '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
+        '0x1289c2dc45a0ea5e67f6ffa2b601d23d66547d3e', // tAAVE
+        '0x67332e6e2fbb793b822f3c2d7ff8be9f07f1ead9', // tWBTC
+        '0x54f4d76dab01190a32fb0a5da441be85e3cef937', // tWETH
+        '0x7dde6bd33b4e6eb1d6f0519f4cf65deeb162dd86', // tLINK
+        '0x1e271db8d8b446a0dee8e9d774f4213e9bc1c6ba', // tUSDC
+        '0x137a906e06ec20808c8f156f9024196427429220', // tUSDT
       ],
       tokenizes: [
         ['0x1289c2dc45a0ea5e67f6ffa2b601d23d66547d3e', '0x88541670e55cc00beefd87eb59edd1b7c511ac9a'], // tAAVE

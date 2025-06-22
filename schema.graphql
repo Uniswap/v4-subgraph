@@ -41,6 +41,8 @@ type Token @entity {
   symbol: String!
   # token name
   name: String!
+  # token name
+  address: String!
   # token decimals
   decimals: BigInt!
   # token total supply
@@ -140,6 +142,7 @@ type Pool @entity {
   modifyLiquiditys: [ModifyLiquidity!]! @derivedFrom(field: "pool")
   swaps: [Swap!]! @derivedFrom(field: "pool")
   ticks: [Tick!]! @derivedFrom(field: "pool")
+  collateralConfig: PoolAllowCollateral @derivedFrom(field: "pool")
 }
 
 type Tick @entity {

@@ -96,11 +96,27 @@ export function handleModifyLiquidityHelper(
     // reset tvl aggregates until new amounts calculated
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(pool.totalValueLockedETH)
     if (isKittycornPMAddress) {
+      // log.debug('MINUS isKittycornPMAddress Pool Id ===> {}', [poolId])
+      // log.debug('MINUS isKittycornPMAddress amount0 : {}, amount1 ===> {}', [amount0.toString(), amount1.toString()])
+      // log.debug('MINUS isKittycornPMAddress Tokenize 0 : {}, price ===> {}', [
+      //   token0.symbol,
+      //   token0.derivedETH.toString(),
+      // ])
+      // log.debug('MINUS isKittycornPMAddress Tokenize 1 : {}, price ===> {}', [
+      //   token1.symbol,
+      //   token1.derivedETH.toString(),
+      // ])
+      // log.debug('MINUS isKittycornPMAddress totalValueLockedETH ===> {}', [pool.totalValueLockedETH.toString()])
       kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.minus(
         pool.totalValueLockedETH,
       )
     }
     if (poolCollateral !== null) {
+      // log.debug('MINUS poolCollateral Pool Id ===> {}', [poolId])
+      // log.debug('MINUS poolCollateral amount0 : {}, amount1 ===> {}', [amount0.toString(), amount1.toString()])
+      // log.debug('MINUS poolCollateral Tokenize 0 : {}, price ===> {}', [token0.symbol, token0.derivedETH.toString()])
+      // log.debug('MINUS poolCollateral Tokenize 1 : {}, price ===> {}', [token1.symbol, token1.derivedETH.toString()])
+      // log.debug('MINUS poolCollateral totalValueLockedETH ===> {}', [pool.totalValueLockedETH.toString()])
       kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.minus(
         pool.totalValueLockedETH,
       )
@@ -148,6 +164,17 @@ export function handleModifyLiquidityHelper(
     }
 
     if (isKittycornPMAddress) {
+      // log.debug('PLUS isKittycornPMAddress Pool Id ===> {}', [poolId])
+      // log.debug('PLUS isKittycornPMAddress amount0 : {}, amount1 ===> {}', [amount0.toString(), amount1.toString()])
+      // log.debug('PLUS isKittycornPMAddress Tokenize 0 : {}, price ===> {}', [
+      //   token0.symbol,
+      //   token0.derivedETH.toString(),
+      // ])
+      // log.debug('PLUS isKittycornPMAddress Tokenize 1 : {}, price ===> {}', [
+      //   token1.symbol,
+      //   token1.derivedETH.toString(),
+      // ])
+      // log.debug('PLUS isKittycornPMAddress totalValueLockedETH ===> {}', [pool.totalValueLockedETH.toString()])
       kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
         pool.totalValueLockedETH,
       )
@@ -157,6 +184,11 @@ export function handleModifyLiquidityHelper(
     }
 
     if (poolCollateral !== null) {
+      // log.debug('PLUS poolCollateral Pool Id ===> {}', [poolId])
+      // log.debug('PLUS poolCollateral amount0 : {}, amount1 ===> {}', [amount0.toString(), amount1.toString()])
+      // log.debug('PLUS poolCollateral Tokenize 0 : {}, price ===> {}', [token0.symbol, token0.derivedETH.toString()])
+      // log.debug('PLUS poolCollateral Tokenize 1 : {}, price ===> {}', [token1.symbol, token1.derivedETH.toString()])
+      // log.debug('PLUS poolCollateral totalValueLockedETH ===> {}', [pool.totalValueLockedETH.toString()])
       kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.plus(
         pool.totalValueLockedETH,
       )

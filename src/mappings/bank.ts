@@ -3,11 +3,13 @@ import { BigDecimal, log } from '@graphprotocol/graph-ts'
 import {
   EnableCollateral,
   LiquidatePosition as LiquidatePositionEvent,
+  Repay,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
   SetConfigCollateral as SetConfigCollateralCallEvent,
 } from '../types/KittycornBank/KittycornBank'
 import {
   BorrowAsset,
+  Bundle,
   LiquidatePosition,
   LiquidatePositionDaily,
   LiquidityPosition,
@@ -41,6 +43,20 @@ export function handleEnableCollateral(event: EnableCollateral): void {
 // actual type is DisableCollateral but graphnode cannot combine types
 export function handleDisableCollateral(event: EnableCollateral): void {
   handleCollateralEnableDisable(event, false)
+}
+
+export function handleRepay(event: Repay, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
+  const repayFee = BigDecimal.fromString(event.params.repayFee.toString())
+  const bundle = Bundle.load('1')
+  const token = Token.load(event.params.ulToken.toString())
+  if (token !== null && bundle !== null) {
+    const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
+    const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
+    const amountETH = repayFee.times(token.derivedETH)
+    const amountUSD = amountETH.times(bundle.ethPriceUSD)
+    kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(amountUSD)
+    kittycornDayData.save()
+  }
 }
 
 function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: boolean): void {
@@ -97,6 +113,7 @@ export function handleConfigBorrowTokenHelper(
     token = new Token(assetId)
     token.symbol = fetchTokenSymbol(event.params.ulToken, tokenOverrides, nativeTokenDetails)
     token.name = fetchTokenName(event.params.ulToken, tokenOverrides, nativeTokenDetails)
+    token.address = assetId
     token.totalSupply = fetchTokenTotalSupply(event.params.ulToken)
     const decimals = fetchTokenDecimals(event.params.ulToken, tokenOverrides, nativeTokenDetails)
 
@@ -132,7 +149,7 @@ export function handleConfigBorrowTokenHelper(
   }
   borrowAsset.allowBorrow = allowBorrow
   borrowAsset.borrowFee = borrowFee
-  kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(BigDecimal.fromString(borrowFee.toString()))
+  // kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(BigDecimal.fromString(borrowFee.toString()))
 
   kittycornDayData.save()
   token.save()
@@ -196,6 +213,7 @@ export function handleLiquidatePositionHelper(
     }
 
     repayToken.decimals = decimals
+    repayToken.address = event.params.repayToken.toHexString()
     repayToken.derivedETH = ZERO_BD
     repayToken.volume = ZERO_BD
     repayToken.volumeUSD = ZERO_BD

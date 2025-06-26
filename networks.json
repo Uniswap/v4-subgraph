@@ -13,6 +13,20 @@
       "startBlock": 8509203
     }
   },
+  "sepolia-dev": {
+    "PoolManager": {
+      "address": "0xEa62dEb48b86E4561e95Aa2457295C3F1E4CF102",
+      "startBlock": 8616040
+    },
+    "PositionManager": {
+      "address": "0xc6Ae26187795D15Ef8Ee508c1cD058AE3150de53",
+      "startBlock": 8616040
+    },
+    "KittycornBank": {
+      "address": "0x27943ae3050AAcC334F54a7ff782C4c3423e6931",
+      "startBlock": 8616040
+    }
+  },
   "bsc": {
     "PoolManager": {
       "address": "0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF",

@@ -9,6 +9,7 @@ export enum ChainId {
 
 // assemblyscript does not support string enums, hence these constants
 const SEPOLIA_NETWORK_NAME = 'sepolia'
+const SEPOLIA_DEV_NETWORK_NAME = 'sepolia-dev'
 const BSC_NETWORK_NAME = 'bsc'
 const MAINNET_NETWORK_NAME = 'mainnet'
 const MAINNET_FORK_NETWORK_NAME = 'mainnet-fork'
@@ -93,6 +94,34 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
       kittycornBankAddress: '0x9e09Ea7d3AaDEDA139c69F5b06aBA5546705a56E',
       kittycornPositionManagerAddress: '0x9217f722bcd5812FA14538BFDc5f2c4D0546594e',
+    }
+  } else if (selectedNetwork == SEPOLIA_DEV_NETWORK_NAME) {
+    return {
+      poolManagerAddress: '0xEa62dEb48b86E4561e95Aa2457295C3F1E4CF102',
+      stablecoinWrappedNativePoolId: '0xb2cc60d9c71e558566ae21f52260ab60a8605b57459065c33f8bf3ea62a78fef', // ETH-USDC 0.05% on UniswapPositionManager(0x0372dd045edF01740D18d325AeCb2Dcb4913Cd29)
+      stablecoinIsToken0: true,
+      wrappedNativeAddress: '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
+      minimumNativeLocked: BigDecimal.fromString('0'),
+      stablecoinAddresses: [
+        '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238', // USDC
+        '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0', // USDT
+      ],
+      whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
+        '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238', // USDC
+        '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0', // USDT,
+        '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
+      ],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: BigInt.fromI32(18),
+      },
+      kittycornBankAddress: '0x27943ae3050AAcC334F54a7ff782C4c3423e6931',
+      kittycornPositionManagerAddress: '0xc6Ae26187795D15Ef8Ee508c1cD058AE3150de53',
     }
   } else if (selectedNetwork == BSC_NETWORK_NAME) {
     return {

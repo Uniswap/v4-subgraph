@@ -104,3 +104,5 @@ dataSources:
           handler: handleDisableCollateral
         - event: Repay(indexed uint256,indexed address,uint256,uint256)
           handler: handleRepay
+        - event: Borrow(indexed uint256,indexed address,uint256)
+          handler: handleBorrow

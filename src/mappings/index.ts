@@ -1,4 +1,5 @@
 import {
+  handleBorrow,
   handleConfigBorrowToken,
   handleDisableCollateral,
   handleEnableCollateral,
@@ -14,6 +15,7 @@ import { handleTransfer } from './transfer'
 import { handleUnsubscription } from './unsubscribe'
 
 export {
+  handleBorrow,
   handleConfigBorrowToken,
   handleDisableCollateral,
   handleEnableCollateral,

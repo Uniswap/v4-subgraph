@@ -73,6 +73,8 @@ type Token @entity {
   whitelistPools: [Pool!]!
   # derived fields
   tokenDayData: [TokenDayData!]! @derivedFrom(field: "token")
+  tokenHourData: [TokenHourData!]! @derivedFrom(field: "token")
+  borrowAsset: BorrowAsset @derivedFrom(field: "token")
 }
 
 type Pool @entity {
@@ -507,6 +509,7 @@ type BorrowAsset @entity {
   borrowAPY: BigInt!
   allowBorrow: Boolean!
   borrowFee: BigInt!
+  totalBorrowAmount: BigInt!
 }
 
 type LiquidatePosition @entity {

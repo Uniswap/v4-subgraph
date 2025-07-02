@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 import { Bundle, Pool, Token } from './../types/schema'
@@ -92,6 +92,12 @@ export function findNativePerToken(
       }
     }
   }
+  log.info('findNativePerToken ===> {}, {}, {}, priceSoFar ===> {}', [
+    token.id,
+    token.symbol,
+    token.derivedETH.toString(),
+    priceSoFar.toString(),
+  ])
   return priceSoFar
 }
 

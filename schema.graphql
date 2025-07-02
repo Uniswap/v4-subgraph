@@ -550,6 +550,7 @@ type LiquidatePositionDaily @entity {
 type LiquidityPosition @entity {
   id: ID!
   tokenId: BigInt!
+  position: Position
   pool: Pool!
   tickLower: BigInt!
   tickUpper: BigInt!

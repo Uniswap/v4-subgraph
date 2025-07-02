@@ -23,6 +23,7 @@ import { exponentToBigDecimal, loadKittycornPositionManager } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updateKittycornDayData } from '../utils/intervalUpdates'
+import { findNativePerToken } from '../utils/pricing'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
 
 export function handleConfigBorrowToken(event: SetConfigBorrowTokenEvent): void {
@@ -48,6 +49,9 @@ export function handleDisableCollateral(event: EnableCollateral): void {
 
 export function handleRepay(event: Repay): void {
   const subgraphConfig: SubgraphConfig = getSubgraphConfig()
+  const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
+  const stablecoinAddresses = subgraphConfig.stablecoinAddresses
+  const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
   const assetId = event.params.ulToken.toHexString()
   const repayFee = BigDecimal.fromString(event.params.repayFee.toString())
@@ -55,22 +59,21 @@ export function handleRepay(event: Repay): void {
   const bundle = Bundle.load('1')
   const token = Token.load(assetId)
   const borrowAsset = BorrowAsset.load(assetId)
-  log.info('event.params.ulToken ===> {}', [assetId])
-  log.info('KPMAddress ===> {}', [kittycornPositionManagerAddress])
+  log.info('Repay ===> {}, {}', [assetId, event.params.repayFee.toString()])
   if (token !== null && bundle !== null) {
+    log.info('before token ===> {}, {}, {}', [token.id, token.symbol, token.derivedETH.toString()])
+    if (token.derivedETH === ZERO_BD) {
+      token.derivedETH = findNativePerToken(token, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+    }
+    log.info('after find token.derivedETH ===> {}', [token.derivedETH.toString()])
     if (borrowAsset !== null) {
       borrowAsset.totalBorrowAmount = borrowAsset.totalBorrowAmount.minus(repayAmount)
       borrowAsset.save()
     }
     const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
-    log.info('kittycornDayData.borrowFeesUSD ===> {}', [kittycornDayData.borrowFeesUSD.toString()])
-    log.info('token.derivedETH ===> {}', [token.derivedETH.toString()])
-    log.info('bundle.ethPriceUSD ===> {}', [bundle.ethPriceUSD.toString()])
-    log.info('repayFee ===> {}', [repayFee.toString()])
     const amountETH = repayFee.times(token.derivedETH)
     const amountUSD = amountETH.times(bundle.ethPriceUSD)
-    log.info('amountETH ===> {}', [amountETH.toString()])
-    log.info('amountUSD ===> {}', [amountUSD.toString()])
+    log.info('amountETH,USD ===> {}, {}', [amountETH.toString(), amountUSD.toString()])
     kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(amountUSD)
     kittycornDayData.save()
   }

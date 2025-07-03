@@ -226,7 +226,7 @@ export function handleModifyLiquidityHelper(
     const saltBigInt = hexToBigInt(salt)
     const tokenId = saltBigInt.toString()
 
-    if (event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))) {
+    if (isKittycornPMAddress) {
       let liquidityPosition = LiquidityPosition.load(tokenId)
       const position = Position.load(tokenId)
       if (liquidityPosition === null) {

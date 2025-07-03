@@ -114,9 +114,9 @@ export function getSubgraphConfig(): SubgraphConfig {
   } else if (selectedNetwork == SEPOLIA_DEV_NETWORK_NAME) {
     return {
       poolManagerAddress: '0xEa62dEb48b86E4561e95Aa2457295C3F1E4CF102',
-      stablecoinWrappedNativePoolId: '0xb2cc60d9c71e558566ae21f52260ab60a8605b57459065c33f8bf3ea62a78fef', // ETH-USDC 0.05% on UniswapPositionManager(0x0372dd045edF01740D18d325AeCb2Dcb4913Cd29)
+      stablecoinWrappedNativePoolId: '0x06bf19febfc37a95cae4f798ce744cf052fe7b96d4bdb55ad31335492cc5eb4b', // WETH-USDT 0.3% on UniswapPositionManager(0x0372dd045edF01740D18d325AeCb2Dcb4913Cd29)
       stablecoinIsToken0: true,
-      wrappedNativeAddress: '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
+      wrappedNativeAddress: '0xc558dbdd856501fcd9aaf1e62eae57a9f0629a3c', // WETH
       minimumNativeLocked: BigDecimal.fromString('0'),
       stablecoinAddresses: [
         '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238', // USDC
@@ -125,21 +125,24 @@ export function getSubgraphConfig(): SubgraphConfig {
       whitelistTokens: [
         '0x0000000000000000000000000000000000000000', // Native ETH
         '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238', // USDC
-        '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0', // USDT
-        '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
-        '0x07384919c1b5bff99c332a0515c445ff7eab754d', // tAAVE
-        '0x2d82fa16fd88a586d256810dbdf6e2bd1eb1b1c1', // tWBTC
-        '0x5295dc3abca60f7da5b850441962f1ffba2498b9', // tWETH
-        '0x7d6eaccca5ec1493674e062193f7d8b830aca121', // tLINK
+        '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0', // USDT,
+        '0xc558dbdd856501fcd9aaf1e62eae57a9f0629a3c', // WETH,
+        '0xf8fb3713d459d7c1018bd0a49d19b4c44290ebe5', // LINK,
+        '0x29f2d40b0605204364af54ec677bd022da425d03', // WBTC **
+        '0x88541670e55cc00beefd87eb59edd1b7c511ac9a', // AAVE **
+        '0x23dce411895b4ca1bc7a50daf5747e87e7f69bd0', // tAAVE
+        '0x51e8c058a1114af07e33758b34d875c91d671b49', // tWBTC
+        '0x4e2cc7950eea2d4e35fa09b02d58f59f2aeae8bb', // tWETH
+        '0x1e271db8d8b446a0dee8e9d774f4213e9bc1c6ba', // tLINK
         '0x1e271db8d8b446a0dee8e9d774f4213e9bc1c6ba', // tUSDC
         '0x137a906e06ec20808c8f156f9024196427429220', // tUSDT
       ],
       tokenizes: [
-        ['0x07384919c1b5bff99c332a0515c445ff7eab754d', '0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8'], // tAAVE
-        ['0x2d82fa16fd88a586d256810dbdf6e2bd1eb1b1c1', '0x29f2d40b0605204364af54ec677bd022da425d03'], // tWBTC
-        ['0x5295dc3abca60f7da5b850441962f1ffba2498b9', '0xc558dbdd856501fcd9aaf1e62eae57a9f0629a3c'], // tWETH
-        ['0x7d6eaccca5ec1493674e062193f7d8b830aca121', '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0'], // tLINK
-        ['0x1e271db8d8b446a0dee8e9d774f4213e9bc1c6ba', '0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8'], // tUSDC
+        ['0x23dce411895b4ca1bc7a50daf5747e87e7f69bd0', '0x88541670e55cc00beefd87eb59edd1b7c511ac9a'], // tAAVE
+        ['0x51e8c058a1114af07e33758b34d875c91d671b49', '0x29f2d40b0605204364af54ec677bd022da425d03'], // tWBTC
+        ['0x4e2cc7950eea2d4e35fa09b02d58f59f2aeae8bb', '0xc558dbdd856501fcd9aaf1e62eae57a9f0629a3c'], // tWETH
+        ['0x0e9014c2b4f586253881858a9a9c5a273c16f5c5', '0xf8fb3713d459d7c1018bd0a49d19b4c44290ebe5'], // tLINK
+        ['0x1e271db8d8b446a0dee8e9d774f4213e9bc1c6ba', '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238'], // tUSDC
         ['0x137a906e06ec20808c8f156f9024196427429220', '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0'], // tUSDT
       ],
       tokenOverrides: [],
@@ -150,8 +153,8 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0x27943ae3050AAcC334F54a7ff782C4c3423e6931',
-      kittycornPositionManagerAddress: '0xc6Ae26187795D15Ef8Ee508c1cD058AE3150de53',
+      kittycornBankAddress: '0xdcb95eb81869c75aa00cd320a538212a3c6be38a',
+      kittycornPositionManagerAddress: '0xfe8e8f0a1305a0f66f4deb744f94726be489602c',
     }
   } else if (selectedNetwork == BSC_NETWORK_NAME) {
     return {

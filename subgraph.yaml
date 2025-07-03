@@ -46,7 +46,7 @@ dataSources:
     network: sepolia-dev
     source:
       abi: PositionManager
-      address: "0xc6Ae26187795D15Ef8Ee508c1cD058AE3150de53"
+      address: "0xFe8e8F0A1305a0f66f4DEb744f94726BE489602C"
       startBlock: 8616040
     mapping:
       kind: ethereum/events
@@ -70,7 +70,7 @@ dataSources:
     network: sepolia-dev
     source:
       abi: KittycornBank
-      address: "0x27943ae3050AAcC334F54a7ff782C4c3423e6931"
+      address: "0xDCb95Eb81869c75AA00cD320a538212A3C6bE38A"
       startBlock: 8616040
     mapping:
       kind: ethereum/events

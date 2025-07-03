@@ -59,13 +59,10 @@ export function handleRepay(event: Repay): void {
   const bundle = Bundle.load('1')
   const token = Token.load(assetId)
   const borrowAsset = BorrowAsset.load(assetId)
-  log.info('Repay ===> {}, {}', [assetId, event.params.repayFee.toString()])
   if (token !== null && bundle !== null) {
-    log.info('before token ===> {}, {}, {}', [token.id, token.symbol, token.derivedETH.toString()])
-    if (token.derivedETH === ZERO_BD) {
+    if (token.derivedETH == ZERO_BD) {
       token.derivedETH = findNativePerToken(token, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
     }
-    log.info('after find token.derivedETH ===> {}', [token.derivedETH.toString()])
     if (borrowAsset !== null) {
       borrowAsset.totalBorrowAmount = borrowAsset.totalBorrowAmount.minus(repayAmount)
       borrowAsset.save()
@@ -73,7 +70,6 @@ export function handleRepay(event: Repay): void {
     const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
     const amountETH = repayFee.times(token.derivedETH)
     const amountUSD = amountETH.times(bundle.ethPriceUSD)
-    log.info('amountETH,USD ===> {}, {}', [amountETH.toString(), amountUSD.toString()])
     kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(amountUSD)
     kittycornDayData.save()
   }

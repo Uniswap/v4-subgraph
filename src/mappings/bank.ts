@@ -23,7 +23,6 @@ import { exponentToBigDecimal, loadKittycornPositionManager } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updateKittycornDayData } from '../utils/intervalUpdates'
-import { findNativePerToken } from '../utils/pricing'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
 
 export function handleConfigBorrowToken(event: SetConfigBorrowTokenEvent): void {
@@ -49,9 +48,6 @@ export function handleDisableCollateral(event: EnableCollateral): void {
 
 export function handleRepay(event: Repay): void {
   const subgraphConfig: SubgraphConfig = getSubgraphConfig()
-  const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
-  const stablecoinAddresses = subgraphConfig.stablecoinAddresses
-  const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
   const assetId = event.params.ulToken.toHexString()
   const repayFee = BigDecimal.fromString(event.params.repayFee.toString())
@@ -60,9 +56,6 @@ export function handleRepay(event: Repay): void {
   const token = Token.load(assetId)
   const borrowAsset = BorrowAsset.load(assetId)
   if (token !== null && bundle !== null) {
-    if (token.derivedETH == ZERO_BD) {
-      token.derivedETH = findNativePerToken(token, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-    }
     if (borrowAsset !== null) {
       borrowAsset.totalBorrowAmount = borrowAsset.totalBorrowAmount.minus(repayAmount)
       borrowAsset.save()

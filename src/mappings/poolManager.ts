@@ -7,7 +7,13 @@ import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
-import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
+import {
+  fetchTokenDecimals,
+  fetchTokenName,
+  fetchTokenSymbol,
+  fetchTokenTotalSupply,
+  getIsTokenize,
+} from '../utils/token'
 
 // The subgraph handler must have this signature to be able to handle events,
 // however, we invoke a helper in order to inject dependencies for unit tests.
@@ -29,6 +35,7 @@ export function handleInitializeHelper(
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
+  const tokenizes = subgraphConfig.tokenizes
   const poolId = event.params.id.toHexString()
   if (poolsToSkip.includes(poolId)) {
     return
@@ -183,8 +190,14 @@ export function handleInitializeHelper(
   bundle.save()
   updatePoolDayData(poolId, event)
   updatePoolHourData(poolId, event)
-  token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-  token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  const isToken1Tokenize = getIsTokenize(token1.id, tokenizes)
+  if (isToken1Tokenize == false) {
+    token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  }
+  const isToken0Tokenize = getIsTokenize(token0.id, tokenizes)
+  if (isToken0Tokenize == false) {
+    token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  }
 
   token0.save()
   token1.save()

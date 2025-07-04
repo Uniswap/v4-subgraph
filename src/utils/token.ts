@@ -117,3 +117,13 @@ export function fetchTokenDecimals(
 
   return null
 }
+
+export function getIsTokenize(tokenAddress: string, tokenizeConfig: Array<string[]>): boolean {
+  let isTokenize = false
+  for (let tokenizeConfigIndex = 0; tokenizeConfigIndex < tokenizeConfig.length; tokenizeConfigIndex++) {
+    if (tokenAddress == tokenizeConfig[tokenizeConfigIndex][0]) {
+      isTokenize = true
+    }
+  }
+  return isTokenize
+}

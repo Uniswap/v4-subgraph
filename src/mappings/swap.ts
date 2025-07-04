@@ -20,6 +20,7 @@ import {
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../utils/pricing'
+import { getIsTokenize } from '../utils/token'
 
 export function handleSwap(event: SwapEvent): void {
   handleSwapHelper(event)
@@ -146,8 +147,15 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
 
     bundle.save()
-    token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-    token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+
+    const isToken0Tokenize = getIsTokenize(token0.id, tokenizes)
+    if (isToken0Tokenize == false) {
+      token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+    }
+    const isToken1Tokenize = getIsTokenize(token1.id, tokenizes)
+    if (isToken1Tokenize == false) {
+      token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+    }
 
     /**
      * Things afffected by new USD rates

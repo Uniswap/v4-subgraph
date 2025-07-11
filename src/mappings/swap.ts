@@ -36,7 +36,11 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const bundle = Bundle.load('1')!
   const poolManager = PoolManager.load(poolManagerAddress)!
   const poolId = event.params.id.toHexString()
-  const pool = Pool.load(poolId)!
+  const pool = Pool.load(poolId)
+
+  if (!pool) {
+    return
+  }
 
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)

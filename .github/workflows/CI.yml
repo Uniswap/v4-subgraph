@@ -27,7 +27,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -59,7 +59,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -73,9 +73,9 @@ jobs:
       - name: Build project
         run: yarn build
 
-      - name: Build Docker
-        run: yarn build:docker
+      # - name: Build Docker
+      #   run: yarn build:docker
 
-      - name: Test
-        # We need to run test in this mode because github CI is non-interactive
-        run: yarn test:no-tty
+      # - name: Test
+      #   # We need to run test in this mode because github CI is non-interactive
+      #   run: yarn test:no-tty

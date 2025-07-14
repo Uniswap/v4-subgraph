@@ -9,11 +9,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: PoolManager
-    network: sepolia
+    network: sepolia-dev
     source:
       abi: PoolManager
-      address: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"
-      startBlock: 7258946
+      address: "0xEa62dEb48b86E4561e95Aa2457295C3F1E4CF102"
+      startBlock: 8616040
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -43,11 +43,11 @@ dataSources:
           handler: handleSwap
   - kind: ethereum/contract
     name: PositionManager
-    network: sepolia
+    network: sepolia-dev
     source:
       abi: PositionManager
-      address: "0x9217f722bcd5812FA14538BFDc5f2c4D0546594e"
-      startBlock: 8509203
+      address: "0xFe8e8F0A1305a0f66f4DEb744f94726BE489602C"
+      startBlock: 8616040
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -67,11 +67,11 @@ dataSources:
           handler: handleTransfer
   - kind: ethereum/contract
     name: KittycornBank
-    network: sepolia
+    network: sepolia-dev
     source:
       abi: KittycornBank
-      address: "0x9e09Ea7d3AaDEDA139c69F5b06aBA5546705a56E"
-      startBlock: 8509203
+      address: "0xDCb95Eb81869c75AA00cD320a538212A3C6bE38A"
+      startBlock: 8616040
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -96,3 +96,13 @@ dataSources:
         - event: LiquidatePosition(indexed uint256,indexed uint256,indexed
             address,address,uint256,uint256,uint256,uint256,uint256)
           handler: handleLiquidatePosition
+        - event: SetConfigCollateral(indexed bytes32,bool,uint256,uint256,uint256)
+          handler: handleSetConfigCollateral
+        - event: EnableCollateral(indexed uint256,indexed uint256,indexed address)
+          handler: handleEnableCollateral
+        - event: DisableCollateral(indexed uint256,indexed uint256,indexed address)
+          handler: handleDisableCollateral
+        - event: Repay(indexed uint256,indexed address,uint256,uint256)
+          handler: handleRepay
+        - event: Borrow(indexed uint256,indexed address,uint256)
+          handler: handleBorrow

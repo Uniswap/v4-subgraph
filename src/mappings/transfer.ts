@@ -26,6 +26,9 @@ export function handleTransferHelper(event: TransferEvent, subgraphConfig: Subgr
     position.origin = event.transaction.from.toHexString()
     position.createdAtTimestamp = event.block.timestamp
     position.owner = to.toHexString()
+    position.liquidatedOwner = ''
+    position.isLiquidated = false
+    position.isCollateral = false
   }
 
   if (to.notEqual(kittycornBankAddress)) {

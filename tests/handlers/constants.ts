@@ -284,6 +284,7 @@ export const createAndStoreTestToken = (tokenFixture: TokenFixture): Token => {
   const token = new Token(tokenFixture.address)
   token.symbol = tokenFixture.symbol
   token.name = tokenFixture.name
+  token.address = tokenFixture.address
   token.decimals = BigInt.fromString(tokenFixture.decimals)
   token.totalSupply = BigInt.fromString(tokenFixture.totalSupply)
   token.volume = ZERO_BD

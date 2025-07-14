@@ -2,6 +2,7 @@ import { ethereum } from '@graphprotocol/graph-ts'
 
 import {
   Bundle,
+  KittycornDayData,
   Pool,
   PoolDayData,
   PoolHourData,
@@ -11,6 +12,7 @@ import {
   TokenHourData,
   UniswapDayData,
 } from './../types/schema'
+import { loadKittycornPositionManager } from '.'
 import { ONE_BI, ZERO_BD, ZERO_BI } from './constants'
 
 /**
@@ -35,6 +37,35 @@ export function updateUniswapDayData(event: ethereum.Event, poolId: string): Uni
   uniswapDayData.txCount = uniswap.txCount
   uniswapDayData.save()
   return uniswapDayData as UniswapDayData
+}
+
+/**
+ * Tracks global aggregate data over daily windows
+ * @param event
+ */
+export function updateKittycornDayData(
+  event: ethereum.Event,
+  kittycornPositionManagerAddress: string,
+): KittycornDayData {
+  const kittycorn = loadKittycornPositionManager(kittycornPositionManagerAddress)
+  const timestamp = event.block.timestamp.toI32()
+  const dayID = timestamp / 86400 // rounded
+  const dayStartTimestamp = dayID * 86400
+  let kittycornDayData = KittycornDayData.load(dayID.toString())
+  if (kittycornDayData === null) {
+    kittycornDayData = new KittycornDayData(dayID.toString())
+    kittycornDayData.date = dayStartTimestamp
+    kittycornDayData.volumeUSD = ZERO_BD
+    kittycornDayData.feesUSD = ZERO_BD
+    kittycornDayData.borrowFeesUSD = ZERO_BD
+    kittycornDayData.liquidateFeesUSD = ZERO_BD
+    kittycornDayData.collateralUSD = ZERO_BD
+  }
+  kittycornDayData.tvlUSD = kittycorn.totalValueLockedUSD
+  kittycornDayData.txCount = kittycorn.txCount
+  kittycornDayData.collateralUSD = kittycorn.totalCollateralUSD
+  kittycornDayData.save()
+  return kittycornDayData
 }
 
 export function updatePoolDayData(poolId: string, event: ethereum.Event): PoolDayData {
@@ -127,7 +158,11 @@ export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDa
   const timestamp = event.block.timestamp.toI32()
   const dayID = timestamp / 86400
   const dayStartTimestamp = dayID * 86400
-  const tokenDayID = token.id.toString().concat('-').concat(dayID.toString())
+  // eslint-disable-next-line prettier/prettier
+  const tokenDayID = token.id
+    .toString()
+    .concat('-')
+    .concat(dayID.toString())
   const tokenPrice = token.derivedETH.times(bundle.ethPriceUSD)
 
   let tokenDayData = TokenDayData.load(tokenDayID)
@@ -167,7 +202,11 @@ export function updateTokenHourData(token: Token, event: ethereum.Event): TokenH
   const timestamp = event.block.timestamp.toI32()
   const hourIndex = timestamp / 3600 // get unique hour within unix history
   const hourStartUnix = hourIndex * 3600 // want the rounded effect
-  const tokenHourID = token.id.toString().concat('-').concat(hourIndex.toString())
+  // eslint-disable-next-line prettier/prettier
+  const tokenHourID = token.id
+    .toString()
+    .concat('-')
+    .concat(hourIndex.toString())
   let tokenHourData = TokenHourData.load(tokenHourID)
   const tokenPrice = token.derivedETH.times(bundle.ethPriceUSD)
 

@@ -8,3 +8,4 @@ tests/.docker/
 tests/.latest.json
 
 data
+.env

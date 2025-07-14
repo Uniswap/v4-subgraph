@@ -1,13 +1,19 @@
 import { BigInt, log } from '@graphprotocol/graph-ts'
 
 import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
-import { PoolManager } from '../types/schema'
+import { PoolAllowCollateral, PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
-import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
+import {
+  fetchTokenDecimals,
+  fetchTokenName,
+  fetchTokenSymbol,
+  fetchTokenTotalSupply,
+  getIsTokenize,
+} from '../utils/token'
 
 // The subgraph handler must have this signature to be able to handle events,
 // however, we invoke a helper in order to inject dependencies for unit tests.
@@ -29,6 +35,7 @@ export function handleInitializeHelper(
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
+  const tokenizes = subgraphConfig.tokenizes
   const poolId = event.params.id.toHexString()
   if (poolsToSkip.includes(poolId)) {
     return
@@ -67,6 +74,7 @@ export function handleInitializeHelper(
     token0 = new Token(event.params.currency0.toHexString())
     token0.symbol = fetchTokenSymbol(event.params.currency0, tokenOverrides, nativeTokenDetails)
     token0.name = fetchTokenName(event.params.currency0, tokenOverrides, nativeTokenDetails)
+    token0.address = event.params.currency0.toHexString()
     token0.totalSupply = fetchTokenTotalSupply(event.params.currency0)
     const decimals = fetchTokenDecimals(event.params.currency0, tokenOverrides, nativeTokenDetails)
 
@@ -94,6 +102,7 @@ export function handleInitializeHelper(
     token1 = new Token(event.params.currency1.toHexString())
     token1.symbol = fetchTokenSymbol(event.params.currency1, tokenOverrides, nativeTokenDetails)
     token1.name = fetchTokenName(event.params.currency1, tokenOverrides, nativeTokenDetails)
+    token1.address = event.params.currency1.toHexString()
     token1.totalSupply = fetchTokenTotalSupply(event.params.currency1)
     const decimals = fetchTokenDecimals(event.params.currency1, tokenOverrides, nativeTokenDetails)
 
@@ -163,6 +172,11 @@ export function handleInitializeHelper(
   const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
   pool.token0Price = prices[0]
   pool.token1Price = prices[1]
+  const poolCollateral = PoolAllowCollateral.load(poolId)
+  if (poolCollateral !== null) {
+    poolCollateral.pool = pool.id
+    poolCollateral.save()
+  }
 
   pool.save()
   token0.save()
@@ -176,8 +190,14 @@ export function handleInitializeHelper(
   bundle.save()
   updatePoolDayData(poolId, event)
   updatePoolHourData(poolId, event)
-  token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-  token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  const isToken1Tokenize = getIsTokenize(token1.id, tokenizes)
+  if (isToken1Tokenize == false) {
+    token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  }
+  const isToken0Tokenize = getIsTokenize(token0.id, tokenizes)
+  if (isToken0Tokenize == false) {
+    token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  }
 
   token0.save()
   token1.save()

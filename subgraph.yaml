@@ -87,3 +87,23 @@ dataSources:
           handler: handleHookDeployed
         - event: PoolUninstalled(indexed address,indexed address,indexed address,address)
           handler: handleHookUninstalled
+  - kind: ethereum/contract
+    name: ArrakisHookFactory
+    network: mainnet
+    source:
+      abi: ArrakisHookFactory
+      address: "0xeF129a430032C8183abA158C1a70799e3b840dF9"
+      startBlock: 28450225
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/index.ts
+      entities:
+        - ArrakisHook
+      abis:
+        - name: ArrakisHookFactory
+          file: ./abis/ArrakisHookFactory.json
+      eventHandlers:
+        - event: LogCreatePrivateHook(indexed address,indexed address,bytes32)
+          handler: handleArrakisHookDeployed

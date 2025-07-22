@@ -1,3 +1,4 @@
+import { handleArrakisHookDeployed } from './arrakis'
 import { handleHookDeployed, handleHookUninstalled } from './euler'
 import { handleModifyLiquidity } from './modifyLiquidity'
 import { handleInitialize } from './poolManager'
@@ -7,6 +8,7 @@ import { handleTransfer } from './transfer'
 import { handleUnsubscription } from './unsubscribe'
 
 export {
+  handleArrakisHookDeployed,
   handleHookDeployed,
   handleHookUninstalled,
   handleInitialize,

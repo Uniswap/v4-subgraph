@@ -553,6 +553,11 @@
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.10.1.tgz#7ca168b6937818e9a74b47ac4e2112b2e1a024cf"
   integrity sha512-S3Kq8e7LqxkA9s7HKLqXGTGck1uwis5vAXan3FnU5yw1Ec5hsSGnq4s/UCaSqABPOnOTg7zASLyst7+ohgWexg==
 
+"@sorellalabs/angstrom-assembly-helper@^1.6.4":
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/@sorellalabs/angstrom-assembly-helper/-/angstrom-assembly-helper-1.6.4.tgz#44b11e39a90ead0f8ab3edc96cd4eb052c720487"
+  integrity sha512-H+bHS6WHW2wzpMOe15dF049j+JCHuDkl3tdruzc68N+2g09Q1phQvDFhM/onVdP1UzNjdy1e35MeWWfMfE4l9g==
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.11"
   resolved "https://registry.yarnpkg.com/@tsconfig/node10/-/node10-1.0.11.tgz#6ee46400685f130e278128c7b38b7e031ff5b2f2"

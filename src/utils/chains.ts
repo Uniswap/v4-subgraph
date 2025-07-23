@@ -66,6 +66,9 @@ export class SubgraphConfig {
 
   // native token details for the chain.
   nativeTokenDetails: NativeTokenDetails
+
+  // angstrom address for the chain
+  angstromAddress: string
 }
 
 export function getSubgraphConfig(): SubgraphConfig {
@@ -97,6 +100,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == UNICHAIN_SEPOLIA_NETWORK_NAME) {
     return {
@@ -121,6 +125,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == ARBITRUM_SEPOLIA_NETWORK_NAME) {
     return {
@@ -145,6 +150,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == BASE_SEPOLIA_NETWORK_NAME) {
     return {
@@ -170,6 +176,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == ARBITRUM_ONE_NETWORK_NAME) {
     return {
@@ -213,6 +220,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == BASE_NETWORK_NAME) {
     return {
@@ -238,6 +246,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == MATIC_NETWORK_NAME) {
     return {
@@ -267,6 +276,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Polygon',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == BSC_NETWORK_NAME) {
     return {
@@ -293,6 +303,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Binance Coin',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == OPTIMISM_NETWORK_NAME) {
     return {
@@ -334,6 +345,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == AVALANCHE_NETWORK_NAME) {
     return {
@@ -369,6 +381,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Avalanche',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == WORLDCHAIN_MAINNET_NETWORK_NAME) {
     return {
@@ -396,6 +409,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == ZORA_MAINNET_NETWORK_NAME) {
     return {
@@ -420,6 +434,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == MAINNET_NETWORK_NAME) {
     return {
@@ -504,6 +519,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '0x0000000aa232009084Bd71A5797d089AA4Edfad4',
     }
   } else if (selectedNetwork == BLAST_MAINNET_NETWORK_NAME) {
     return {
@@ -528,6 +544,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == UNICHAIN_MAINNET_NETWORK_NAME) {
     return {
@@ -557,6 +574,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else if (selectedNetwork == SONEIUM_MAINNET_NETWORK_NAME) {
     return {
@@ -581,6 +599,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      angstromAddress: '',
     }
   } else {
     throw new Error('Unsupported Network')

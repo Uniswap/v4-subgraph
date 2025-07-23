@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "husky": "8.0.3",
-    "lint-staged": "^15.2.7"
+    "lint-staged": "^15.2.7",
+    "@sorellalabs/angstrom-assembly-helper": "^1.6.4"
   },
   "lint-staged": {
     "*.{js,ts}": [

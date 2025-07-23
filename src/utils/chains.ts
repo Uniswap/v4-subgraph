@@ -519,7 +519,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      angstromAddress: '0x0000000aa232009084Bd71A5797d089AA4Edfad4',
+      angstromAddress: '0x0000000aa232009084bd71a5797d089aa4edfad4',
     }
   } else if (selectedNetwork == BLAST_MAINNET_NETWORK_NAME) {
     return {

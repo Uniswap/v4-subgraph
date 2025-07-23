@@ -61,8 +61,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       const angstromResult = processAngstromBundle(transactionInput, pool, token0, token1, event.block.timestamp)
 
       if (angstromResult.found) {
-        amount0 = angstromResult.amount0
-        amount1 = angstromResult.amount1
+        amount0 = angstromResult.amount0.times(BigDecimal.fromString('-1'))
+        amount1 = angstromResult.amount1.times(BigDecimal.fromString('-1'))
         angstromFeesUSD = angstromResult.feesUSD
         log.debug('handleSwapHelper: using Angstrom amounts {} {} with fees {}', [
           amount0.toString(),

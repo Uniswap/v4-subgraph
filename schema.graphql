@@ -184,7 +184,7 @@ type Transaction @entity {
 }
 
 type Swap @entity {
-  # transaction hash + "#" + index in swaps Transaction array
+  # transaction hash + "-" + index in swaps Transaction array
   id: ID!
   # pointer to transaction
   transaction: Transaction!

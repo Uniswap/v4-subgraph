@@ -26,14 +26,13 @@ export function hexToBigInt(hex: string): BigInt {
   if (hex.startsWith('0x')) {
     hex = hex.slice(2)
   }
-  let decimal = '0'
+  let result = BigInt.zero()
   for (let i = 0; i < hex.length; i++) {
-    decimal = BigInt.fromString(decimal)
+    result = result
       .times(BigInt.fromI32(16))
       .plus(BigInt.fromI32(parseInt(hex.charAt(i), 16) as i32))
-      .toString()
   }
-  return BigInt.fromString(decimal)
+      return result
 }
 
 /**

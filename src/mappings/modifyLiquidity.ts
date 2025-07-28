@@ -45,7 +45,7 @@ export function handleModifyLiquidityHelper(
   const token1 = Token.load(pool.token1)
 
   if (token0 && token1) {
-    const currTick: i32 = pool.tick!.toI32()
+    const currTick = pool.tick!.toI32()
     const currSqrtPriceX96 = pool.sqrtPrice
 
     // Get the amounts using the getAmounts function
@@ -148,9 +148,6 @@ export function handleModifyLiquidityHelper(
     lowerTick.liquidityNet = lowerTick.liquidityNet.plus(amount)
     upperTick.liquidityGross = upperTick.liquidityGross.plus(amount)
     upperTick.liquidityNet = upperTick.liquidityNet.minus(amount)
-
-    lowerTick.save()
-    upperTick.save()
 
     lowerTick.save()
     upperTick.save()

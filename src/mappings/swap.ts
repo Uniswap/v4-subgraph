@@ -220,7 +220,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolHourData.save()
     token0HourData.save()
     token1HourData.save()
-    poolHourData.save()
     poolManager.save()
     pool.save()
     token0.save()

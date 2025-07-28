@@ -24,6 +24,7 @@ export function handleModifyLiquidityHelper(
   event: ModifyLiquidityEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
+  const start = Date.now()
   const poolManagerAddress = subgraphConfig.poolManagerAddress
 
   const bundle = Bundle.load('1')!
@@ -43,6 +44,8 @@ export function handleModifyLiquidityHelper(
 
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)
+  const endLoadingFromDb = Date.now()
+  log.debug('handleModifyLiquidityDatabaseLoading time: {}', [endLoadingFromDb - start + ' ms'])
 
   if (token0 && token1) {
     const currTick: i32 = pool.tick!.toI32()
@@ -148,6 +151,8 @@ export function handleModifyLiquidityHelper(
     lowerTick.liquidityNet = lowerTick.liquidityNet.plus(amount)
     upperTick.liquidityGross = upperTick.liquidityGross.plus(amount)
     upperTick.liquidityNet = upperTick.liquidityNet.minus(amount)
+    const endCompute = Date.now()
+    log.debug('compute time: {}', [endCompute - endLoadingFromDb + ' ms'])
 
     lowerTick.save()
     upperTick.save()
@@ -168,5 +173,6 @@ export function handleModifyLiquidityHelper(
     pool.save()
     poolManager.save()
     modifyLiquidity.save()
+    log.debug('save time: {}', [Date.now() - endCompute + ' ms'])
   }
 }

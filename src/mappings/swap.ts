@@ -2,6 +2,7 @@ import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
+import { processAngstromBundle } from '../utils/angstrom'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
@@ -46,11 +47,46 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)
 
+  // Detect if this is an Angstrom bundle swap
+  let isAngstromBundleSwap = false
+  if (subgraphConfig.angstromAddress != '') {
+    isAngstromBundleSwap =
+      pool.hooks.toString() == subgraphConfig.angstromAddress.toString() &&
+      BigInt.fromI32(event.params.fee).equals(BigInt.fromI32(0))
+  }
+
   if (token0 && token1) {
-    // amounts - 0/1 are token deltas: can be positive or negative
-    // Unlike V3, a negative amount represents that amount is being sent to the pool and vice versa, so invert the sign
-    const amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals).times(BigDecimal.fromString('-1'))
-    const amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals).times(BigDecimal.fromString('-1'))
+    let amount0: BigDecimal
+    let amount1: BigDecimal
+
+    let angstromFeesUSD = ZERO_BD
+    if (isAngstromBundleSwap) {
+      log.debug('handleSwapHelper: detected Angstrom bundle swap for pool {}', [pool.id])
+      const transactionInput = event.transaction.input.toHexString()
+      const angstromResult = processAngstromBundle(transactionInput, pool, token0, token1, event.block.timestamp)
+
+      if (angstromResult.found) {
+        amount0 = angstromResult.amount0.times(BigDecimal.fromString('-1'))
+        amount1 = angstromResult.amount1.times(BigDecimal.fromString('-1'))
+        angstromFeesUSD = angstromResult.feesUSD
+        log.debug('handleSwapHelper: using Angstrom amounts {} {} with fees {}', [
+          amount0.toString(),
+          amount1.toString(),
+          angstromFeesUSD.toString(),
+        ])
+      } else {
+        // Fallback to regular amounts if Angstrom decoding fails
+        log.warning('handleSwapHelper: Angstrom decoding failed, using regular amounts for pool {}', [pool.id])
+        amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals).times(BigDecimal.fromString('-1'))
+        amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals).times(BigDecimal.fromString('-1'))
+      }
+    } else {
+      // Regular swap amounts
+      // amounts - 0/1 are token deltas: can be positive or negative
+      // Unlike V3, a negative amount represents that amount is being sent to the pool and vice versa, so invert the sign
+      amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals).times(BigDecimal.fromString('-1'))
+      amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals).times(BigDecimal.fromString('-1'))
+    }
 
     // Update the pool feeTier with the fee from the swap event
     // This is important for dynamic fee pools where we want to keep store the actual last fee rather storing the dynamic flag (8388608)
@@ -78,8 +114,16 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
     const amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
 
-    const feesETH = amountTotalETHTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
-    const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+    // Calculate fees - use Angstrom fees for Angstrom swaps, otherwise calculate vanilla fees
+    let feesETH = ZERO_BD
+    let feesUSD = ZERO_BD
+    if (isAngstromBundleSwap) {
+      feesUSD = angstromFeesUSD
+      feesETH = safeDiv(feesUSD, bundle.ethPriceUSD)
+    } else {
+      feesETH = amountTotalETHTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+      feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+    }
 
     // global updates
     poolManager.txCount = poolManager.txCount.plus(ONE_BI)

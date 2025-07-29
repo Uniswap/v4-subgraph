@@ -40,7 +40,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const pool = Pool.load(poolId)
 
   if (!pool) {
-    log.warning('Pool not found: {}', [poolId])
+    log.warning('Pool not found: {}', [poolId.toHexString()])
     return
   }
 

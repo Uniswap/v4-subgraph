@@ -47,8 +47,8 @@ describe('handleTransfer', () => {
   test('success - updates position owner', () => {
     const position = new Position(POSITION_FIXTURE.id)
     position.tokenId = POSITION_FIXTURE.tokenId
-    position.owner = POSITION_FIXTURE.owner.toHexString()
-    position.origin = POSITION_FIXTURE.origin.toHexString()
+    position.owner = POSITION_FIXTURE.owner
+    position.origin = POSITION_FIXTURE.origin
     position.createdAtTimestamp = MOCK_EVENT.block.timestamp
 
     position.save()

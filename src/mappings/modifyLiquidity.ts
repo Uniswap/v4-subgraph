@@ -1,4 +1,4 @@
-import { BigInt, log } from '@graphprotocol/graph-ts'
+import { BigInt, Bytes, log } from '@graphprotocol/graph-ts'
 
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
@@ -26,18 +26,18 @@ export function handleModifyLiquidityHelper(
 ): void {
   const poolManagerAddress = subgraphConfig.poolManagerAddress
 
-  const bundle = Bundle.load('1')!
-  const poolId = event.params.id.toHexString()
+  const bundle = Bundle.load(Bytes.fromI32(1))!
+  const poolId = event.params.id
   const pool = Pool.load(poolId)
   const poolManager = PoolManager.load(poolManagerAddress)
 
   if (pool === null) {
-    log.debug('handleModifyLiquidityHelper: pool not found {}', [poolId])
+    log.debug('handleModifyLiquidityHelper: pool not found {}', [poolId.toHexString()])
     return
   }
 
   if (poolManager === null) {
-    log.debug('handleModifyLiquidityHelper: pool manager not found {}', [poolManagerAddress])
+    log.debug('handleModifyLiquidityHelper: pool manager not found {}', [poolManagerAddress.toHexString()])
     return
   }
 
@@ -109,7 +109,7 @@ export function handleModifyLiquidityHelper(
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
 
     const transaction = loadTransaction(event)
-    const modifyLiquidity = new ModifyLiquidity(transaction.id.toString() + '-' + event.logIndex.toString())
+    const modifyLiquidity = new ModifyLiquidity(transaction.id.concatI32(event.logIndex.toI32()))
     modifyLiquidity.transaction = transaction.id
     modifyLiquidity.timestamp = transaction.timestamp
     modifyLiquidity.pool = pool.id
@@ -129,8 +129,8 @@ export function handleModifyLiquidityHelper(
     const lowerTickIdx = event.params.tickLower
     const upperTickIdx = event.params.tickUpper
 
-    const lowerTickId = poolId + '#' + BigInt.fromI32(event.params.tickLower).toString()
-    const upperTickId = poolId + '#' + BigInt.fromI32(event.params.tickUpper).toString()
+    const lowerTickId = poolId.concatI32(event.params.tickLower)
+    const upperTickId = poolId.concatI32(event.params.tickUpper)
 
     let lowerTick = Tick.load(lowerTickId)
     let upperTick = Tick.load(upperTickId)
@@ -153,8 +153,8 @@ export function handleModifyLiquidityHelper(
     upperTick.save()
 
     updateUniswapDayData(event, poolManagerAddress)
-    updatePoolDayData(event.params.id.toHexString(), event)
-    updatePoolHourData(event.params.id.toHexString(), event)
+    updatePoolDayData(event.params.id, event)
+    updatePoolHourData(event.params.id, event)
     updateTokenDayData(token0, event)
     updateTokenDayData(token1, event)
     updateTokenHourData(token0, event)

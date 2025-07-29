@@ -25,12 +25,12 @@ import {
 } from './constants'
 
 class InitializeFixture {
-  id: string
-  currency0: string
-  currency1: string
+  id: Bytes
+  currency0: Address
+  currency1: Address
   fee: string
   tickSpacing: string
-  hooks: string
+  hooks: Address
   sqrtPriceX96: string
   tick: string
 }
@@ -46,7 +46,7 @@ const INITIALIZE_FIXTURE: InitializeFixture = {
   tick: '1',
 }
 
-const id = Bytes.fromHexString(USDC_WETH_POOL_ID) as Bytes
+const id = USDC_WETH_POOL_ID
 
 const INITIALIZE_EVENT = new Initialize(
   MOCK_EVENT.address,
@@ -57,11 +57,11 @@ const INITIALIZE_EVENT = new Initialize(
   MOCK_EVENT.transaction,
   [
     new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
-    new ethereum.EventParam('currency0', ethereum.Value.fromAddress(Address.fromString(INITIALIZE_FIXTURE.currency0))),
-    new ethereum.EventParam('currency1', ethereum.Value.fromAddress(Address.fromString(INITIALIZE_FIXTURE.currency1))),
+    new ethereum.EventParam('currency0', ethereum.Value.fromAddress(INITIALIZE_FIXTURE.currency0)),
+    new ethereum.EventParam('currency1', ethereum.Value.fromAddress(INITIALIZE_FIXTURE.currency1)),
     new ethereum.EventParam('fee', ethereum.Value.fromI32(parseInt(INITIALIZE_FIXTURE.fee) as i32)),
     new ethereum.EventParam('tickSpacing', ethereum.Value.fromI32(parseInt(INITIALIZE_FIXTURE.tickSpacing) as i32)),
-    new ethereum.EventParam('hooks', ethereum.Value.fromAddress(Address.fromString(INITIALIZE_FIXTURE.hooks))),
+    new ethereum.EventParam('hooks', ethereum.Value.fromAddress(INITIALIZE_FIXTURE.hooks)),
     new ethereum.EventParam(
       'sqrtPriceX96',
       ethereum.Value.fromUnsignedBigInt(BigInt.fromString(INITIALIZE_FIXTURE.sqrtPriceX96)),
@@ -78,7 +78,7 @@ describe('handleInitialize', () => {
     const token0 = createAndStoreTestToken(USDC_MAINNET_FIXTURE)
     const token1 = createAndStoreTestToken(WETH_MAINNET_FIXTURE)
 
-    const bundle = new Bundle('1')
+    const bundle = new Bundle(Bytes.fromUTF8('1'))
     bundle.ethPriceUSD = TEST_ETH_PRICE_USD
     bundle.save()
 
@@ -90,12 +90,12 @@ describe('handleInitialize', () => {
       TEST_CONFIG.nativeTokenDetails,
     )
 
-    assertObjectMatches('Pool', USDC_WETH_POOL_ID, [
-      ['token0', token0.id],
-      ['token1', token1.id],
+    assertObjectMatches('Pool', USDC_WETH_POOL_ID.toHexString(), [
+      ['token0', token0.id.toHexString()],
+      ['token1', token1.id.toHexString()],
       ['feeTier', INITIALIZE_FIXTURE.fee],
       ['tickSpacing', INITIALIZE_FIXTURE.tickSpacing],
-      ['hooks', INITIALIZE_FIXTURE.hooks],
+      ['hooks', INITIALIZE_FIXTURE.hooks.toHexString()],
       ['sqrtPrice', INITIALIZE_FIXTURE.sqrtPriceX96],
       ['tick', INITIALIZE_FIXTURE.tick],
       ['createdAtTimestamp', MOCK_EVENT.block.timestamp.toString()],
@@ -113,7 +113,9 @@ describe('handleInitialize', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
     )
-    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [['derivedETH', expectedToken0Price.toString()]])
+    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address.toHexString(), [
+      ['derivedETH', expectedToken0Price.toString()],
+    ])
 
     const expectedToken1Price = findNativePerToken(
       token1,
@@ -121,7 +123,9 @@ describe('handleInitialize', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
     )
-    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [['derivedETH', expectedToken1Price.toString()]])
+    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address.toHexString(), [
+      ['derivedETH', expectedToken1Price.toString()],
+    ])
   })
 })
 
@@ -166,7 +170,7 @@ describe('findNativePerToken', () => {
   beforeEach(() => {
     clearStore()
 
-    const bundle = new Bundle('1')
+    const bundle = new Bundle(Bytes.fromI32(1))
     bundle.ethPriceUSD = TEST_ETH_PRICE_USD
     bundle.save()
   })

@@ -27,7 +27,7 @@ import {
 } from './constants'
 
 class SwapFixture {
-  id: string
+  id: Bytes
   sender: Address
   amount0: BigInt
   amount1: BigInt
@@ -57,7 +57,7 @@ const SWAP_EVENT = new Swap(
   MOCK_EVENT.block,
   MOCK_EVENT.transaction,
   [
-    new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(Bytes.fromHexString(SWAP_FIXTURE.id))),
+    new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(SWAP_FIXTURE.id)),
     new ethereum.EventParam('sender', ethereum.Value.fromAddress(SWAP_FIXTURE.sender)),
     new ethereum.EventParam('amount0', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.amount0)),
     new ethereum.EventParam('amount1', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.amount1)),
@@ -73,7 +73,7 @@ describe('handleSwap', () => {
   beforeAll(() => {
     invokePoolCreatedWithMockedEthCalls(MOCK_EVENT, TEST_CONFIG)
 
-    const bundle = new Bundle('1')
+    const bundle = new Bundle(Bytes.fromI32(1))
     bundle.ethPriceUSD = TEST_ETH_PRICE_USD
     bundle.save()
 
@@ -146,7 +146,7 @@ describe('handleSwap', () => {
 
     const totalValueLockedETH = amount0.times(newToken0DerivedETH).plus(amount1.times(newToken1DerivedETH))
 
-    assertObjectMatches('PoolManager', TEST_CONFIG.poolManagerAddress, [
+    assertObjectMatches('PoolManager', TEST_CONFIG.poolManagerAddress.toHexString(), [
       ['txCount', '1'],
       ['totalVolumeETH', amountTotalETHTRacked.toString()],
       ['totalVolumeUSD', amountTotalUSDTracked.toString()],
@@ -157,7 +157,7 @@ describe('handleSwap', () => {
       ['totalValueLockedUSD', totalValueLockedETH.times(newEthPrice).toString()],
     ])
 
-    assertObjectMatches('Pool', USDC_WETH_POOL_ID, [
+    assertObjectMatches('Pool', USDC_WETH_POOL_ID.toHexString(), [
       ['volumeToken0', amount0Abs.toString()],
       ['volumeToken1', amount1Abs.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
@@ -175,7 +175,7 @@ describe('handleSwap', () => {
       ['totalValueLockedUSD', totalValueLockedETH.times(newEthPrice).toString()],
     ])
 
-    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [
+    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address.toHexString(), [
       ['volume', amount0Abs.toString()],
       ['totalValueLocked', amount0.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
@@ -183,10 +183,16 @@ describe('handleSwap', () => {
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken0DerivedETH.toString()],
-      ['totalValueLockedUSD', amount0.times(newToken0DerivedETH).times(newEthPrice).toString()],
+      [
+        'totalValueLockedUSD',
+        amount0
+          .times(newToken0DerivedETH)
+          .times(newEthPrice)
+          .toString(),
+      ],
     ])
 
-    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [
+    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address.toHexString(), [
       ['volume', amount1Abs.toString()],
       ['totalValueLocked', amount1.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
@@ -194,15 +200,21 @@ describe('handleSwap', () => {
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken1DerivedETH.toString()],
-      ['totalValueLockedUSD', amount1.times(newToken1DerivedETH).times(newEthPrice).toString()],
+      [
+        'totalValueLockedUSD',
+        amount1
+          .times(newToken1DerivedETH)
+          .times(newEthPrice)
+          .toString(),
+      ],
     ])
 
     assertObjectMatches('Swap', MOCK_EVENT.transaction.hash.toHexString() + '-' + MOCK_EVENT.logIndex.toString(), [
       ['transaction', MOCK_EVENT.transaction.hash.toHexString()],
       ['timestamp', MOCK_EVENT.block.timestamp.toString()],
-      ['pool', USDC_WETH_POOL_ID],
-      ['token0', USDC_MAINNET_FIXTURE.address],
-      ['token1', WETH_MAINNET_FIXTURE.address],
+      ['pool', USDC_WETH_POOL_ID.toHexString()],
+      ['token0', USDC_MAINNET_FIXTURE.address.toHexString()],
+      ['token1', WETH_MAINNET_FIXTURE.address.toHexString()],
       ['sender', SWAP_FIXTURE.sender.toHexString()],
       ['origin', MOCK_EVENT.transaction.from.toHexString()],
       // ['recipient', SWAP_FIXTURE.recipient.toHexString()],
@@ -223,42 +235,42 @@ describe('handleSwap', () => {
       ['feesUSD', feesUSD.toString()],
     ])
 
-    assertObjectMatches('PoolDayData', USDC_WETH_POOL_ID + '-' + dayId.toString(), [
+    assertObjectMatches('PoolDayData', USDC_WETH_POOL_ID.toHexString() + '-' + dayId.toString(), [
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['volumeToken0', amount0Abs.toString()],
       ['volumeToken1', amount1Abs.toString()],
       ['feesUSD', feesUSD.toString()],
     ])
 
-    assertObjectMatches('PoolHourData', USDC_WETH_POOL_ID + '-' + hourId.toString(), [
+    assertObjectMatches('PoolHourData', USDC_WETH_POOL_ID.toHexString() + '-' + hourId.toString(), [
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['volumeToken0', amount0Abs.toString()],
       ['volumeToken1', amount1Abs.toString()],
       ['feesUSD', feesUSD.toString()],
     ])
 
-    assertObjectMatches('TokenDayData', USDC_MAINNET_FIXTURE.address + '-' + dayId.toString(), [
+    assertObjectMatches('TokenDayData', USDC_MAINNET_FIXTURE.address.toHexString() + '-' + dayId.toString(), [
       ['volume', amount0Abs.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['untrackedVolumeUSD', amountTotalUSDTracked.toString()],
       ['feesUSD', feesUSD.toString()],
     ])
 
-    assertObjectMatches('TokenDayData', WETH_MAINNET_FIXTURE.address + '-' + dayId.toString(), [
+    assertObjectMatches('TokenDayData', WETH_MAINNET_FIXTURE.address.toHexString() + '-' + dayId.toString(), [
       ['volume', amount1Abs.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['untrackedVolumeUSD', amountTotalUSDTracked.toString()],
       ['feesUSD', feesUSD.toString()],
     ])
 
-    assertObjectMatches('TokenHourData', USDC_MAINNET_FIXTURE.address + '-' + hourId.toString(), [
+    assertObjectMatches('TokenHourData', USDC_MAINNET_FIXTURE.address.toHexString() + '-' + hourId.toString(), [
       ['volume', amount0Abs.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['untrackedVolumeUSD', amountTotalUSDTracked.toString()],
       ['feesUSD', feesUSD.toString()],
     ])
 
-    assertObjectMatches('TokenHourData', WETH_MAINNET_FIXTURE.address + '-' + hourId.toString(), [
+    assertObjectMatches('TokenHourData', WETH_MAINNET_FIXTURE.address.toHexString() + '-' + hourId.toString(), [
       ['volume', amount1Abs.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['untrackedVolumeUSD', amountTotalUSDTracked.toString()],

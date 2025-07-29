@@ -1,0 +1,90 @@
+[
+  {
+    "inputs": [],
+    "name": "AddressZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ErrorCreatingContract",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ErrorCreatingProxy",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TargetAlreadyExists",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "hook",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "module",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "salt",
+        "type": "bytes32"
+      }
+    ],
+    "name": "LogCreatePrivateHook",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "salt_",
+        "type": "bytes32"
+      }
+    ],
+    "name": "addressOf",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "module_",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "salt_",
+        "type": "bytes32"
+      }
+    ],
+    "name": "createPrivateHook",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "hook",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

@@ -7,24 +7,28 @@ import { Pool, Token } from '../../src/types/schema'
 import { SubgraphConfig } from '../../src/utils/chains'
 import { ADDRESS_ZERO, ZERO_BD, ZERO_BI } from '../../src/utils/constants'
 
-const POOL_MANAGER_ADDRESS = '0xE8E23e97Fa135823143d6b9Cba9c699040D51F70'
-const USDC_MAINNET_ADDRESS = '0x5d1abc83973c773d122ae7c551251cc9be2baecc'
-const WETH_MAINNET_ADDRESS = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
-const WBTC_MAINNET_ADDRESS = '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
-const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
+const POOL_MANAGER_ADDRESS = Address.fromString('0xE8E23e97Fa135823143d6b9Cba9c699040D51F70')
+const USDC_MAINNET_ADDRESS = Address.fromString('0x5d1abc83973c773d122ae7c551251cc9be2baecc')
+const WETH_MAINNET_ADDRESS = Address.fromString('0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2')
+const WBTC_MAINNET_ADDRESS = Address.fromString('0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599')
+const NATIVE_TOKEN_ADDRESS = Address.fromString('0x0000000000000000000000000000000000000000')
 export const POOL_FEE_TIER_05 = 500
 
-export const USDC_WETH_POOL_ID = '0x85c41d6535ebab7661979fa7a5d331e4cb229b4d1e7dde1a78ae298fab8ca5bb'
-export const WBTC_WETH_POOL_ID = '0x0dac90a31985829dc2bbeb5e70fd7e302ef8ca149f58dc485e71f53735bad8e4'
+export const USDC_WETH_POOL_ID = Bytes.fromHexString(
+  '0x85c41d6535ebab7661979fa7a5d331e4cb229b4d1e7dde1a78ae298fab8ca5bb',
+)
+export const WBTC_WETH_POOL_ID = Bytes.fromHexString(
+  '0x0dac90a31985829dc2bbeb5e70fd7e302ef8ca149f58dc485e71f53735bad8e4',
+)
 
 export const TEST_CONFIG: SubgraphConfig = {
-  poolManagerAddress: Address.fromString(POOL_MANAGER_ADDRESS),
-  stablecoinWrappedNativePoolId: Bytes.fromHexString(USDC_WETH_POOL_ID),
+  poolManagerAddress: POOL_MANAGER_ADDRESS,
+  stablecoinWrappedNativePoolId: USDC_WETH_POOL_ID,
   stablecoinIsToken0: true,
-  wrappedNativeAddress: Address.fromString(WETH_MAINNET_ADDRESS),
+  wrappedNativeAddress: WETH_MAINNET_ADDRESS,
   minimumNativeLocked: ZERO_BD,
-  stablecoinAddresses: [Address.fromString(USDC_MAINNET_ADDRESS)],
-  whitelistTokens: [Address.fromString(WETH_MAINNET_ADDRESS), Address.fromString(USDC_MAINNET_ADDRESS)],
+  stablecoinAddresses: [USDC_MAINNET_ADDRESS],
+  whitelistTokens: [WETH_MAINNET_ADDRESS, USDC_MAINNET_ADDRESS],
   tokenOverrides: [],
   poolsToSkip: [],
   poolMappings: [],
@@ -36,7 +40,7 @@ export const TEST_CONFIG: SubgraphConfig = {
 }
 
 export class TokenFixture {
-  address: string
+  address: Address
   symbol: string
   name: string
   totalSupply: string
@@ -80,7 +84,7 @@ export const WBTC_MAINNET_FIXTURE: TokenFixture = {
   balanceOf: '750',
 }
 
-export const getTokenFixture = (tokenAddress: string): TokenFixture => {
+export const getTokenFixture = (tokenAddress: Address): TokenFixture => {
   if (tokenAddress == USDC_MAINNET_FIXTURE.address) {
     return USDC_MAINNET_FIXTURE
   } else if (tokenAddress == WETH_MAINNET_FIXTURE.address) {
@@ -93,13 +97,13 @@ export const getTokenFixture = (tokenAddress: string): TokenFixture => {
 }
 
 export class PoolFixture {
-  id: string
+  id: Bytes
   token0: TokenFixture
   token1: TokenFixture
   feeTier: string
   tickSpacing: string
   liquidity: string
-  hooks: string
+  hooks: Address
   sqrtPrice: string
   tick: string
 }
@@ -151,7 +155,7 @@ export class PositionFixture {
   origin: Address
 }
 
-export const getPoolFixture = (poolAddress: string): PoolFixture => {
+export const getPoolFixture = (poolAddress: Bytes): PoolFixture => {
   if (poolAddress == WBTC_WETH_POOL_ID) {
     return WBTC_WETH_03_MAINNET_POOL_FIXTURE
   } else if (poolAddress == USDC_WETH_POOL_ID) {
@@ -186,14 +190,12 @@ export const invokePoolCreatedWithMockedEthCalls = (
   const sqrtPriceX96 = pool.sqrtPrice
   const tick = pool.tick
 
-  const token0Address = Address.fromString(token0.address)
-  const token1Address = Address.fromString(token1.address)
+  const token0Address = token0.address
+  const token1Address = token1.address
 
-  const id = Bytes.fromHexString(USDC_WETH_POOL_ID) as Bytes
-
-  const hooksAddress = Address.fromString(ADDRESS_ZERO)
+  const hooksAddress = ADDRESS_ZERO
   const parameters = [
-    new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+    new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(USDC_WETH_POOL_ID)),
     new ethereum.EventParam('currency0', ethereum.Value.fromAddress(token0Address)),
     new ethereum.EventParam('currency1', ethereum.Value.fromAddress(token1Address)),
     new ethereum.EventParam('fee', ethereum.Value.fromI32(parseInt(feeTier) as i32)),

@@ -5,6 +5,7 @@ import { PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
+import { isPoolInShard } from '../utils/hash'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
@@ -21,7 +22,7 @@ export function handleInitializeHelper(
 ): void {
   const shard = subgraphConfig.shardNumber
   const numShards = subgraphConfig.numShards
-  if (!isPoolInShard(event.params.id.toHexString(), numShards, shard)) {
+  if (shard && numShards && !isPoolInShard(event.params.id.toHexString(), numShards, shard)) {
     return
   }
   const poolManagerAddress = subgraphConfig.poolManagerAddress

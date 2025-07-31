@@ -73,6 +73,8 @@ export class SubgraphConfig {
 export function getSubgraphConfig(): SubgraphConfig {
   // Update this value to the corresponding chain you want to deploy
   const selectedNetwork = dataSource.network()
+  const shardNumber = dataSource?.context()?.getI32('shardNumber')
+  const numShards = dataSource?.context()?.getI32('numShards')
 
   if (selectedNetwork == SEPOLIA_NETWORK_NAME) {
     return {
@@ -172,6 +174,8 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      numShards,
+      shardNumber,
     }
   } else if (selectedNetwork == ARBITRUM_ONE_NETWORK_NAME) {
     return {

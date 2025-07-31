@@ -4,6 +4,7 @@ import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD } from '../utils/constants'
+import { isPoolInShard } from '../utils/hash'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
   updatePoolDayData,
@@ -26,7 +27,7 @@ export function handleSwap(event: SwapEvent): void {
 export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
   const shard = subgraphConfig.shardNumber
   const numShards = subgraphConfig.numShards
-  if (!isPoolInShard(event.params.id.toHexString(), numShards, shard)) {
+  if (shard && numShards && !isPoolInShard(event.params.id.toHexString(), numShards, shard)) {
     return
   }
   const poolManagerAddress = subgraphConfig.poolManagerAddress

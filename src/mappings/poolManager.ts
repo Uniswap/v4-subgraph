@@ -19,6 +19,11 @@ export function handleInitializeHelper(
   event: InitializeEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
+  const shard = subgraphConfig.shardNumber
+  const numShards = subgraphConfig.numShards
+  if (!isPoolInShard(event.params.id.toHexString(), numShards, shard)) {
+    return
+  }
   const poolManagerAddress = subgraphConfig.poolManagerAddress
   const whitelistTokens = subgraphConfig.whitelistTokens
   const tokenOverrides = subgraphConfig.tokenOverrides

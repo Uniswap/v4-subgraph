@@ -66,6 +66,8 @@ export class SubgraphConfig {
 
   // native token details for the chain.
   nativeTokenDetails: NativeTokenDetails
+  numShards?: number
+  shardNumber?: number
 }
 
 export function getSubgraphConfig(): SubgraphConfig {
@@ -238,6 +240,8 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
+      numShards: 5,
+      shardNumber: 0,
     }
   } else if (selectedNetwork == MATIC_NETWORK_NAME) {
     return {

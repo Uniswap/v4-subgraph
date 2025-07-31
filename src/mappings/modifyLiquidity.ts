@@ -25,9 +25,15 @@ export function handleModifyLiquidityHelper(
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
   const poolManagerAddress = subgraphConfig.poolManagerAddress
+  const shard = subgraphConfig.shardNumber
+  const numShards = subgraphConfig.numShards
+  // Consistently hash using murmuhash
+  if (!isPoolInShard(event.params.id.toHexString(), numShards, shard)) {
+    return
+  }
 
   const bundle = Bundle.load('1')!
-  const poolId = event.params.id.toHexString()
+  const poolId = event.params.id.toHexString() + '#' + shard.toString()
   const pool = Pool.load(poolId)
   const poolManager = PoolManager.load(poolManagerAddress)
 

@@ -24,6 +24,11 @@ export function handleModifyLiquidityHelper(
   event: ModifyLiquidityEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
+  const senderAddress = event.params.sender.toHexString().toLowerCase()
+  if (subgraphConfig.hooksToSkip.includes(senderAddress)) {
+    return
+  }
+
   const poolManagerAddress = subgraphConfig.poolManagerAddress
 
   const bundle = Bundle.load('1')!

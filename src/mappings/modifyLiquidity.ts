@@ -24,6 +24,12 @@ export function handleModifyLiquidityHelper(
   event: ModifyLiquidityEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
+  // Skip zero-delta events
+  if (event.params.liquidityDelta.equals(BigInt.zero())) {
+    return
+  }
+
+  // Skip problematic hooks
   const senderAddress = event.params.sender.toHexString().toLowerCase()
   if (subgraphConfig.hooksToSkip.includes(senderAddress)) {
     return

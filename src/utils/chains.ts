@@ -246,7 +246,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      hooksToSkip: ['0x9ea932730a7787000042e34390b8e435dd839040'],
+      hooksToSkip: ['0x9ea932730a7787000042e34390b8e435dd839040', '0xd61a675f8a0c67a73dc3b54fb7318b4d91409040'],
     }
   } else if (selectedNetwork == MATIC_NETWORK_NAME) {
     return {

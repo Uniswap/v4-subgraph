@@ -491,7 +491,7 @@ type Transfer @entity (immutable: true){
   position: Position!
 }
 
-type EulerSwapHook @entity {
+type EulerSwapHook @entity (immutable: false){
   # Composite key = eulerAccount-asset0-asset1
   id: ID!
   # The latest hook address for this key

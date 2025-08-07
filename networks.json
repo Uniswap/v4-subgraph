@@ -56,5 +56,19 @@
       "address": "0xc78C603644b59CCbC869fa36B72adE24C9e04C40",
       "startBlock": 22430000
     }
+  },
+  "arbitrum-one": {
+    "PoolManager": {
+      "address": "0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32",
+      "startBlock": 297842872
+    },
+    "PositionManager": {
+      "address": "0x0989f4a52CC70099392b38e3D405e4F515D12630",
+      "startBlock": 365457617
+    },
+    "KittycornBank": {
+      "address": "0xf0E778F51865B9c3bCbfE2B59aD19A12d6d1a0Fc",
+      "startBlock": 365457583
+    }
   }
 }

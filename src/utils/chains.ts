@@ -277,9 +277,9 @@ export function getSubgraphConfig(): SubgraphConfig {
     return {
       poolManagerAddress: '0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32',
       stablecoinWrappedNativePoolId: '0xfc7b3ad139daaf1e9c3637ed921c154d1b04286f8a82b805a6c352da57028653', // <- WETH-USDC 0.05% https://app.uniswap.org/explore/pools/arbitrum/0xfc7b3ad139daaf1e9c3637ed921c154d1b04286f8a82b805a6c352da57028653
-      stablecoinIsToken0: true,
+      stablecoinIsToken0: false,
       wrappedNativeAddress: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH
-      minimumNativeLocked: BigDecimal.fromString('0'),
+      minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: [
         '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // USDC.e
         '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI

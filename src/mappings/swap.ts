@@ -154,6 +154,66 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
     token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
 
+    // Special pricing logic for Zora content token pools only
+    // Zora content tokens are paired with creator tokens that have established pricing
+    const ZORA_CONTENT_TOKEN_HOOK = '0x9ea932730a7787000042e34390b8e435dd839040'
+
+    // Only apply this logic to Zora content token pools
+    if (pool.hooks.toLowerCase() == ZORA_CONTENT_TOKEN_HOOK.toLowerCase()) {
+      // Check if we have a content token (no whitelistPools) paired with a creator token (has pricing)
+      let contentToken: Token | null = null
+      let creatorToken: Token | null = null
+
+      // Identify content vs creator token based on whitelistPools and derivedETH
+      if (
+        token0.whitelistPools.length == 0 &&
+        token0.derivedETH.equals(ZERO_BD) &&
+        token1.whitelistPools.length > 0 &&
+        token1.derivedETH.gt(ZERO_BD)
+      ) {
+        contentToken = token0
+        creatorToken = token1
+      } else if (
+        token1.whitelistPools.length == 0 &&
+        token1.derivedETH.equals(ZERO_BD) &&
+        token0.whitelistPools.length > 0 &&
+        token0.derivedETH.gt(ZERO_BD)
+      ) {
+        contentToken = token1
+        creatorToken = token0
+      }
+
+      // If we have a valid content/creator token pair, derive the content token price
+      if (contentToken && creatorToken) {
+        let contentTokenReserve: BigDecimal
+        let creatorTokenReserve: BigDecimal
+
+        if (contentToken.id == pool.token0) {
+          contentTokenReserve = pool.totalValueLockedToken0
+          creatorTokenReserve = pool.totalValueLockedToken1
+        } else {
+          contentTokenReserve = pool.totalValueLockedToken1
+          creatorTokenReserve = pool.totalValueLockedToken0
+        }
+
+        // Calculate ETH value locked in the creator token side
+        const ethLockedInCreatorToken = creatorTokenReserve.times(creatorToken.derivedETH)
+
+        // Only proceed if we have sufficient liquidity and positive reserves
+        if (
+          contentTokenReserve.gt(ZERO_BD) &&
+          creatorTokenReserve.gt(ZERO_BD) &&
+          ethLockedInCreatorToken.gt(minimumNativeLocked)
+        ) {
+          // Price ratio from pool reserves: how many content tokens per creator token
+          const priceRatio = creatorTokenReserve.div(contentTokenReserve)
+
+          // Derive content token ETH price using the creator token's established rate
+          contentToken.derivedETH = priceRatio.times(creatorToken.derivedETH)
+        }
+      }
+    }
+
     /**
      * Things afffected by new USD rates
      */

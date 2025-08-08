@@ -154,6 +154,21 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
     token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
 
+// Update pricing for Zora content tokens if applicable
+    const ZORA_CONTENT_TOKEN_HOOK = '0x9ea932730a7787000042e34390b8e435dd839040'
+    if (pool.hooks.toLowerCase() == ZORA_CONTENT_TOKEN_HOOK.toLowerCase()) {
+      const contentResults = updateZoraContentTokenPricing(pool, token0, token1, minimumNativeLocked)
+
+      if (contentResults) {
+        if (contentResults.tokenIdentifier == 'Token0') {
+          token0.derivedETH = contentResults.contentDerivedETH
+        }
+        if (contentResults.tokenIdentifier == 'Token1') {
+          token1.derivedETH = contentResults.contentDerivedETH
+        }
+      }
+    }
+    
     /**
      * Things afffected by new USD rates
      */

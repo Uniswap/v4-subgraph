@@ -65,6 +65,21 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       }
     }
 
+    // backfill zora pools which have non-null whitelisted pools
+    // Creator: 0xd61a675f8a0c67a73dc3b54fb7318b4d91409040
+    // Content: 0x9ea932730a7787000042e34390b8e435dd839040
+    if (
+      pool.hooks === '0xd61a675f8a0c67a73dc3b54fb7318b4d91409040' ||
+      pool.hooks === '0x9ea932730a7787000042e34390b8e435dd839040'
+    ) {
+      if (!token0.whitelistPools.includes(pool.id)) {
+        token0.whitelistPools.push(pool.id)
+      }
+      if (!token1.whitelistPools.includes(pool.id)) {
+        token1.whitelistPools.push(pool.id)
+      }
+    }
+
     // amounts - 0/1 are token deltas: can be positive or negative
     // Unlike V3, a negative amount represents that amount is being sent to the pool and vice versa, so invert the sign
     const amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals).times(BigDecimal.fromString('-1'))

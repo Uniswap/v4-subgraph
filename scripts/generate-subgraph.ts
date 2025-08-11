@@ -30,6 +30,9 @@ const contractTemplates = {
         { name: 'ERC20SymbolBytes', file: './abis/ERC20SymbolBytes.json' },
         { name: 'ERC20NameBytes', file: './abis/ERC20NameBytes.json' },
         { name: 'PoolManager', file: './abis/PoolManager.json' },
+        // These are actually not needed but they are required by the subgraph code to be generated
+        { name: 'EulerSwapFactory', file: './abis/EulerSwapFactory.json' },
+        { name: 'ArrakisHookFactory', file: './abis/ArrakisHookFactory.json' },
       ],
       eventHandlers: [
         {

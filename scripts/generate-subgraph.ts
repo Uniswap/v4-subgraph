@@ -136,9 +136,9 @@ function generateSubgraphConfig(network: string, networkConfig: NetworkConfig): 
           address: contractConfig.address,
           startBlock: contractConfig.startBlock,
         },
-        ...contractTemplates[contractName],
         name: contractName,
         network,
+        ...contractTemplates[contractName],
       }
       dataSources.push(dataSource)
     }

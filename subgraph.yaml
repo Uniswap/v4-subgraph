@@ -11,6 +11,8 @@ dataSources:
       abi: PoolManager
       address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
       startBlock: 21688329
+    name: PoolManager
+    network: mainnet
     kind: ethereum/contract
     mapping:
       kind: ethereum/events
@@ -39,12 +41,12 @@ dataSources:
         - event: Swap(indexed bytes32,indexed
             address,int128,int128,uint160,uint128,int24,uint24)
           handler: handleSwap
-    name: PoolManager
-    network: mainnet
   - source:
       abi: PositionManager
       address: "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e"
       startBlock: 21689089
+    name: PositionManager
+    network: mainnet
     kind: ethereum/contract
     mapping:
       kind: ethereum/events
@@ -63,12 +65,12 @@ dataSources:
           handler: handleUnsubscription
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-    name: PositionManager
-    network: mainnet
   - source:
       abi: EulerSwapFactory
       address: "0xb013be1D0D380C13B58e889f412895970A2Cf228"
       startBlock: 22676162
+    name: EulerSwapFactory
+    network: mainnet
     kind: ethereum/contract
     mapping:
       kind: ethereum/events
@@ -85,5 +87,3 @@ dataSources:
           handler: handleHookDeployed
         - event: PoolUninstalled(indexed address,indexed address,indexed address,address)
           handler: handleHookUninstalled
-    name: EulerSwapFactory
-    network: mainnet

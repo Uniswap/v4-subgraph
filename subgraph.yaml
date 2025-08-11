@@ -7,18 +7,18 @@ features:
   - nonFatalErrors
   - grafting
 dataSources:
-  - kind: ethereum/contract
-    name: PoolManager
-    network: mainnet
-    source:
+  - source:
       abi: PoolManager
       address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
       startBlock: 21688329
+    name: PoolManager
+    network: mainnet
+    kind: ethereum/contract
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
-      file: ./src/mappings/index.ts
+      file: ./src/mappings/poolManager.mapping.ts
       entities:
         - Pool
         - Token
@@ -41,18 +41,18 @@ dataSources:
         - event: Swap(indexed bytes32,indexed
             address,int128,int128,uint160,uint128,int24,uint24)
           handler: handleSwap
-  - kind: ethereum/contract
-    name: PositionManager
-    network: mainnet
-    source:
+  - source:
       abi: PositionManager
       address: "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e"
       startBlock: 21689089
+    name: PositionManager
+    network: mainnet
+    kind: ethereum/contract
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
-      file: ./src/mappings/index.ts
+      file: ./src/mappings/positionManager.mapping.ts
       entities:
         - Position
       abis:
@@ -65,18 +65,18 @@ dataSources:
           handler: handleUnsubscription
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-  - kind: ethereum/contract
-    name: EulerSwapFactory
-    network: mainnet
-    source:
+  - source:
       abi: EulerSwapFactory
       address: "0xb013be1D0D380C13B58e889f412895970A2Cf228"
       startBlock: 22676162
+    name: EulerSwapFactory
+    network: mainnet
+    kind: ethereum/contract
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
-      file: ./src/mappings/index.ts
+      file: ./src/mappings/euler.mapping.ts
       entities:
         - Position
       abis:

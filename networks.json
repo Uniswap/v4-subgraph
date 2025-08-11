@@ -57,6 +57,10 @@
     "PositionManager": {
       "address": "0x7C5f5A4bBd8fD63184577525326123B519429bDc",
       "startBlock": 25350993
+    },
+    "ArrakisHookFactory": {
+      "address": "0xeF129a430032C8183abA158C1a70799e3b840dF9",
+      "startBlock": 28450225
     }
   },
   "matic": {

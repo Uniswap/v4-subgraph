@@ -20,3 +20,29 @@ yarn run deploy:alchemy --
   --deploy-key <DEPLOYMENT_KEY>
   --network <NETWORK_NAME>
 ```
+
+## Generating subgraph.yaml
+
+The `subgraph.yaml` file can be automatically generated from the `networks.json` configuration for a specific network. This ensures that all contract addresses and start blocks are correctly synchronized.
+
+To generate the subgraph.yaml:
+
+1. Make sure your `networks.json` is up to date with the correct contract addresses and start blocks
+2. Run:
+   ```bash
+   yarn generate-subgraph <network>
+   ```
+   For example:
+   ```bash
+   yarn generate-subgraph mainnet
+   # or
+   yarn generate-subgraph arbitrum-one
+   ```
+
+This will create a new `subgraph.yaml` file based on the network-specific configuration. The script will:
+
+- Use the contract templates defined for each contract type (PoolManager, PositionManager, etc.)
+- Generate data sources for each contract in the specified network
+- Preserve all the necessary event handlers and ABI configurations
+
+Available networks can be found in `networks.json`.

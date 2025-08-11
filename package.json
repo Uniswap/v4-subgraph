@@ -13,7 +13,8 @@
     "codegen": "graph codegen --output-dir src/types/",
     "test": "graph test -d",
     "test:no-tty": "docker run -i --rm --mount type=bind,source=$INIT_CWD,target=/matchstick matchstick",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "generate-subgraph": "ts-node scripts/generate-subgraph.ts"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.64.1",
@@ -29,8 +30,10 @@
     "typescript": "^3.5.2"
   },
   "dependencies": {
+    "graph": "^0.2.0",
     "husky": "8.0.3",
-    "lint-staged": "^15.2.7"
+    "lint-staged": "^15.2.7",
+    "yaml": "^2.3.4"
   },
   "lint-staged": {
     "*.{js,ts}": [

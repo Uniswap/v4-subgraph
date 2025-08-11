@@ -36,11 +36,11 @@ dataSources:
             address,int128,int128,uint160,uint128,int24,uint24)
           handler: handleSwap
     name: PoolManager
-    network: base
+    network: mainnet
     source:
       abi: PoolManager
-      address: "0x498581fF718922c3f8e6A244956aF099B2652b2b"
-      startBlock: 25350988
+      address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
+      startBlock: 21688329
   - kind: ethereum/contract
     mapping:
       kind: ethereum/events
@@ -60,11 +60,11 @@ dataSources:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
     name: PositionManager
-    network: base
+    network: mainnet
     source:
       abi: PositionManager
-      address: "0x7C5f5A4bBd8fD63184577525326123B519429bDc"
-      startBlock: 25350993
+      address: "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e"
+      startBlock: 21689089
   - kind: ethereum/contract
     mapping:
       kind: ethereum/events
@@ -72,16 +72,18 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/mappings/index.ts
       entities:
-        - ArrakisHook
+        - Position
       abis:
-        - name: ArrakisHookFactory
-          file: ./abis/ArrakisHookFactory.json
+        - name: EulerSwapFactory
+          file: ./abis/EulerSwapFactory.json
       eventHandlers:
-        - event: LogCreatePrivateHook(indexed address,indexed address,bytes32)
+        - event: PoolDeployed(indexed address,indexed address,indexed address,address)
           handler: handleHookDeployed
-    name: ArrakisHookFactory
-    network: base
+        - event: PoolUninstalled(indexed address,indexed address,indexed address,address)
+          handler: handleHookUninstalled
+    name: EulerSwapFactory
+    network: mainnet
     source:
-      abi: ArrakisHookFactory
-      address: "0xeF129a430032C8183abA158C1a70799e3b840dF9"
-      startBlock: 28450225
+      abi: EulerSwapFactory
+      address: "0xb013be1D0D380C13B58e889f412895970A2Cf228"
+      startBlock: 22676162

@@ -1,0 +1,1 @@
+export { handleArrakisHookDeployed } from './arrakis'

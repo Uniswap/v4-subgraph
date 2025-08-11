@@ -23,16 +23,13 @@ const contractTemplates = {
       kind: 'ethereum/events',
       apiVersion: '0.0.7',
       language: 'wasm/assemblyscript',
-      file: './src/mappings/index.ts',
+      file: './src/mappings/poolManager.mapping.ts',
       entities: ['Pool', 'Token'],
       abis: [
         { name: 'ERC20', file: './abis/ERC20.json' },
         { name: 'ERC20SymbolBytes', file: './abis/ERC20SymbolBytes.json' },
         { name: 'ERC20NameBytes', file: './abis/ERC20NameBytes.json' },
         { name: 'PoolManager', file: './abis/PoolManager.json' },
-        // These are actually not needed but they are required by the subgraph code to be generated
-        { name: 'EulerSwapFactory', file: './abis/EulerSwapFactory.json' },
-        { name: 'ArrakisHookFactory', file: './abis/ArrakisHookFactory.json' },
       ],
       eventHandlers: [
         {
@@ -56,7 +53,7 @@ const contractTemplates = {
       kind: 'ethereum/events',
       apiVersion: '0.0.7',
       language: 'wasm/assemblyscript',
-      file: './src/mappings/index.ts',
+      file: './src/mappings/positionManager.mapping.ts',
       entities: ['Position'],
       abis: [{ name: 'PositionManager', file: './abis/PositionManager.json' }],
       eventHandlers: [
@@ -81,7 +78,7 @@ const contractTemplates = {
       kind: 'ethereum/events',
       apiVersion: '0.0.7',
       language: 'wasm/assemblyscript',
-      file: './src/mappings/index.ts',
+      file: './src/mappings/euler.mapping.ts',
       entities: ['Position'],
       abis: [{ name: 'EulerSwapFactory', file: './abis/EulerSwapFactory.json' }],
       eventHandlers: [
@@ -102,13 +99,13 @@ const contractTemplates = {
       kind: 'ethereum/events',
       apiVersion: '0.0.7',
       language: 'wasm/assemblyscript',
-      file: './src/mappings/index.ts',
+      file: './src/mappings/arrakis.mapping.ts',
       entities: ['ArrakisHook'],
       abis: [{ name: 'ArrakisHookFactory', file: './abis/ArrakisHookFactory.json' }],
       eventHandlers: [
         {
           event: 'LogCreatePrivateHook(indexed address,indexed address,bytes32)',
-          handler: 'handleHookDeployed',
+          handler: 'handleArrakisHookDeployed',
         },
       ],
     },
@@ -134,14 +131,14 @@ function generateSubgraphConfig(network: string, networkConfig: NetworkConfig): 
   Object.entries(networkConfig).forEach(([contractName, contractConfig]) => {
     if (contractTemplates[contractName]) {
       const dataSource = {
-        ...contractTemplates[contractName],
-        name: contractName,
-        network,
         source: {
           abi: contractName,
           address: contractConfig.address,
           startBlock: contractConfig.startBlock,
         },
+        ...contractTemplates[contractName],
+        name: contractName,
+        network,
       }
       dataSources.push(dataSource)
     }

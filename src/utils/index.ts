@@ -28,11 +28,9 @@ export function hexToBigInt(hex: string): BigInt {
   }
   let result = BigInt.zero()
   for (let i = 0; i < hex.length; i++) {
-    result = result
-      .times(BigInt.fromI32(16))
-      .plus(BigInt.fromI32(parseInt(hex.charAt(i), 16) as i32))
+    result = result.times(BigInt.fromI32(16)).plus(BigInt.fromI32(parseInt(hex.charAt(i), 16) as i32))
   }
-      return result
+  return result
 }
 
 /**

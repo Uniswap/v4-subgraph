@@ -129,6 +129,21 @@ export function handleInitializeHelper(
     token0.whitelistPools = newPools
   }
 
+  // if pool is a zora content token, add it to the whitelist pools of the content token
+  // assumes content token pool is always the first pool created for a content token
+  if (pool.hooks === '0x9ea932730a7787000042e34390b8e435dd839040') {
+    let contentToken: Token | null = null
+    if (token0.whitelistPools.length === 0 && token1.whitelistPools.length > 0) {
+      contentToken = token0
+    }
+    if (token1.whitelistPools.length === 0 && token0.whitelistPools.length > 0) {
+      contentToken = token1
+    }
+    if (contentToken) {
+      contentToken.whitelistPools = [pool.id]
+    }
+  }
+
   pool.token0 = token0.id
   pool.token1 = token1.id
   pool.feeTier = BigInt.fromI32(event.params.fee)

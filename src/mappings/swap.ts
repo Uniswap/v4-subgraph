@@ -47,36 +47,41 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const token1 = Token.load(pool.token1)
 
   if (token0 && token1) {
-    // Backfill emppty tokens' whitelist pools to account for grafting to a point later than the block where the pool was initialized
-    if (token0.whitelistPools === null) {
-      if (whitelistTokens.includes(token1.id)) {
+    // backfill zora pools which have non-null whitelisted pools
+    // Creator: 0xd61a675f8a0c67a73dc3b54fb7318b4d91409040
+    // Content: 0x9ea932730a7787000042e34390b8e435dd839040
+
+    // find the content token
+    // add the pool to the content token's whitelist pool
+    // but not add it to the creator token's whitelist pool
+    // because the creator token would get a huge amount of whitelisted pools and slow things down
+    if (pool.hooks === '0xd61a675f8a0c67a73dc3b54fb7318b4d91409040') {
+      // Backfill emppty tokens' whitelist pools to account for grafting to a point later than the block where the pool was initialized
+      if (whitelistTokens.includes(token1.id) && !token0.whitelistPools.includes(pool.id)) {
         const newPools = token0.whitelistPools
         newPools.push(pool.id)
         token0.whitelistPools = newPools
       }
-    }
 
-    if (token1.whitelistPools === null) {
       // update white listed pools
-      if (whitelistTokens.includes(token0.id)) {
+      if (whitelistTokens.includes(token0.id) && !token1.whitelistPools.includes(pool.id)) {
         const newPools = token1.whitelistPools
         newPools.push(pool.id)
         token1.whitelistPools = newPools
       }
     }
 
-    // backfill zora pools which have non-null whitelisted pools
-    // Creator: 0xd61a675f8a0c67a73dc3b54fb7318b4d91409040
-    // Content: 0x9ea932730a7787000042e34390b8e435dd839040
-    if (
-      pool.hooks === '0xd61a675f8a0c67a73dc3b54fb7318b4d91409040' ||
-      pool.hooks === '0x9ea932730a7787000042e34390b8e435dd839040'
-    ) {
-      if (!token0.whitelistPools.includes(pool.id)) {
-        token0.whitelistPools.push(pool.id)
+    // backfill whitelisted pools for content tokens
+    if (pool.hooks === '0x9ea932730a7787000042e34390b8e435dd839040') {
+      let contentToken: Token | null = null
+      if (token0.whitelistPools.length === 0 && token1.whitelistPools.length > 0) {
+        contentToken = token0
       }
-      if (!token1.whitelistPools.includes(pool.id)) {
-        token1.whitelistPools.push(pool.id)
+      if (token1.whitelistPools.length === 0 && token0.whitelistPools.length > 0) {
+        contentToken = token1
+      }
+      if (contentToken) {
+        contentToken.whitelistPools = [pool.id]
       }
     }
 

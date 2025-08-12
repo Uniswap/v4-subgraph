@@ -1,4 +1,4 @@
-type PoolManager @entity(immutable: false) {
+type PoolManager @entity (immutable: false){
   # poolManager address
   id: ID!
   # amount of pools created
@@ -28,13 +28,13 @@ type PoolManager @entity(immutable: false) {
 }
 
 # stores for USD calculations
-type Bundle @entity(immutable: false) {
+type Bundle @entity (immutable: false){
   id: ID!
   # price of ETH in usd
   ethPriceUSD: BigDecimal!
 }
 
-type Token @entity(immutable: false) {
+type Token @entity (immutable: false){
   # token address
   id: ID!
   # token symbol
@@ -73,7 +73,7 @@ type Token @entity(immutable: false) {
   tokenDayData: [TokenDayData!]! @derivedFrom(field: "token")
 }
 
-type Pool @entity(immutable: false) {
+type Pool @entity (immutable: false){
   # pool address
   id: ID!
   # creation
@@ -142,7 +142,7 @@ type Pool @entity(immutable: false) {
   ticks: [Tick!]! @derivedFrom(field: "pool")
 }
 
-type Tick @entity(immutable: false) {
+type Tick @entity (immutable: false){
   # format: <pool address>#<tick index>
   id: ID!
   # pool address
@@ -165,7 +165,7 @@ type Tick @entity(immutable: false) {
   createdAtBlockNumber: BigInt!
 }
 
-type Transaction @entity(immutable: true) {
+type Transaction @entity (immutable: true){
   # txn hash
   id: ID!
   # block txn was included in
@@ -183,7 +183,7 @@ type Transaction @entity(immutable: true) {
   unsubscriptions: [Unsubscribe]! @derivedFrom(field: "transaction")
 }
 
-type Swap @entity(immutable: true) {
+type Swap @entity (immutable: true){
   # transaction hash + "#" + index in swaps Transaction array
   id: ID!
   # pointer to transaction
@@ -216,7 +216,7 @@ type Swap @entity(immutable: true) {
   logIndex: BigInt
 }
 
-type ModifyLiquidity @entity(immutable: true) {
+type ModifyLiquidity @entity (immutable: true){
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # which txn the ModifyLiquidity was included in
@@ -252,7 +252,7 @@ type ModifyLiquidity @entity(immutable: true) {
 }
 
 # Data accumulated and condensed into day stats for all of Uniswap
-type UniswapDayData @entity(immutable: false) {
+type UniswapDayData @entity (immutable: false){
   # timestamp rounded to current day by dividing by 86400
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -272,7 +272,7 @@ type UniswapDayData @entity(immutable: false) {
 }
 
 # Data accumulated and condensed into day stats for each pool
-type PoolDayData @entity(immutable: false) {
+type PoolDayData @entity (immutable: false){
   # timestamp rounded to current day by dividing by 86400
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -312,7 +312,7 @@ type PoolDayData @entity(immutable: false) {
 }
 
 # hourly stats tracker for pool
-type PoolHourData @entity(immutable: false) {
+type PoolHourData @entity (immutable: false){
   # format: <pool address>-<timestamp>
   id: ID!
   # unix timestamp for start of hour
@@ -351,7 +351,7 @@ type PoolHourData @entity(immutable: false) {
   close: BigDecimal!
 }
 
-type TokenDayData @entity(immutable: false) {
+type TokenDayData @entity (immutable: false){
   # token address concatendated with date
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -382,7 +382,7 @@ type TokenDayData @entity(immutable: false) {
   close: BigDecimal!
 }
 
-type TokenHourData @entity(immutable: false) {
+type TokenHourData @entity (immutable: false){
   # token address concatendated with date
   id: ID!
   # unix timestamp for start of hour
@@ -413,7 +413,7 @@ type TokenHourData @entity(immutable: false) {
   close: BigDecimal!
 }
 
-type Position @entity(immutable: false) {
+type Position @entity (immutable: false){
   # tokenId
   id: ID!
   # tokenId
@@ -432,7 +432,7 @@ type Position @entity(immutable: false) {
   transfers: [Transfer!]! @derivedFrom(field: "position")
 }
 
-type Subscribe @entity(immutable: true) {
+type Subscribe @entity (immutable: true){
   # transaction hash + '-' + log index
   id: ID!
   # token id of position subscribed to
@@ -451,7 +451,7 @@ type Subscribe @entity(immutable: true) {
   position: Position!
 }
 
-type Unsubscribe @entity(immutable: true) {
+type Unsubscribe @entity (immutable: true){
   # transaction hash + '-' + log index
   id: ID!
   # token id of position unsubscribed from
@@ -470,7 +470,7 @@ type Unsubscribe @entity(immutable: true) {
   position: Position!
 }
 
-type Transfer @entity(immutable: true) {
+type Transfer @entity (immutable: true){
   # transaction hash + '-' + log index
   id: ID!
   # token id of position
@@ -489,30 +489,4 @@ type Transfer @entity(immutable: true) {
   origin: String!
   # pointer to position
   position: Position!
-}
-
-type EulerSwapHook @entity(immutable: false) {
-  # Composite key = eulerAccount-asset0-asset1
-  id: ID!
-  # The latest hook address for this key
-  hook: String!
-  # address of the euler account
-  eulerAccount: String!
-  # address of asset0
-  asset0: String!
-  # address of asset1
-  asset1: String!
-}
-
-type ArrakisHook @entity(immutable: false) {
-  # hook address
-  id: ID!
-  # module address that created this hook
-  module: Bytes!
-  # salt used in creation
-  salt: Bytes!
-  # timestamp of creation
-  createdAtTimestamp: BigInt!
-  # block number of creation
-  createdAtBlockNumber: BigInt!
 }

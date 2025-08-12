@@ -47,6 +47,24 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const token1 = Token.load(pool.token1)
 
   if (token0 && token1) {
+    // Backfill emppty tokens' whitelist pools to account for grafting to a point later than the block where the pool was initialized
+    if (token0.whitelistPools === null) {
+      if (whitelistTokens.includes(token1.id)) {
+        const newPools = token0.whitelistPools
+        newPools.push(pool.id)
+        token0.whitelistPools = newPools
+      }
+    }
+
+    if (token1.whitelistPools === null) {
+      // update white listed pools
+      if (whitelistTokens.includes(token0.id)) {
+        const newPools = token1.whitelistPools
+        newPools.push(pool.id)
+        token1.whitelistPools = newPools
+      }
+    }
+
     // amounts - 0/1 are token deltas: can be positive or negative
     // Unlike V3, a negative amount represents that amount is being sent to the pool and vice versa, so invert the sign
     const amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals).times(BigDecimal.fromString('-1'))
@@ -135,6 +153,21 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     bundle.save()
     token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
     token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+
+    // Update pricing for Zora content tokens if applicable
+    const ZORA_CONTENT_TOKEN_HOOK = '0x9ea932730a7787000042e34390b8e435dd839040'
+    if (pool.hooks.toLowerCase() == ZORA_CONTENT_TOKEN_HOOK.toLowerCase()) {
+      const contentResults = updateZoraContentTokenPricing(pool, token0, token1, minimumNativeLocked)
+
+      if (contentResults) {
+        if (contentResults.tokenIdentifier == 'Token0') {
+          token0.derivedETH = contentResults.contentDerivedETH
+        }
+        if (contentResults.tokenIdentifier == 'Token1') {
+          token1.derivedETH = contentResults.contentDerivedETH
+        }
+      }
+    }
 
     /**
      * Things afffected by new USD rates

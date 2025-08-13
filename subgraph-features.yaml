@@ -1,0 +1,77 @@
+specVersion: 0.0.4
+description: Grafted version for fast PositionManager & KittycornBank development
+repository: https://github.com/Uniswap/v4-subgraph
+schema:
+  file: ./schema.graphql
+features:
+  - nonFatalErrors
+  - grafting
+graft:
+  base: QmfWFN96pTEcRUjsJcYGJg5b3na2cVGvExXpndgvbJ9Fk3
+  block: 365457580
+dataSources:
+  - kind: ethereum/contract
+    name: PositionManager
+    network: arbitrum-one
+    source:
+      abi: PositionManager
+      address: "0x0989f4a52CC70099392b38e3D405e4F515D12630"
+      startBlock: 365457617
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/index.ts
+      entities:
+        - Position
+      abis:
+        - name: PositionManager
+          file: ./abis/PositionManager.json
+      eventHandlers:
+        - event: Subscription(indexed uint256,indexed address)
+          handler: handleSubscription
+        - event: Unsubscription(indexed uint256,indexed address)
+          handler: handleUnsubscription
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+  - kind: ethereum/contract
+    name: KittycornBank
+    network: arbitrum-one
+    source:
+      abi: KittycornBank
+      address: "0xf0E778F51865B9c3bCbfE2B59aD19A12d6d1a0Fc"
+      startBlock: 365457583
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/index.ts
+      entities:
+        - BorrowAsset
+        - Token
+        - LiquidatePosition
+      abis:
+        - name: KittycornBank
+          file: ./abis/KittycornBank.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: SetConfigBorrowToken(indexed address,bool,uint256)
+          handler: handleConfigBorrowToken
+        - event: LiquidatePosition(indexed uint256,indexed uint256,indexed
+            address,address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleLiquidatePosition
+        - event: SetConfigCollateral(indexed bytes32,bool,uint256,uint256,uint256)
+          handler: handleSetConfigCollateral
+        - event: EnableCollateral(indexed uint256,indexed uint256,indexed address)
+          handler: handleEnableCollateral
+        - event: DisableCollateral(indexed uint256,indexed uint256,indexed address)
+          handler: handleDisableCollateral
+        - event: Repay(indexed uint256,indexed address,uint256,uint256)
+          handler: handleRepay
+        - event: Borrow(indexed uint256,indexed address,uint256)
+          handler: handleBorrow

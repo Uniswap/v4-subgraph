@@ -490,3 +490,16 @@ type Transfer @entity (immutable: true){
   # pointer to position
   position: Position!
 }
+
+type ArrakisHook @entity(immutable: false) {
+  # hook address
+  id: ID!
+  # module address that created this hook
+  module: Bytes!
+  # salt used in creation
+  salt: Bytes!
+  # timestamp of creation
+  createdAtTimestamp: BigInt!
+  # block number of creation
+  createdAtBlockNumber: BigInt!
+}

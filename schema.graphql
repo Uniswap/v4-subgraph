@@ -76,7 +76,7 @@ type Token @entity {
   tokenHourData: [TokenHourData!]! @derivedFrom(field: "token")
   borrowAsset: BorrowAsset @derivedFrom(field: "token")
   # check kittycorn liquidity
-  isKiitycornLiquidity: Boolean!
+  isKittycornLiquidity: Boolean!
 }
 
 type Pool @entity {
@@ -148,7 +148,7 @@ type Pool @entity {
   ticks: [Tick!]! @derivedFrom(field: "pool")
   collateralConfig: PoolAllowCollateral @derivedFrom(field: "pool")
   # check kittycorn liquidity
-  isKiitycornLiquidity: Boolean!
+  isKittycornLiquidity: Boolean!
 }
 
 type Tick @entity {

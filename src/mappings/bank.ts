@@ -153,7 +153,7 @@ export function handleConfigBorrowTokenHelper(
     token.txCount = ZERO_BI
     token.poolCount = ZERO_BI
     token.whitelistPools = []
-    token.isKiitycornLiquidity = false
+    token.isKittycornLiquidity = false
   }
 
   let borrowAsset = BorrowAsset.load(assetId)
@@ -242,7 +242,7 @@ export function handleLiquidatePositionHelper(
     repayToken.txCount = ZERO_BI
     repayToken.poolCount = ZERO_BI
     repayToken.whitelistPools = []
-    repayToken.isKiitycornLiquidity = false
+    repayToken.isKittycornLiquidity = false
   }
 
   // load token0 and token1

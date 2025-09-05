@@ -155,6 +155,17 @@ export function handleModifyLiquidityHelper(
       kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
         bundle.ethPriceUSD,
       )
+
+      // set pool kittycorn liquidity flag
+      if (!pool.isKiitycornLiquidity) {
+        pool.isKiitycornLiquidity = true
+      }
+      if (!token0.isKiitycornLiquidity) {
+        token0.isKiitycornLiquidity = true
+      }
+      if (!token1.isKiitycornLiquidity) {
+        token1.isKiitycornLiquidity = true
+      }
     }
 
     if (poolCollateral !== null) {

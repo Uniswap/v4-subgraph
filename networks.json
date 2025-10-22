@@ -170,5 +170,15 @@
       "address": "0x1b35d13a2e2528f192637f14b05f0dc0e7deb566",
       "startBlock": 2473310
     }
+  },
+  "celo": {
+    "PoolManager": {
+      "address": "0x288dc841A52FCA2707c6947B3A777c5E56cd87BC",
+      "startBlock": 43985160
+    },
+    "PositionManager": {
+      "address": "0xf7965f3981e4D5BC383BfBCb61501763e9068CA9",
+      "startBlock": 47387840
+    }
   }
 }

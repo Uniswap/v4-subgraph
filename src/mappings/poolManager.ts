@@ -96,7 +96,7 @@ export function handleInitializeHelper(
     token0.txCount = ZERO_BI
     token0.poolCount = ZERO_BI
     token0.whitelistPools = []
-    token0.isKiitycornLiquidity = false
+    token0.isKittycornLiquidity = false
   }
 
   if (token1 === null) {
@@ -124,7 +124,7 @@ export function handleInitializeHelper(
     token1.txCount = ZERO_BI
     token1.poolCount = ZERO_BI
     token1.whitelistPools = []
-    token1.isKiitycornLiquidity = false
+    token1.isKittycornLiquidity = false
   }
 
   // update white listed pools
@@ -170,7 +170,7 @@ export function handleInitializeHelper(
 
   pool.sqrtPrice = event.params.sqrtPriceX96
   pool.tick = BigInt.fromI32(event.params.tick)
-  pool.isKiitycornLiquidity = false
+  pool.isKittycornLiquidity = false
 
   const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
   pool.token0Price = prices[0]

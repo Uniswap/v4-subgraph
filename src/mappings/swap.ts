@@ -41,7 +41,12 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const bundle = Bundle.load('1')!
   const poolManager = PoolManager.load(poolManagerAddress)!
   const poolId = event.params.id.toHexString()
-  const pool = Pool.load(poolId)!
+  const pool = Pool.load(poolId)
+
+  if (pool === null) {
+    return
+  }
+
   const poolCollateral = PoolAllowCollateral.load(poolId)
   const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
 

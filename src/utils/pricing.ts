@@ -142,10 +142,14 @@ export function calculateAmountUSD(
 }
 
 export function getTokenizeRefToken(tokenizeAddress: string, tokenizeConfig: Array<string[]>): Token | null {
-  let token: Token | null
+  let token: Token | null = null
+  const tokenizeAddressLower = tokenizeAddress.toLowerCase()
+
   for (let tokenizeConfigIndex = 0; tokenizeConfigIndex < tokenizeConfig.length; tokenizeConfigIndex++) {
-    if (tokenizeAddress == tokenizeConfig[tokenizeConfigIndex][0]) {
+    // Compare addresses in lowercase to prevent case-sensitivity issues
+    if (tokenizeAddressLower == tokenizeConfig[tokenizeConfigIndex][0].toLowerCase()) {
       token = Token.load(tokenizeConfig[tokenizeConfigIndex][1])
+      break
     }
   }
   return token

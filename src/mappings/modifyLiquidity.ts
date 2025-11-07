@@ -157,14 +157,14 @@ export function handleModifyLiquidityHelper(
       )
 
       // set pool kittycorn liquidity flag
-      if (!pool.isKiitycornLiquidity) {
-        pool.isKiitycornLiquidity = true
+      if (!pool.isKittycornLiquidity) {
+        pool.isKittycornLiquidity = true
       }
-      if (!token0.isKiitycornLiquidity) {
-        token0.isKiitycornLiquidity = true
+      if (!token0.isKittycornLiquidity) {
+        token0.isKittycornLiquidity = true
       }
-      if (!token1.isKiitycornLiquidity) {
-        token1.isKiitycornLiquidity = true
+      if (!token1.isKittycornLiquidity) {
+        token1.isKittycornLiquidity = true
       }
     }
 

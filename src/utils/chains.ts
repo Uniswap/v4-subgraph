@@ -109,12 +109,12 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0x9e09Ea7d3AaDEDA139c69F5b06aBA5546705a56E',
-      kittycornPositionManagerAddress: '0x9217f722bcd5812FA14538BFDc5f2c4D0546594e',
+      kittycornBankAddress: '0x9e09ea7d3aadeda139c69f5b06aba5546705a56e',
+      kittycornPositionManagerAddress: '0x9217f722bcd5812fa14538bfdc5f2c4d0546594e',
     }
   } else if (selectedNetwork == SEPOLIA_DEV_NETWORK_NAME) {
     return {
-      poolManagerAddress: '0xEa62dEb48b86E4561e95Aa2457295C3F1E4CF102',
+      poolManagerAddress: '0xea62deb48b86e4561e95aa2457295c3f1e4cf102',
       stablecoinWrappedNativePoolId: '0x06bf19febfc37a95cae4f798ce744cf052fe7b96d4bdb55ad31335492cc5eb4b', // WETH-USDT 0.3% on UniswapPositionManager(0x0372dd045edF01740D18d325AeCb2Dcb4913Cd29)
       stablecoinIsToken0: true,
       wrappedNativeAddress: '0xc558dbdd856501fcd9aaf1e62eae57a9f0629a3c', // WETH
@@ -270,43 +270,46 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0xc78C603644b59CCbC869fa36B72adE24C9e04C40',
+      kittycornBankAddress: '0xc78c603644b59ccbc869fa36b72ade24c9e04c40',
       kittycornPositionManagerAddress: '0x0',
     }
   } else if (selectedNetwork == ARBITRUM_ONE_NETWORK_NAME) {
     return {
-      poolManagerAddress: '0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32',
+      poolManagerAddress: '0x360e68faccca8ca495c1b759fd9eee466db9fb32',
       stablecoinWrappedNativePoolId: '0xfc7b3ad139daaf1e9c3637ed921c154d1b04286f8a82b805a6c352da57028653', // <- WETH-USDC 0.05% https://app.uniswap.org/explore/pools/arbitrum/0xfc7b3ad139daaf1e9c3637ed921c154d1b04286f8a82b805a6c352da57028653
       stablecoinIsToken0: false,
-      wrappedNativeAddress: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH
+      wrappedNativeAddress: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1', // WETH
       minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: [
         '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // USDC.e
         '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI
-        '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
-        '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT
+        '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // USDC
+        '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', // USDT
       ],
       whitelistTokens: [
         '0x0000000000000000000000000000000000000000', // Native ETH
         '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // USDC.e
         '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI
-        '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC
-        '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT,
-        '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH
-        '0x3eD9D2e07d314f2DcA05f920Ed5cbF2DFF60bC9a', // tAAVE
-        '0x8fecD0452BBF493C4915834E75310a5e8fe1FdDe', // tWBTC
-        '0xCfdAb139Da7252EC3D8Df14F03659A46d1d1848C', // tWETH
-        '0xDd816723CF1B310d1755156c4f37b4c8ed54ED5C', // tLINK
-        '0x43297FBD1306f9fcDf96EE3A27e0113E4295D738', // tUSDC
-        '0x93Ee5B16F4dDE4566b94488B8d929F39df112f60', // tUSDT
+        '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // USDC
+        '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', // USDT,
+        '0x82af49447d8a07e3bd95bd0d56f35241523fbab1', // WETH
+        '0xba5ddd1f9d7f570dc94a51479a000e3bce967196', // AAVE
+        '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f', // WBTC
+        '0xf97f4df75117a78c1a5a0dbb814af92458539fb4', // LINK
+        '0x3ed9d2e07d314f2dca05f920ed5cbf2dff60bc9a', // tAAVE
+        '0x8fecd0452bbf493c4915834e75310a5e8fe1fdde', // tWBTC
+        '0xcfdab139da7252ec3d8df14f03659a46d1d1848c', // tWETH
+        '0xdd816723cf1b310d1755156c4f37b4c8ed54ed5c', // tLINK
+        '0x43297fbd1306f9fcdf96ee3a27e0113e4295d738', // tUSDC
+        '0x93ee5b16f4dde4566b94488b8d929f39df112f60', // tUSDT
       ],
       tokenizes: [
-        ['0x3eD9D2e07d314f2DcA05f920Ed5cbF2DFF60bC9a', '0xba5ddd1f9d7f570dc94a51479a000e3bce967196'], // tAAVE
-        ['0x8fecD0452BBF493C4915834E75310a5e8fe1FdDe', '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f'], // tWBTC
-        ['0xCfdAb139Da7252EC3D8Df14F03659A46d1d1848C', '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'], // tWETH
-        ['0xDd816723CF1B310d1755156c4f37b4c8ed54ED5C', '0xf97f4df75117a78c1a5a0dbb814af92458539fb4'], // tLINK
-        ['0x43297FBD1306f9fcDf96EE3A27e0113E4295D738', '0xaf88d065e77c8cc2239327c5edb3a432268e5831'], // tUSDC
-        ['0x93Ee5B16F4dDE4566b94488B8d929F39df112f60', '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9'], // tUSDT
+        ['0x3ed9d2e07d314f2dca05f920ed5cbf2dff60bc9a', '0xba5ddd1f9d7f570dc94a51479a000e3bce967196'], // tAAVE
+        ['0x8fecd0452bbf493c4915834e75310a5e8fe1fdde', '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f'], // tWBTC
+        ['0xcfdab139da7252ec3d8df14f03659a46d1d1848c', '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'], // tWETH
+        ['0xdd816723cf1b310d1755156c4f37b4c8ed54ed5c', '0xf97f4df75117a78c1a5a0dbb814af92458539fb4'], // tLINK
+        ['0x43297fbd1306f9fcdf96ee3a27e0113e4295d738', '0xaf88d065e77c8cc2239327c5edb3a432268e5831'], // tUSDC
+        ['0x93ee5b16f4dde4566b94488b8d929f39df112f60', '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9'], // tUSDT
       ],
       tokenOverrides: [
         {
@@ -329,8 +332,8 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0xf0E778F51865B9c3bCbfE2B59aD19A12d6d1a0Fc',
-      kittycornPositionManagerAddress: '0x0989f4a52CC70099392b38e3D405e4F515D12630',
+      kittycornBankAddress: '0xf0e778f51865b9c3bcbfe2b59ad19a12d6d1a0fc',
+      kittycornPositionManagerAddress: '0x0989f4a52cc70099392b38e3d405e4f515d12630',
     }
   } else {
     throw new Error('Unsupported Network')

@@ -22,6 +22,7 @@ module.exports = {
       },
     ],
   },
+  plugins: ['local-rules'],
   overrides: [
     {
       files: ['tests/**/*.ts'],
@@ -32,6 +33,12 @@ module.exports = {
         // jest is added as a plugin in our org's eslint config, but we use
         // matchstick, and this would crash when linting matchstick files.
         'disable/plugins': ['jest'],
+      },
+    },
+    {
+      files: ['src/utils/chains.ts'],
+      rules: {
+        'local-rules/lowercase-0x-addresses': 'error',
       },
     },
   ],

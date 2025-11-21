@@ -180,5 +180,15 @@
       "address": "0xf7965f3981e4D5BC383BfBCb61501763e9068CA9",
       "startBlock": 47387840
     }
+  },
+  "monad": {
+    "PoolManager": {
+      "address": "0x188d586Ddcf52439676Ca21A244753fA19F9Ea8e",
+      "startBlock": 29255895
+    },
+    "PositionManager": {
+      "address": "0x5b7eC4a94fF9beDb700fb82aB09d5846972F4016",
+      "startBlock": 29255913
+    }
   }
 }

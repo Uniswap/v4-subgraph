@@ -147,7 +147,7 @@
       "startBlock": 14377316
     }
   },
-  "unichain-mainnet": {
+  "unichain": {
     "PoolManager": {
       "address": "0x1F98400000000000000000000000000000000004",
       "startBlock": 25500

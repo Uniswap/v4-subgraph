@@ -22,7 +22,7 @@ const WORLDCHAIN_MAINNET_NETWORK_NAME = 'worldchain-mainnet'
 const ZORA_MAINNET_NETWORK_NAME = 'zora-mainnet'
 const MAINNET_NETWORK_NAME = 'mainnet'
 const BLAST_MAINNET_NETWORK_NAME = 'blast-mainnet'
-const UNICHAIN_MAINNET_NETWORK_NAME = 'unichain-mainnet'
+const UNICHAIN_MAINNET_NETWORK_NAME = 'unichain'
 const SONEIUM_MAINNET_NETWORK_NAME = 'soneium-mainnet'
 const CELO_NETWORK_NAME = 'celo'
 

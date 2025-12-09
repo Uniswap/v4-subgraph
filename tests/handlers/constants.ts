@@ -12,6 +12,8 @@ const USDC_MAINNET_ADDRESS = '0x5d1abc83973c773d122ae7c551251cc9be2baecc'
 const WETH_MAINNET_ADDRESS = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
 const WBTC_MAINNET_ADDRESS = '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
 const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
+const KITTYCORN_BANK_ADDRESS = '0x1234567890123456789012345678901234567890'
+export const KITTYCORN_POSITION_MANAGER_ADDRESS = '0x39BF2eFF94201cfAA471932655404F63315147a4'
 export const POOL_FEE_TIER_05 = 500
 
 export const USDC_WETH_POOL_ID = '0x85c41d6535ebab7661979fa7a5d331e4cb229b4d1e7dde1a78ae298fab8ca5bb'
@@ -33,6 +35,9 @@ export const TEST_CONFIG: SubgraphConfig = {
     name: 'Ethereum',
     decimals: BigInt.fromI32(18),
   },
+  tokenizes: [],
+  kittycornBankAddress: KITTYCORN_BANK_ADDRESS,
+  kittycornPositionManagerAddress: KITTYCORN_POSITION_MANAGER_ADDRESS,
 }
 
 export class TokenFixture {
@@ -299,6 +304,7 @@ export const createAndStoreTestToken = (tokenFixture: TokenFixture): Token => {
   token.totalValueLockedUSDUntracked = ZERO_BD
   token.derivedETH = ZERO_BD
   token.whitelistPools = []
+  token.isKittycornLiquidity = false
 
   token.save()
   return token

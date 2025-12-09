@@ -558,6 +558,9 @@ type LiquidityPosition @entity {
   pool: Pool!
   tickLower: BigInt!
   tickUpper: BigInt!
+  liquidity: BigInt!
+  amount0: BigDecimal!
+  amount1: BigDecimal!
 }
 
 type BankPosition @entity {

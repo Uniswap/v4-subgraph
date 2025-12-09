@@ -13,7 +13,7 @@ import {
   Token,
 } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ONE_BI } from '../utils/constants'
+import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { convertTokenToDecimal, hexToBigInt, loadKittycornPositionManager, loadTransaction } from '../utils/index'
 import {
   updatePoolDayData,
@@ -246,7 +246,15 @@ export function handleModifyLiquidityHelper(
         liquidityPosition.pool = pool.id
         liquidityPosition.tickLower = modifyLiquidity.tickLower
         liquidityPosition.tickUpper = modifyLiquidity.tickUpper
+        liquidityPosition.liquidity = ZERO_BI
+        liquidityPosition.amount0 = ZERO_BD
+        liquidityPosition.amount1 = ZERO_BD
       }
+
+      // Accumulate liquidity and amounts
+      liquidityPosition.liquidity = liquidityPosition.liquidity.plus(event.params.liquidityDelta)
+      liquidityPosition.amount0 = liquidityPosition.amount0.plus(amount0)
+      liquidityPosition.amount1 = liquidityPosition.amount1.plus(amount1)
 
       if (position !== null) {
         liquidityPosition.position = position.id

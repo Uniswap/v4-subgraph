@@ -26,6 +26,7 @@ const UNICHAIN_MAINNET_NETWORK_NAME = 'unichain-mainnet'
 const SONEIUM_MAINNET_NETWORK_NAME = 'soneium-mainnet'
 const CELO_NETWORK_NAME = 'celo'
 const MONAD_NETWORK_NAME = 'monad'
+const XLAYER_MAINNET_NETWORK_NAME = 'xlayer-mainnet'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -649,6 +650,34 @@ export function getSubgraphConfig(): SubgraphConfig {
       nativeTokenDetails: {
         symbol: 'MON',
         name: 'MON',
+        decimals: BigInt.fromI32(18),
+      },
+    }
+  } else if (selectedNetwork == XLAYER_MAINNET_NETWORK_NAME) {
+    const WOKB = '0xe538905cf8410324e03a5a23c1c177a474d59b2b'.toLowerCase()
+    const WETH = '0x5A77f1443D16ee5761d310e38b62f77f726bC71c'.toLowerCase()
+    const USDT = '0x1E4a5963aBFD975d8c9021ce480b42188849D41d'.toLowerCase()
+    const USDT0 = '0x779Ded0c9e1022225f8E0630b35a9b54bE713736'.toLowerCase()
+    const USDC = '0x74b7F16337b8972027F6196A17a631aC6dE26d22'.toLowerCase()
+    const USDCe = '0xA8CE8aee21bC2A48a5EF670afCc9274C7bbbC035'.toLowerCase()
+    const WBTC = '0xEA034fb02eB1808C2cc3adbC15f447B93CbE08e1'.toLowerCase()
+    const DAI = '0xC5015b9d9161Dca7e18e32f6f25C4aD850731Fd4'.toLowerCase()
+    const nativeToUSDC = '0x9072107b33ad70c231602b537d91774a43c1837f9b28040ee9bf8cad0a0ab4a1'.toLowerCase()
+
+    return {
+      poolManagerAddress: '0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32'.toLowerCase(),
+      stablecoinWrappedNativePoolId: nativeToUSDC,
+      stablecoinIsToken0: false,
+      wrappedNativeAddress: WOKB,
+      minimumNativeLocked: BigDecimal.fromString('25'),
+      stablecoinAddresses: [USDC, USDT, DAI],
+      whitelistTokens: [WOKB, WETH, USDT, USDT0, USDC, USDCe, WBTC, DAI],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'OKB',
+        name: 'OKB',
         decimals: BigInt.fromI32(18),
       },
     }

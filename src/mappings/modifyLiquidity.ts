@@ -249,6 +249,7 @@ export function handleModifyLiquidityHelper(
         liquidityPosition.liquidity = ZERO_BI
         liquidityPosition.amount0 = ZERO_BD
         liquidityPosition.amount1 = ZERO_BD
+        liquidityPosition.borrowAmount = ZERO_BI
       }
 
       // Accumulate liquidity and amounts

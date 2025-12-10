@@ -561,6 +561,8 @@ type LiquidityPosition @entity {
   liquidity: BigInt!
   amount0: BigDecimal!
   amount1: BigDecimal!
+  borrowToken: Token
+  borrowAmount: BigInt!
 }
 
 type BankPosition @entity {

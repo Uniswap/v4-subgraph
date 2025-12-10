@@ -190,5 +190,15 @@
       "address": "0x5b7eC4a94fF9beDb700fb82aB09d5846972F4016",
       "startBlock": 29255913
     }
+  },
+  "xlayer-mainnet": {
+    "PoolManager": {
+      "address": "0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32",
+      "startBlock": 46460144
+    },
+    "PositionManager": {
+      "address": "0xbc9f3a5d767dd46e040f1ca48ab17f29f59dc806",
+      "startBlock": 46106401
+    }
   }
 }

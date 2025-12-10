@@ -29,6 +29,7 @@ export function handleTransferHelper(event: TransferEvent, subgraphConfig: Subgr
     position.liquidatedOwner = ''
     position.isLiquidated = false
     position.isCollateral = false
+    position.isMigrated = false
   }
 
   if (to.notEqual(kittycornBankAddress)) {

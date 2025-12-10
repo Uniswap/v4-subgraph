@@ -444,6 +444,8 @@ type Position @entity {
   isLiquidated: Boolean!
   liquidatedOwner: String
   isCollateral: Boolean!
+  # true if position was created via migration
+  isMigrated: Boolean!
 }
 
 type Subscribe @entity {

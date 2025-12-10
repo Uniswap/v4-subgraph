@@ -53,6 +53,7 @@ describe('handleTransfer', () => {
     position.isLiquidated = false
     position.liquidatedOwner = ''
     position.isCollateral = false
+    position.isMigrated = false
 
     position.save()
 

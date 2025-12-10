@@ -259,6 +259,18 @@ export function handleModifyLiquidityHelper(
 
       if (position !== null) {
         liquidityPosition.position = position.id
+
+        // Check if this is a migration (tx.to == migrator address and liquidityDelta > 0)
+        const kittycornMigratorAddress = subgraphConfig.kittycornMigratorAddress
+        const isMigration =
+          event.transaction.to !== null &&
+          event.transaction.to!.equals(Address.fromString(kittycornMigratorAddress)) &&
+          event.params.liquidityDelta.gt(ZERO_BI)
+
+        if (isMigration && !position.isMigrated) {
+          position.isMigrated = true
+          position.save()
+        }
       }
 
       liquidityPosition.save()

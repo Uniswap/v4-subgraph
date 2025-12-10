@@ -64,6 +64,9 @@ export class SubgraphConfig {
 
   // address of the kittycorn position manager contract
   kittycornPositionManagerAddress: string
+
+  // address of the kittycorn migrator contract
+  kittycornMigratorAddress: string
 }
 
 export function getSubgraphConfig(): SubgraphConfig {
@@ -111,6 +114,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
       kittycornBankAddress: '0x9e09ea7d3aadeda139c69f5b06aba5546705a56e',
       kittycornPositionManagerAddress: '0x9217f722bcd5812fa14538bfdc5f2c4d0546594e',
+      kittycornMigratorAddress: '0x0000000000000000000000000000000000000000',
     }
   } else if (selectedNetwork == SEPOLIA_DEV_NETWORK_NAME) {
     return {
@@ -156,6 +160,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
       kittycornBankAddress: '0xdcb95eb81869c75aa00cd320a538212a3c6be38a',
       kittycornPositionManagerAddress: '0xfe8e8f0a1305a0f66f4deb744f94726be489602c',
+      kittycornMigratorAddress: '0x0000000000000000000000000000000000000000',
     }
   } else if (selectedNetwork == BSC_NETWORK_NAME) {
     return {
@@ -185,6 +190,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
       kittycornBankAddress: '0x0',
       kittycornPositionManagerAddress: '0x0',
+      kittycornMigratorAddress: '0x0000000000000000000000000000000000000000',
     }
   } else if (selectedNetwork == MAINNET_NETWORK_NAME || selectedNetwork == MAINNET_FORK_NETWORK_NAME) {
     return {
@@ -272,6 +278,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
       kittycornBankAddress: '0xc78c603644b59ccbc869fa36b72ade24c9e04c40',
       kittycornPositionManagerAddress: '0x0',
+      kittycornMigratorAddress: '0x0000000000000000000000000000000000000000',
     }
   } else if (selectedNetwork == ARBITRUM_ONE_NETWORK_NAME) {
     return {
@@ -334,6 +341,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
       kittycornBankAddress: '0xf0e778f51865b9c3bcbfe2b59ad19a12d6d1a0fc',
       kittycornPositionManagerAddress: '0x0989f4a52cc70099392b38e3d405e4f515d12630',
+      kittycornMigratorAddress: '0xc78c603644b59ccbc869fa36b72ade24c9e04c40',
     }
   } else {
     throw new Error('Unsupported Network')

@@ -332,4 +332,39 @@ describe('handleRepay', () => {
 
     assertObjectMatches('LiquidityPosition', positionId, [['borrowAmount', '0']])
   })
+
+  // Test with real data from arbiscan tx:
+  // Borrow: https://arbiscan.io/tx/0x85952bb24c2a5339c919b3bcbb168d73e9cf5a2340434def56dd6b3ef2dd7907#eventlog
+  // Repay: https://arbiscan.io/tx/0x9b86ae8dd30b3fe592af833621f288a8aa2d0498ecfc782f5b6d9d776ae5e744#eventlog
+  test('success - handleRepay clamps to zero when repayAmount exceeds borrowAmount (real arbiscan data)', () => {
+    const positionId = '9'
+
+    setupLiquidityPosition(positionId)
+
+    // Real Borrow event data: positionId=9, ulToken=USDT, borrowAmount=1000000
+    const borrowAmount = BigInt.fromString('1000000')
+    const borrowEvent = createBorrowEvent(BigInt.fromString(positionId), Address.fromString(USDT_ADDRESS), borrowAmount)
+    handleBorrow(borrowEvent)
+
+    // Verify after borrow
+    assertObjectMatches('LiquidityPosition', positionId, [
+      ['borrowToken', USDT_ADDRESS],
+      ['borrowAmount', '1000000'],
+    ])
+
+    // Real Repay event data: positionId=9, ulToken=USDT, repayAmount=1000012, repayFee=4
+    // repayAmount (1000012) > borrowAmount (1000000) due to accrued interest
+    const repayAmount = BigInt.fromString('1000012')
+    const repayFee = BigInt.fromString('4')
+    const repayEvent = createRepayEvent(
+      BigInt.fromString(positionId),
+      Address.fromString(USDT_ADDRESS),
+      repayAmount,
+      repayFee,
+    )
+    handleRepay(repayEvent)
+
+    // borrowAmount should be clamped to 0 (not negative -12)
+    assertObjectMatches('LiquidityPosition', positionId, [['borrowAmount', '0']])
+  })
 })

@@ -71,7 +71,9 @@ export function handleRepay(event: Repay): void {
   // Update borrow amount for the liquidity position
   const liquidityPosition = LiquidityPosition.load(positionId)
   if (liquidityPosition !== null) {
-    liquidityPosition.borrowAmount = liquidityPosition.borrowAmount.minus(repayAmount)
+    const newBorrowAmount = liquidityPosition.borrowAmount.minus(repayAmount)
+    // Clamp to zero to handle cases where repayAmount includes interest
+    liquidityPosition.borrowAmount = newBorrowAmount.gt(ZERO_BI) ? newBorrowAmount : ZERO_BI
     liquidityPosition.save()
   }
 }

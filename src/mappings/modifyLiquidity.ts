@@ -13,7 +13,7 @@ import {
   Token,
 } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
+import { ONE_BI, ZERO_BI } from '../utils/constants'
 import { convertTokenToDecimal, hexToBigInt, loadKittycornPositionManager, loadTransaction } from '../utils/index'
 import {
   updatePoolDayData,

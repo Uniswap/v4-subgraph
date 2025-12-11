@@ -625,7 +625,7 @@ export function getSubgraphConfig(): SubgraphConfig {
   } else if (selectedNetwork == MONAD_NETWORK_NAME) {
     return {
       poolManagerAddress: '0x188d586ddcf52439676ca21a244753fa19f9ea8e',
-      stablecoinWrappedNativePoolId: '0x7d892749d0562b0f78a26cdec26e97ec9dc7f8d1997cb590643ab69f10a1da0e',
+      stablecoinWrappedNativePoolId: '0xadaf30776f551bccdfb307c3fd8cdec198ca9a852434c8022ee32d1ccedd8219',
       stablecoinIsToken0: false,
       wrappedNativeAddress: '0x0000000000000000000000000000000000000000', // Native MON
       minimumNativeLocked: BigDecimal.fromString('100000'),

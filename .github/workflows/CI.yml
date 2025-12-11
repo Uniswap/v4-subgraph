@@ -73,9 +73,9 @@ jobs:
       - name: Build project
         run: yarn build
 
-      # - name: Build Docker
-      #   run: yarn build:docker
+      - name: Build Docker
+        run: yarn build:docker
 
-      # - name: Test
-      #   # We need to run test in this mode because github CI is non-interactive
-      #   run: yarn test:no-tty
+      - name: Test
+        # We need to run test in this mode because github CI is non-interactive
+        run: yarn test:no-tty

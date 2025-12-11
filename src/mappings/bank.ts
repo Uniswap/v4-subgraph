@@ -50,6 +50,7 @@ export function handleRepay(event: Repay): void {
   const subgraphConfig: SubgraphConfig = getSubgraphConfig()
   const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
   const assetId = event.params.ulToken.toHexString()
+  const positionId = event.params.positionId.toString()
   const repayFee = BigDecimal.fromString(event.params.repayFee.toString())
   const repayAmount = event.params.repayAmount
   const bundle = Bundle.load('1')
@@ -66,15 +67,35 @@ export function handleRepay(event: Repay): void {
     kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(amountUSD)
     kittycornDayData.save()
   }
+
+  // Update borrow amount for the liquidity position
+  const liquidityPosition = LiquidityPosition.load(positionId)
+  if (liquidityPosition !== null) {
+    const newBorrowAmount = liquidityPosition.borrowAmount.minus(repayAmount)
+    // Clamp to zero to handle cases where repayAmount includes interest
+    liquidityPosition.borrowAmount = newBorrowAmount.gt(ZERO_BI) ? newBorrowAmount : ZERO_BI
+    liquidityPosition.save()
+  }
 }
 
 export function handleBorrow(event: Borrow): void {
   const assetId = event.params.ulToken.toHexString()
+  const positionId = event.params.positionId.toString()
   const borrowAmount = event.params.borrowAmount
+
+  // Update total borrow amount for the asset
   const borrowAsset = BorrowAsset.load(assetId)
   if (borrowAsset !== null) {
     borrowAsset.totalBorrowAmount = borrowAsset.totalBorrowAmount.plus(borrowAmount)
     borrowAsset.save()
+  }
+
+  // Update borrow amount for the liquidity position
+  const liquidityPosition = LiquidityPosition.load(positionId)
+  if (liquidityPosition !== null) {
+    liquidityPosition.borrowToken = assetId
+    liquidityPosition.borrowAmount = liquidityPosition.borrowAmount.plus(borrowAmount)
+    liquidityPosition.save()
   }
 }
 
@@ -89,7 +110,7 @@ function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: bo
   position.save()
 }
 
-function handleSetConfigCollateralHelper(
+export function handleSetConfigCollateralHelper(
   event: SetConfigCollateralCallEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {

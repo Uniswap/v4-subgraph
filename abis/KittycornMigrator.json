@@ -1,0 +1,275 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      { "name": "_kittycornPositionManager", "type": "address", "internalType": "contract IPositionManager" },
+      { "name": "_permit2", "type": "address", "internalType": "contract IAllowanceTransfer" },
+      { "name": "_bank", "type": "address", "internalType": "contract IKittycornBank" },
+      {
+        "name": "_uniswapPositionManagerV3",
+        "type": "address",
+        "internalType": "contract INonfungiblePositionManager"
+      },
+      { "name": "_uniswapPositionManagerV4", "type": "address", "internalType": "contract IPositionManager" },
+      { "name": "_weth9", "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "WETH9",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "bank",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IKittycornBank" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "kittycornPositionManager",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IPositionManager" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "migrateV2",
+    "inputs": [
+      {
+        "name": "_params",
+        "type": "tuple",
+        "internalType": "struct MigrateV2Params",
+        "components": [
+          {
+            "name": "permitDataV2",
+            "type": "tuple",
+            "internalType": "struct PermitDataV2",
+            "components": [
+              { "name": "token", "type": "address", "internalType": "address" },
+              { "name": "value", "type": "uint256", "internalType": "uint256" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" },
+              { "name": "v", "type": "uint8", "internalType": "uint8" },
+              { "name": "r", "type": "bytes32", "internalType": "bytes32" },
+              { "name": "s", "type": "bytes32", "internalType": "bytes32" }
+            ]
+          },
+          {
+            "name": "uniswapV2Params",
+            "type": "tuple",
+            "internalType": "struct UniswapV2Params",
+            "components": [{ "name": "token", "type": "address", "internalType": "address" }]
+          },
+          {
+            "name": "modifyLiquidityParams",
+            "type": "tuple",
+            "internalType": "struct ModifyLiquidityParams",
+            "components": [
+              {
+                "name": "poolKey",
+                "type": "tuple",
+                "internalType": "struct PoolKey",
+                "components": [
+                  { "name": "currency0", "type": "address", "internalType": "Currency" },
+                  { "name": "currency1", "type": "address", "internalType": "Currency" },
+                  { "name": "fee", "type": "uint24", "internalType": "uint24" },
+                  { "name": "tickSpacing", "type": "int24", "internalType": "int24" },
+                  { "name": "hooks", "type": "address", "internalType": "contract IHooks" }
+                ]
+              },
+              { "name": "tickLower", "type": "int24", "internalType": "int24" },
+              { "name": "tickUpper", "type": "int24", "internalType": "int24" },
+              { "name": "liquidity", "type": "uint256", "internalType": "uint256" },
+              { "name": "amount0Max", "type": "uint128", "internalType": "uint128" },
+              { "name": "amount1Max", "type": "uint128", "internalType": "uint128" },
+              { "name": "hookData", "type": "bytes", "internalType": "bytes" },
+              { "name": "recipient", "type": "address", "internalType": "address" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "migrateV3",
+    "inputs": [
+      {
+        "name": "_params",
+        "type": "tuple",
+        "internalType": "struct MigrateV3Params",
+        "components": [
+          {
+            "name": "permitDataV3",
+            "type": "tuple",
+            "internalType": "struct PermitDataV3",
+            "components": [
+              { "name": "tokenId", "type": "uint256", "internalType": "uint256" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" },
+              { "name": "v", "type": "uint8", "internalType": "uint8" },
+              { "name": "r", "type": "bytes32", "internalType": "bytes32" },
+              { "name": "s", "type": "bytes32", "internalType": "bytes32" }
+            ]
+          },
+          {
+            "name": "uniswapV3Params",
+            "type": "tuple",
+            "internalType": "struct UniswapV3Params",
+            "components": [
+              { "name": "tokenId", "type": "uint256", "internalType": "uint256" },
+              { "name": "amount0Min", "type": "uint256", "internalType": "uint256" },
+              { "name": "amount1Min", "type": "uint256", "internalType": "uint256" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" }
+            ]
+          },
+          {
+            "name": "modifyLiquidityParams",
+            "type": "tuple",
+            "internalType": "struct ModifyLiquidityParams",
+            "components": [
+              {
+                "name": "poolKey",
+                "type": "tuple",
+                "internalType": "struct PoolKey",
+                "components": [
+                  { "name": "currency0", "type": "address", "internalType": "Currency" },
+                  { "name": "currency1", "type": "address", "internalType": "Currency" },
+                  { "name": "fee", "type": "uint24", "internalType": "uint24" },
+                  { "name": "tickSpacing", "type": "int24", "internalType": "int24" },
+                  { "name": "hooks", "type": "address", "internalType": "contract IHooks" }
+                ]
+              },
+              { "name": "tickLower", "type": "int24", "internalType": "int24" },
+              { "name": "tickUpper", "type": "int24", "internalType": "int24" },
+              { "name": "liquidity", "type": "uint256", "internalType": "uint256" },
+              { "name": "amount0Max", "type": "uint128", "internalType": "uint128" },
+              { "name": "amount1Max", "type": "uint128", "internalType": "uint128" },
+              { "name": "hookData", "type": "bytes", "internalType": "bytes" },
+              { "name": "recipient", "type": "address", "internalType": "address" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "migrateV4",
+    "inputs": [
+      {
+        "name": "_params",
+        "type": "tuple",
+        "internalType": "struct MigrateV4Params",
+        "components": [
+          {
+            "name": "permitDataV4",
+            "type": "tuple",
+            "internalType": "struct PermitDataV4",
+            "components": [
+              { "name": "tokenId", "type": "uint256", "internalType": "uint256" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" },
+              { "name": "nonce", "type": "uint256", "internalType": "uint256" },
+              { "name": "signature", "type": "bytes", "internalType": "bytes" }
+            ]
+          },
+          {
+            "name": "uniswapV4Params",
+            "type": "tuple",
+            "internalType": "struct UniswapV4Params",
+            "components": [
+              {
+                "name": "poolKey",
+                "type": "tuple",
+                "internalType": "struct PoolKey",
+                "components": [
+                  { "name": "currency0", "type": "address", "internalType": "Currency" },
+                  { "name": "currency1", "type": "address", "internalType": "Currency" },
+                  { "name": "fee", "type": "uint24", "internalType": "uint24" },
+                  { "name": "tickSpacing", "type": "int24", "internalType": "int24" },
+                  { "name": "hooks", "type": "address", "internalType": "contract IHooks" }
+                ]
+              },
+              { "name": "tokenId", "type": "uint256", "internalType": "uint256" },
+              { "name": "amount0Min", "type": "uint128", "internalType": "uint128" },
+              { "name": "amount1Min", "type": "uint128", "internalType": "uint128" },
+              { "name": "hookData", "type": "bytes", "internalType": "bytes" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" }
+            ]
+          },
+          {
+            "name": "modifyLiquidityParams",
+            "type": "tuple",
+            "internalType": "struct ModifyLiquidityParams",
+            "components": [
+              {
+                "name": "poolKey",
+                "type": "tuple",
+                "internalType": "struct PoolKey",
+                "components": [
+                  { "name": "currency0", "type": "address", "internalType": "Currency" },
+                  { "name": "currency1", "type": "address", "internalType": "Currency" },
+                  { "name": "fee", "type": "uint24", "internalType": "uint24" },
+                  { "name": "tickSpacing", "type": "int24", "internalType": "int24" },
+                  { "name": "hooks", "type": "address", "internalType": "contract IHooks" }
+                ]
+              },
+              { "name": "tickLower", "type": "int24", "internalType": "int24" },
+              { "name": "tickUpper", "type": "int24", "internalType": "int24" },
+              { "name": "liquidity", "type": "uint256", "internalType": "uint256" },
+              { "name": "amount0Max", "type": "uint128", "internalType": "uint128" },
+              { "name": "amount1Max", "type": "uint128", "internalType": "uint128" },
+              { "name": "hookData", "type": "bytes", "internalType": "bytes" },
+              { "name": "recipient", "type": "address", "internalType": "address" },
+              { "name": "deadline", "type": "uint256", "internalType": "uint256" }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "onERC721Received",
+    "inputs": [
+      { "name": "", "type": "address", "internalType": "address" },
+      { "name": "", "type": "address", "internalType": "address" },
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "bytes", "internalType": "bytes" }
+    ],
+    "outputs": [{ "name": "", "type": "bytes4", "internalType": "bytes4" }],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "permit2",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IAllowanceTransfer" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "uniswapPositionManagerV3",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract INonfungiblePositionManager" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "uniswapPositionManagerV4",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IPositionManager" }],
+    "stateMutability": "view"
+  }
+]

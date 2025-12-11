@@ -444,6 +444,8 @@ type Position @entity {
   isLiquidated: Boolean!
   liquidatedOwner: String
   isCollateral: Boolean!
+  # true if position was created via migration
+  isMigrated: Boolean!
 }
 
 type Subscribe @entity {
@@ -558,6 +560,9 @@ type LiquidityPosition @entity {
   pool: Pool!
   tickLower: BigInt!
   tickUpper: BigInt!
+  liquidity: BigInt!
+  borrowToken: Token
+  borrowAmount: BigInt!
 }
 
 type BankPosition @entity {
@@ -619,4 +624,20 @@ type KittycornDayData @entity {
   tvlUSD: BigDecimal!
   # collateral in terms of USD
   collateralUSD: BigDecimal!
+}
+
+# Daily swap data aggregated per user for tokenized pools (pools with PoolAllowCollateral)
+type UserSwapDayData @entity {
+  # format: <user address>-<dayID>
+  id: ID!
+  # timestamp rounded to current day by dividing by 86400
+  date: Int!
+  # user address (EOA that initiated the swap)
+  user: Bytes!
+  # accumulated swap volume in USD for the day
+  volumeUSD: BigDecimal!
+  # accumulated fees paid in USD for the day
+  feesUSD: BigDecimal!
+  # accumulated number of swaps for the day
+  txCount: BigInt!
 }

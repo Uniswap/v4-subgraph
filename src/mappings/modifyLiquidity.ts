@@ -13,7 +13,7 @@ import {
   Token,
 } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ONE_BI } from '../utils/constants'
+import { ONE_BI, ZERO_BI } from '../utils/constants'
 import { convertTokenToDecimal, hexToBigInt, loadKittycornPositionManager, loadTransaction } from '../utils/index'
 import {
   updatePoolDayData,
@@ -194,6 +194,11 @@ export function handleModifyLiquidityHelper(
     modifyLiquidity.tickUpper = BigInt.fromI32(event.params.tickUpper)
     modifyLiquidity.logIndex = event.logIndex
 
+    // Convert salt (Bytes) to BigInt for tokenId
+    const salt = event.params.salt.toHexString()
+    const saltBigInt = hexToBigInt(salt)
+    const tokenId = saltBigInt.toString()
+
     // tick entities
     const lowerTickIdx = event.params.tickLower
     const upperTickIdx = event.params.tickUpper
@@ -221,9 +226,6 @@ export function handleModifyLiquidityHelper(
     lowerTick.save()
     upperTick.save()
 
-    lowerTick.save()
-    upperTick.save()
-
     updateUniswapDayData(event, poolManagerAddress)
     updatePoolDayData(event.params.id.toHexString(), event)
     updatePoolHourData(event.params.id.toHexString(), event)
@@ -231,11 +233,6 @@ export function handleModifyLiquidityHelper(
     updateTokenDayData(token1, event)
     updateTokenHourData(token0, event)
     updateTokenHourData(token1, event)
-
-    // Convert salt (Bytes) to BigInt
-    const salt = event.params.salt.toHexString()
-    const saltBigInt = hexToBigInt(salt)
-    const tokenId = saltBigInt.toString()
 
     if (isKittycornPMAddress) {
       let liquidityPosition = LiquidityPosition.load(tokenId)
@@ -246,10 +243,27 @@ export function handleModifyLiquidityHelper(
         liquidityPosition.pool = pool.id
         liquidityPosition.tickLower = modifyLiquidity.tickLower
         liquidityPosition.tickUpper = modifyLiquidity.tickUpper
+        liquidityPosition.liquidity = ZERO_BI
+        liquidityPosition.borrowAmount = ZERO_BI
       }
+
+      // Accumulate liquidity
+      liquidityPosition.liquidity = liquidityPosition.liquidity.plus(event.params.liquidityDelta)
 
       if (position !== null) {
         liquidityPosition.position = position.id
+
+        // Check if this is a migration (tx.to == migrator address and liquidityDelta > 0)
+        const kittycornMigratorAddress = subgraphConfig.kittycornMigratorAddress
+        const isMigration =
+          event.transaction.to !== null &&
+          event.transaction.to!.equals(Address.fromString(kittycornMigratorAddress)) &&
+          event.params.liquidityDelta.gt(ZERO_BI)
+
+        if (isMigration && !position.isMigrated) {
+          position.isMigrated = true
+          position.save()
+        }
       }
 
       liquidityPosition.save()

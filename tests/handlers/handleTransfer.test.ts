@@ -50,6 +50,10 @@ describe('handleTransfer', () => {
     position.owner = POSITION_FIXTURE.owner.toHexString()
     position.origin = POSITION_FIXTURE.origin.toHexString()
     position.createdAtTimestamp = MOCK_EVENT.block.timestamp
+    position.isLiquidated = false
+    position.liquidatedOwner = ''
+    position.isCollateral = false
+    position.isMigrated = false
 
     position.save()
 

@@ -1,15 +1,17 @@
 import { Address, BigDecimal, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
-import { afterEach, beforeEach, clearStore, describe, test } from 'matchstick-as'
+import { afterEach, assert, beforeEach, clearStore, describe, newMockEvent, test } from 'matchstick-as'
 
 import { handleModifyLiquidityHelper } from '../../src/mappings/modifyLiquidity'
 import { ModifyLiquidity } from '../../src/types/PoolManager/PoolManager'
-import { Bundle, Pool, Token } from '../../src/types/schema'
+import { Bundle, LiquidityPosition, Pool, Position, Token } from '../../src/types/schema'
 import { ONE_BD } from '../../src/utils/constants'
 import { convertTokenToDecimal, fastExponentiation, safeDiv } from '../../src/utils/index'
 import { TickMath } from '../../src/utils/liquidityMath/tickMath'
 import {
   assertObjectMatches,
   invokePoolCreatedWithMockedEthCalls,
+  KITTYCORN_MIGRATOR_ADDRESS,
+  KITTYCORN_POSITION_MANAGER_ADDRESS,
   MOCK_EVENT,
   TEST_CONFIG,
   TEST_ETH_PRICE_USD,
@@ -26,7 +28,15 @@ class ModifyLiquidityFixture {
   tickLower: i32
   tickUpper: i32
   liquidityDelta: BigInt
+  salt: Bytes
 }
+
+// Default salt for non-Kittycorn PM events (tokenId = 0)
+const DEFAULT_SALT = Bytes.fromHexString('0x0000000000000000000000000000000000000000000000000000000000000000') as Bytes
+// Salt for Kittycorn PM events (tokenId = 1)
+const KITTYCORN_SALT = Bytes.fromHexString(
+  '0x0000000000000000000000000000000000000000000000000000000000000001',
+) as Bytes
 
 const MODIFY_LIQUIDITY_FIXTURE_ADD: ModifyLiquidityFixture = {
   id: USDC_WETH_POOL_ID,
@@ -34,6 +44,7 @@ const MODIFY_LIQUIDITY_FIXTURE_ADD: ModifyLiquidityFixture = {
   tickLower: -600,
   tickUpper: 600,
   liquidityDelta: BigInt.fromString('10000000000000000000000'), // Provided liquidity delta
+  salt: DEFAULT_SALT,
 }
 
 const MODIFY_LIQUIDITY_FIXTURE_REMOVE: ModifyLiquidityFixture = {
@@ -42,6 +53,7 @@ const MODIFY_LIQUIDITY_FIXTURE_REMOVE: ModifyLiquidityFixture = {
   tickLower: -600,
   tickUpper: 600,
   liquidityDelta: BigInt.fromString('-10000000000000000000000'), // Provided liquidity delta
+  salt: DEFAULT_SALT,
 }
 
 const id = Bytes.fromHexString(USDC_WETH_POOL_ID) as Bytes
@@ -62,6 +74,7 @@ const MODIFY_LIQUIDITY_EVENT_ADD = new ModifyLiquidity(
       'liquidityDelta',
       ethereum.Value.fromSignedBigInt(MODIFY_LIQUIDITY_FIXTURE_ADD.liquidityDelta),
     ),
+    new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(MODIFY_LIQUIDITY_FIXTURE_ADD.salt)),
   ],
   MOCK_EVENT.receipt,
 )
@@ -82,6 +95,7 @@ const MODIFY_LIQUIDITY_EVENT_REMOVE = new ModifyLiquidity(
       'liquidityDelta',
       ethereum.Value.fromSignedBigInt(MODIFY_LIQUIDITY_FIXTURE_REMOVE.liquidityDelta),
     ),
+    new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(MODIFY_LIQUIDITY_FIXTURE_REMOVE.salt)),
   ],
   MOCK_EVENT.receipt,
 )
@@ -331,6 +345,7 @@ describe('handleModifyLiquidity', () => {
       tickLower: 16080,
       tickUpper: 21180,
       liquidityDelta: BigInt.fromString('-171307279129958064896084173'),
+      salt: DEFAULT_SALT,
     }
 
     const event = new ModifyLiquidity(
@@ -346,6 +361,7 @@ describe('handleModifyLiquidity', () => {
         new ethereum.EventParam('tickLower', ethereum.Value.fromI32(FIXTURE.tickLower)),
         new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(FIXTURE.tickUpper)),
         new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(FIXTURE.liquidityDelta)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(FIXTURE.salt)),
       ],
       MOCK_EVENT.receipt,
     )
@@ -367,5 +383,546 @@ describe('handleModifyLiquidity', () => {
         ['amount1', expectedAmount1.toString()],
       ],
     )
+  })
+
+  test('success - LiquidityPosition created when sender is Kittycorn Position Manager', () => {
+    // Sender is the Kittycorn Position Manager address
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const tokenId = '1' // tokenId derived from salt
+
+    const FIXTURE: ModifyLiquidityFixture = {
+      id: USDC_WETH_POOL_ID,
+      sender: kittycornPMAddress,
+      tickLower: -600,
+      tickUpper: 600,
+      liquidityDelta: BigInt.fromString('10000000000000000000000'),
+      salt: KITTYCORN_SALT,
+    }
+
+    const event = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(FIXTURE.sender)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(FIXTURE.tickLower)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(FIXTURE.tickUpper)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(FIXTURE.liquidityDelta)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(FIXTURE.salt)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(FIXTURE.tickLower + FIXTURE.tickUpper).div(BigInt.fromI32(2))
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    handleModifyLiquidityHelper(event, TEST_CONFIG)
+
+    // Verify LiquidityPosition was created with correct values
+    assertObjectMatches('LiquidityPosition', tokenId, [
+      ['tokenId', tokenId],
+      ['pool', USDC_WETH_POOL_ID],
+      ['tickLower', FIXTURE.tickLower.toString()],
+      ['tickUpper', FIXTURE.tickUpper.toString()],
+      ['liquidity', FIXTURE.liquidityDelta.toString()],
+    ])
+  })
+
+  test('success - LiquidityPosition accumulates liquidity on multiple add events', () => {
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const tokenId = '1'
+    const liquidityDelta1 = BigInt.fromString('10000000000000000000000')
+    const liquidityDelta2 = BigInt.fromString('5000000000000000000000')
+
+    // First add liquidity event
+    const event1 = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDelta1)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(KITTYCORN_SALT)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Second add liquidity event
+    const event2 = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDelta2)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(KITTYCORN_SALT)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    // Execute both events
+    handleModifyLiquidityHelper(event1, TEST_CONFIG)
+    handleModifyLiquidityHelper(event2, TEST_CONFIG)
+
+    // Verify liquidity is accumulated
+    const expectedLiquidity = liquidityDelta1.plus(liquidityDelta2)
+    assertObjectMatches('LiquidityPosition', tokenId, [['liquidity', expectedLiquidity.toString()]])
+  })
+
+  test('success - LiquidityPosition decreases on remove liquidity event', () => {
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const tokenId = '1'
+    const liquidityDeltaAdd = BigInt.fromString('10000000000000000000000')
+    const liquidityDeltaRemove = BigInt.fromString('-3000000000000000000000')
+
+    // Add liquidity event
+    const eventAdd = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDeltaAdd)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(KITTYCORN_SALT)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Remove liquidity event
+    const eventRemove = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDeltaRemove)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(KITTYCORN_SALT)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    // Execute both events
+    handleModifyLiquidityHelper(eventAdd, TEST_CONFIG)
+    handleModifyLiquidityHelper(eventRemove, TEST_CONFIG)
+
+    // Verify liquidity decreased
+    const expectedLiquidity = liquidityDeltaAdd.plus(liquidityDeltaRemove)
+    assertObjectMatches('LiquidityPosition', tokenId, [['liquidity', expectedLiquidity.toString()]])
+  })
+
+  test('success - LiquidityPosition not created when sender is not Kittycorn Position Manager', () => {
+    const nonKittycornAddress = Address.fromString('0x1111111111111111111111111111111111111111')
+    const tokenId = '1'
+
+    const event = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(nonKittycornAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam(
+          'liquidityDelta',
+          ethereum.Value.fromSignedBigInt(BigInt.fromString('10000000000000000000000')),
+        ),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(KITTYCORN_SALT)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    handleModifyLiquidityHelper(event, TEST_CONFIG)
+
+    // Verify LiquidityPosition was NOT created
+    const liquidityPosition = LiquidityPosition.load(tokenId)
+    assert.assertNull(liquidityPosition)
+  })
+
+  test('success - LiquidityPosition created with borrowToken null and borrowAmount zero', () => {
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const tokenId = '1'
+
+    const FIXTURE: ModifyLiquidityFixture = {
+      id: USDC_WETH_POOL_ID,
+      sender: kittycornPMAddress,
+      tickLower: -600,
+      tickUpper: 600,
+      liquidityDelta: BigInt.fromString('10000000000000000000000'),
+      salt: KITTYCORN_SALT,
+    }
+
+    const event = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(FIXTURE.sender)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(FIXTURE.tickLower)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(FIXTURE.tickUpper)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(FIXTURE.liquidityDelta)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(FIXTURE.salt)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(FIXTURE.tickLower + FIXTURE.tickUpper).div(BigInt.fromI32(2))
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    handleModifyLiquidityHelper(event, TEST_CONFIG)
+
+    // Verify LiquidityPosition was created with borrowToken null and borrowAmount zero
+    const liquidityPosition = LiquidityPosition.load(tokenId)!
+    assert.assertNotNull(liquidityPosition)
+    assert.assertNull(liquidityPosition.borrowToken)
+    assert.bigIntEquals(BigInt.fromI32(0), liquidityPosition.borrowAmount)
+  })
+
+  test('success - LiquidityPosition borrowAmount remains zero after multiple liquidity modifications', () => {
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const tokenId = '1'
+    const liquidityDelta1 = BigInt.fromString('10000000000000000000000')
+    const liquidityDelta2 = BigInt.fromString('5000000000000000000000')
+
+    // First add liquidity event
+    const event1 = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDelta1)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(KITTYCORN_SALT)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Second add liquidity event
+    const event2 = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      MOCK_EVENT.logIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDelta2)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(KITTYCORN_SALT)),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    // Execute both events
+    handleModifyLiquidityHelper(event1, TEST_CONFIG)
+    handleModifyLiquidityHelper(event2, TEST_CONFIG)
+
+    // Verify borrowToken is still null and borrowAmount is still zero after modifications
+    const liquidityPosition = LiquidityPosition.load(tokenId)!
+    assert.assertNotNull(liquidityPosition)
+    assert.assertNull(liquidityPosition.borrowToken)
+    assert.bigIntEquals(BigInt.fromI32(0), liquidityPosition.borrowAmount)
+  })
+
+  test('success - Position.isMigrated set to true when tx.to is Kittycorn Migrator and liquidityDelta > 0', () => {
+    // Based on real migration transaction:
+    // https://arbiscan.io/tx/0x1cdd93e38991e05822b1e4f6f5fc4545b8d0e360db259897ca1a99779faafca0
+    // From: 0x40d94121Bdd5132e97c96C00919A6E0c7ecFCD52
+    // To (migrator): 0xc78C603644b59CCbC869fa36B72adE24C9e04C40
+    // Token ID: 73 (salt: 0x49)
+    // liquidityDelta: +257917848322
+
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const kittycornMigratorAddress = Address.fromString(KITTYCORN_MIGRATOR_ADDRESS)
+    const tokenId = '73'
+    const liquidityDelta = BigInt.fromString('257917848322')
+
+    // Salt for tokenId 73 (0x49 in hex)
+    const salt = Bytes.fromHexString('0x0000000000000000000000000000000000000000000000000000000000000049') as Bytes
+
+    // Create a mock event with tx.to = migrator address
+    const mockEvent = newMockEvent()
+    mockEvent.transaction.to = kittycornMigratorAddress
+
+    const event = new ModifyLiquidity(
+      mockEvent.address,
+      mockEvent.logIndex,
+      mockEvent.transactionLogIndex,
+      mockEvent.logType,
+      mockEvent.block,
+      mockEvent.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDelta)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(salt)),
+      ],
+      mockEvent.receipt,
+    )
+
+    // Create a Position entity that would exist from a prior Transfer event
+    const position = new Position(tokenId)
+    position.tokenId = BigInt.fromString(tokenId)
+    position.owner = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.origin = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.createdAtTimestamp = mockEvent.block.timestamp
+    position.isLiquidated = false
+    position.liquidatedOwner = ''
+    position.isCollateral = false
+    position.isMigrated = false
+    position.save()
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    handleModifyLiquidityHelper(event, TEST_CONFIG)
+
+    // Verify Position.isMigrated was set to true
+    const updatedPosition = Position.load(tokenId)!
+    assert.assertTrue(updatedPosition.isMigrated)
+  })
+
+  test('success - Position.isMigrated remains false when tx.to is NOT Kittycorn Migrator', () => {
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const nonMigratorAddress = Address.fromString('0x1111111111111111111111111111111111111111')
+    const tokenId = '53'
+    const liquidityDelta = BigInt.fromString('592807179944')
+
+    // Salt for tokenId 53 (0x35 in hex)
+    const salt = Bytes.fromHexString('0x0000000000000000000000000000000000000000000000000000000000000035') as Bytes
+
+    // Create a mock event with tx.to = NOT the migrator address
+    const mockEvent = newMockEvent()
+    mockEvent.transaction.to = nonMigratorAddress
+
+    const event = new ModifyLiquidity(
+      mockEvent.address,
+      mockEvent.logIndex,
+      mockEvent.transactionLogIndex,
+      mockEvent.logType,
+      mockEvent.block,
+      mockEvent.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDelta)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(salt)),
+      ],
+      mockEvent.receipt,
+    )
+
+    // Create a Position entity
+    const position = new Position(tokenId)
+    position.tokenId = BigInt.fromString(tokenId)
+    position.owner = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.origin = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.createdAtTimestamp = mockEvent.block.timestamp
+    position.isLiquidated = false
+    position.liquidatedOwner = ''
+    position.isCollateral = false
+    position.isMigrated = false
+    position.save()
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    handleModifyLiquidityHelper(event, TEST_CONFIG)
+
+    // Verify Position.isMigrated remains false
+    const updatedPosition = Position.load(tokenId)!
+    assert.assertTrue(!updatedPosition.isMigrated)
+  })
+
+  test('success - Position.isMigrated remains false when liquidityDelta is negative (remove liquidity)', () => {
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const kittycornMigratorAddress = Address.fromString(KITTYCORN_MIGRATOR_ADDRESS)
+    const tokenId = '99'
+    const liquidityDeltaRemove = BigInt.fromString('-100000000000')
+
+    const salt = Bytes.fromHexString('0x0000000000000000000000000000000000000000000000000000000000000063') as Bytes
+
+    // Create a mock event with tx.to = migrator but negative liquidityDelta
+    const mockEvent = newMockEvent()
+    mockEvent.transaction.to = kittycornMigratorAddress
+
+    const event = new ModifyLiquidity(
+      mockEvent.address,
+      mockEvent.logIndex,
+      mockEvent.transactionLogIndex,
+      mockEvent.logType,
+      mockEvent.block,
+      mockEvent.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDeltaRemove)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(salt)),
+      ],
+      mockEvent.receipt,
+    )
+
+    // Create a Position entity
+    const position = new Position(tokenId)
+    position.tokenId = BigInt.fromString(tokenId)
+    position.owner = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.origin = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.createdAtTimestamp = mockEvent.block.timestamp
+    position.isLiquidated = false
+    position.liquidatedOwner = ''
+    position.isCollateral = false
+    position.isMigrated = false
+    position.save()
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    handleModifyLiquidityHelper(event, TEST_CONFIG)
+
+    // Verify Position.isMigrated remains false (negative liquidityDelta = not a migration)
+    const updatedPosition = Position.load(tokenId)!
+    assert.assertTrue(!updatedPosition.isMigrated)
+  })
+
+  test('success - Position.isMigrated not set again if already true', () => {
+    const kittycornPMAddress = Address.fromString(KITTYCORN_POSITION_MANAGER_ADDRESS)
+    const kittycornMigratorAddress = Address.fromString(KITTYCORN_MIGRATOR_ADDRESS)
+    const tokenId = '100'
+    const liquidityDelta = BigInt.fromString('500000000000')
+
+    const salt = Bytes.fromHexString('0x0000000000000000000000000000000000000000000000000000000000000064') as Bytes
+
+    const mockEvent = newMockEvent()
+    mockEvent.transaction.to = kittycornMigratorAddress
+
+    const event = new ModifyLiquidity(
+      mockEvent.address,
+      mockEvent.logIndex,
+      mockEvent.transactionLogIndex,
+      mockEvent.logType,
+      mockEvent.block,
+      mockEvent.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(kittycornPMAddress)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(-600)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(600)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(liquidityDelta)),
+        new ethereum.EventParam('salt', ethereum.Value.fromFixedBytes(salt)),
+      ],
+      mockEvent.receipt,
+    )
+
+    // Create a Position entity that is already migrated
+    const position = new Position(tokenId)
+    position.tokenId = BigInt.fromString(tokenId)
+    position.owner = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.origin = '0x40d94121bdd5132e97c96c00919a6e0c7ecfcd52'
+    position.createdAtTimestamp = mockEvent.block.timestamp
+    position.isLiquidated = false
+    position.liquidatedOwner = ''
+    position.isCollateral = false
+    position.isMigrated = true // Already migrated
+    position.save()
+
+    // Put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(0)
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    handleModifyLiquidityHelper(event, TEST_CONFIG)
+
+    // Verify Position.isMigrated is still true
+    const updatedPosition = Position.load(tokenId)!
+    assert.assertTrue(updatedPosition.isMigrated)
   })
 })

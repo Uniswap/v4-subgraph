@@ -1,4 +1,4 @@
-import { ethereum } from '@graphprotocol/graph-ts'
+import { Bytes, ethereum } from '@graphprotocol/graph-ts'
 
 import {
   Bundle,
@@ -11,6 +11,7 @@ import {
   TokenDayData,
   TokenHourData,
   UniswapDayData,
+  UserSwapDayData,
 } from './../types/schema'
 import { loadKittycornPositionManager } from '.'
 import { ONE_BI, ZERO_BD, ZERO_BI } from './constants'
@@ -239,4 +240,26 @@ export function updateTokenHourData(token: Token, event: ethereum.Event): TokenH
   tokenHourData.save()
 
   return tokenHourData as TokenHourData
+}
+
+export function updateUserSwapDayData(user: Bytes, event: ethereum.Event): UserSwapDayData {
+  const timestamp = event.block.timestamp.toI32()
+  const dayID = timestamp / 86400
+  const dayStartTimestamp = dayID * 86400
+  const userDayID = user.toHexString().concat('-').concat(dayID.toString())
+
+  let userSwapDayData = UserSwapDayData.load(userDayID)
+  if (userSwapDayData === null) {
+    userSwapDayData = new UserSwapDayData(userDayID)
+    userSwapDayData.date = dayStartTimestamp
+    userSwapDayData.user = user
+    userSwapDayData.volumeUSD = ZERO_BD
+    userSwapDayData.feesUSD = ZERO_BD
+    userSwapDayData.txCount = ZERO_BI
+  }
+
+  userSwapDayData.txCount = userSwapDayData.txCount.plus(ONE_BI)
+  userSwapDayData.save()
+
+  return userSwapDayData as UserSwapDayData
 }

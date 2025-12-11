@@ -627,3 +627,19 @@ type KittycornDayData @entity {
   # collateral in terms of USD
   collateralUSD: BigDecimal!
 }
+
+# Daily swap data aggregated per user for tokenized pools (pools with PoolAllowCollateral)
+type UserSwapDayData @entity {
+  # format: <user address>-<dayID>
+  id: ID!
+  # timestamp rounded to current day by dividing by 86400
+  date: Int!
+  # user address (EOA that initiated the swap)
+  user: Bytes!
+  # accumulated swap volume in USD for the day
+  volumeUSD: BigDecimal!
+  # accumulated fees paid in USD for the day
+  feesUSD: BigDecimal!
+  # accumulated number of swaps for the day
+  txCount: BigInt!
+}

@@ -12,6 +12,7 @@ import {
   updateTokenDayData,
   updateTokenHourData,
   updateUniswapDayData,
+  updateUserSwapDayData,
 } from '../utils/intervalUpdates'
 import {
   findNativePerToken,
@@ -211,6 +212,12 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     if (poolCollateral !== null) {
       kittycornDayData.volumeUSD = kittycornDayData.volumeUSD.plus(amountTotalUSDTracked)
       kittycornDayData.feesUSD = kittycornDayData.feesUSD.plus(feesUSD)
+
+      // update user swap day data for tokenized pools
+      const userSwapDayData = updateUserSwapDayData(event.transaction.from, event)
+      userSwapDayData.volumeUSD = userSwapDayData.volumeUSD.plus(amountTotalUSDTracked)
+      userSwapDayData.feesUSD = userSwapDayData.feesUSD.plus(feesUSD)
+      userSwapDayData.save()
     }
 
     poolDayData.volumeUSD = poolDayData.volumeUSD.plus(amountTotalUSDTracked)

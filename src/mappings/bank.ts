@@ -110,7 +110,7 @@ function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: bo
   position.save()
 }
 
-function handleSetConfigCollateralHelper(
+export function handleSetConfigCollateralHelper(
   event: SetConfigCollateralCallEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {

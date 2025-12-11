@@ -194,6 +194,11 @@ export function handleModifyLiquidityHelper(
     modifyLiquidity.tickUpper = BigInt.fromI32(event.params.tickUpper)
     modifyLiquidity.logIndex = event.logIndex
 
+    // Convert salt (Bytes) to BigInt for tokenId
+    const salt = event.params.salt.toHexString()
+    const saltBigInt = hexToBigInt(salt)
+    const tokenId = saltBigInt.toString()
+
     // tick entities
     const lowerTickIdx = event.params.tickLower
     const upperTickIdx = event.params.tickUpper
@@ -229,11 +234,6 @@ export function handleModifyLiquidityHelper(
     updateTokenHourData(token0, event)
     updateTokenHourData(token1, event)
 
-    // Convert salt (Bytes) to BigInt
-    const salt = event.params.salt.toHexString()
-    const saltBigInt = hexToBigInt(salt)
-    const tokenId = saltBigInt.toString()
-
     if (isKittycornPMAddress) {
       let liquidityPosition = LiquidityPosition.load(tokenId)
       const position = Position.load(tokenId)
@@ -244,15 +244,11 @@ export function handleModifyLiquidityHelper(
         liquidityPosition.tickLower = modifyLiquidity.tickLower
         liquidityPosition.tickUpper = modifyLiquidity.tickUpper
         liquidityPosition.liquidity = ZERO_BI
-        liquidityPosition.amount0 = ZERO_BD
-        liquidityPosition.amount1 = ZERO_BD
         liquidityPosition.borrowAmount = ZERO_BI
       }
 
-      // Accumulate liquidity and amounts
+      // Accumulate liquidity
       liquidityPosition.liquidity = liquidityPosition.liquidity.plus(event.params.liquidityDelta)
-      liquidityPosition.amount0 = liquidityPosition.amount0.plus(amount0)
-      liquidityPosition.amount1 = liquidityPosition.amount1.plus(amount1)
 
       if (position !== null) {
         liquidityPosition.position = position.id

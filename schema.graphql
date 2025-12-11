@@ -561,8 +561,6 @@ type LiquidityPosition @entity {
   tickLower: BigInt!
   tickUpper: BigInt!
   liquidity: BigInt!
-  amount0: BigDecimal!
-  amount1: BigDecimal!
   borrowToken: Token
   borrowAmount: BigInt!
 }

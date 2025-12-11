@@ -425,16 +425,6 @@ describe('handleModifyLiquidity', () => {
 
     handleModifyLiquidityHelper(event, TEST_CONFIG)
 
-    // Calculate expected amounts
-    const amountToken0 = convertTokenToDecimal(
-      BigInt.fromString('295530108791371696809'),
-      BigInt.fromString(USDC_MAINNET_FIXTURE.decimals),
-    )
-    const amountToken1 = convertTokenToDecimal(
-      BigInt.fromString('295530108791371696809'),
-      BigInt.fromString(WETH_MAINNET_FIXTURE.decimals),
-    )
-
     // Verify LiquidityPosition was created with correct values
     assertObjectMatches('LiquidityPosition', tokenId, [
       ['tokenId', tokenId],
@@ -442,8 +432,6 @@ describe('handleModifyLiquidity', () => {
       ['tickLower', FIXTURE.tickLower.toString()],
       ['tickUpper', FIXTURE.tickUpper.toString()],
       ['liquidity', FIXTURE.liquidityDelta.toString()],
-      ['amount0', amountToken0.toString()],
-      ['amount1', amountToken1.toString()],
     ])
   })
 

@@ -221,9 +221,6 @@ export function handleModifyLiquidityHelper(
     lowerTick.save()
     upperTick.save()
 
-    lowerTick.save()
-    upperTick.save()
-
     updateUniswapDayData(event, poolManagerAddress)
     updatePoolDayData(event.params.id.toHexString(), event)
     updatePoolHourData(event.params.id.toHexString(), event)

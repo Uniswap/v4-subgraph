@@ -208,6 +208,8 @@ type Swap @entity(immutable: true) {
   amount1: BigDecimal!
   # derived info
   amountUSD: BigDecimal!
+  # fee amount
+  feeTier: BigInt!
   # The sqrt(price) of the pool after the swap, as a Q64.96
   sqrtPriceX96: BigInt!
   # the tick after the swap

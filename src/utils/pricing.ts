@@ -17,7 +17,10 @@ export function sqrtPriceX96ToTokenPrices(
 
   const num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
   const denom = BigDecimal.fromString(Q192.toString())
-  const price1 = num.div(denom).times(exponentToBigDecimal(token0Decimals)).div(exponentToBigDecimal(token1Decimals))
+  const price1 = num
+    .div(denom)
+    .times(exponentToBigDecimal(token0Decimals))
+    .div(exponentToBigDecimal(token1Decimals))
 
   const price0 = safeDiv(BigDecimal.fromString('1'), price1)
   return [price0, price1]
@@ -139,4 +142,18 @@ export function calculateAmountUSD(
   ethPriceUSD: BigDecimal,
 ): BigDecimal {
   return amount0.times(token0DerivedETH.times(ethPriceUSD)).plus(amount1.times(token1DerivedETH.times(ethPriceUSD)))
+}
+
+/**
+ * Updates pricing for Zora content tokens that are paired with creator tokens
+ * Content tokens have no whitelistPools but can derive pricing from creator tokens that do
+ */
+export class ZoraContentResults {
+  tokenIdentifier: string
+  contentDerivedETH: BigDecimal
+
+  constructor(tokenIdentifier: string, contentDerivedETH: BigDecimal) {
+    this.tokenIdentifier = tokenIdentifier
+    this.contentDerivedETH = contentDerivedETH
+  }
 }

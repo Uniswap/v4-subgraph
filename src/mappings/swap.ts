@@ -43,6 +43,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     return
   }
 
+  if (pool.hooks && subgraphConfig.hooksToSkip.includes(pool.hooks.toLowerCase())) {
+    return
+  }
+
   const token0 = Token.load(pool.token0)
   const token1 = Token.load(pool.token1)
 

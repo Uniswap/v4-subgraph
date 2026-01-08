@@ -177,22 +177,25 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
 
-    // create Swap event
+    // create Swap event only for Kittycorn pools
     const transaction = loadTransaction(event)
-    const swap = new Swap(transaction.id + '-' + event.logIndex.toString())
-    swap.transaction = transaction.id
-    swap.timestamp = transaction.timestamp
-    swap.pool = pool.id
-    swap.token0 = pool.token0
-    swap.token1 = pool.token1
-    swap.sender = event.params.sender
-    swap.origin = event.transaction.from
-    swap.amount0 = amount0
-    swap.amount1 = amount1
-    swap.amountUSD = amountTotalUSDTracked
-    swap.tick = BigInt.fromI32(event.params.tick as i32)
-    swap.sqrtPriceX96 = event.params.sqrtPriceX96
-    swap.logIndex = event.logIndex
+    let swap: Swap | null = null
+    if (poolCollateral !== null) {
+      swap = new Swap(transaction.id + '-' + event.logIndex.toString())
+      swap.transaction = transaction.id
+      swap.timestamp = transaction.timestamp
+      swap.pool = pool.id
+      swap.token0 = pool.token0
+      swap.token1 = pool.token1
+      swap.sender = event.params.sender
+      swap.origin = event.transaction.from
+      swap.amount0 = amount0
+      swap.amount1 = amount1
+      swap.amountUSD = amountTotalUSDTracked
+      swap.tick = BigInt.fromI32(event.params.tick as i32)
+      swap.sqrtPriceX96 = event.params.sqrtPriceX96
+      swap.logIndex = event.logIndex
+    }
 
     // interval data
     const uniswapDayData = updateUniswapDayData(event, poolManagerAddress)
@@ -251,7 +254,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
 
     kittycornPositionManager.save()
-    swap.save()
+    if (swap !== null) {
+      swap.save()
+    }
     token0DayData.save()
     token1DayData.save()
     uniswapDayData.save()

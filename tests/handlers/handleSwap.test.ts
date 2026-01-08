@@ -1,7 +1,9 @@
 import { Address, BigDecimal, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
 import { beforeAll, describe, test } from 'matchstick-as'
 
+import { handleSetConfigCollateralHelper } from '../../src/mappings/bank'
 import { handleSwapHelper } from '../../src/mappings/swap'
+import { SetConfigCollateral as SetConfigCollateralEvent } from '../../src/types/KittycornBank/KittycornBank'
 import { Swap } from '../../src/types/PoolManager/PoolManager'
 import { Bundle, Token } from '../../src/types/schema'
 import { ZERO_BD } from '../../src/utils/constants'
@@ -69,6 +71,26 @@ const SWAP_EVENT = new Swap(
   MOCK_EVENT.receipt,
 )
 
+// Helper to create SetConfigCollateral event for enabling pool as Kittycorn collateral
+function createSetConfigCollateralEvent(poolId: string): SetConfigCollateralEvent {
+  return new SetConfigCollateralEvent(
+    MOCK_EVENT.address,
+    MOCK_EVENT.logIndex,
+    MOCK_EVENT.transactionLogIndex,
+    MOCK_EVENT.logType,
+    MOCK_EVENT.block,
+    MOCK_EVENT.transaction,
+    [
+      new ethereum.EventParam('poolId', ethereum.Value.fromFixedBytes(Bytes.fromHexString(poolId))),
+      new ethereum.EventParam('allowCollateral', ethereum.Value.fromBoolean(true)),
+      new ethereum.EventParam('maxLTV', ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(7000))),
+      new ethereum.EventParam('liquidationThreshold', ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(8000))),
+      new ethereum.EventParam('liquidationFee', ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1500))),
+    ],
+    MOCK_EVENT.receipt,
+  )
+}
+
 describe('handleSwap', () => {
   beforeAll(() => {
     invokePoolCreatedWithMockedEthCalls(MOCK_EVENT, TEST_CONFIG)
@@ -84,6 +106,10 @@ describe('handleSwap', () => {
     const wethEntity = Token.load(WETH_MAINNET_FIXTURE.address)!
     wethEntity.derivedETH = TEST_WETH_DERIVED_ETH
     wethEntity.save()
+
+    // Create PoolAllowCollateral to enable Swap entity creation for Kittycorn pools
+    const collateralEvent = createSetConfigCollateralEvent(USDC_WETH_POOL_ID)
+    handleSetConfigCollateralHelper(collateralEvent, TEST_CONFIG)
   })
 
   test('success', () => {

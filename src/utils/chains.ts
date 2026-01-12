@@ -27,6 +27,7 @@ const SONEIUM_MAINNET_NETWORK_NAME = 'soneium-mainnet'
 const CELO_NETWORK_NAME = 'celo'
 const MONAD_NETWORK_NAME = 'monad'
 const XLAYER_MAINNET_NETWORK_NAME = 'xlayer-mainnet'
+const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -678,6 +679,30 @@ export function getSubgraphConfig(): SubgraphConfig {
       nativeTokenDetails: {
         symbol: 'OKB',
         name: 'OKB',
+        decimals: BigInt.fromI32(18),
+      },
+    }
+  } else if (selectedNetwork == MEGAETH_MAINNET_NETWORK_NAME) {
+    const WETH = '0x4200000000000000000000000000000000000006'.toLowerCase()
+    const USDT0 = '0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb'.toLowerCase()
+    const USDm = '0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7'.toLowerCase()
+    const MEGAETH = '0x28B7E77f82B25B95953825F1E3eA0E36c1c29861'.toLowerCase()
+    const nativeToUSDT0 = '0xf1fc7e1b96823086b3821db02223910112d139b28c6a132befccada2a3ecae89'.toLowerCase()
+
+    return {
+      poolManagerAddress: '0x58dd83c317b03e6ebd72c3e912adf60a8e97aa95'.toLowerCase(),
+      stablecoinWrappedNativePoolId: nativeToUSDT0,
+      stablecoinIsToken0: false,
+      wrappedNativeAddress: WETH,
+      minimumNativeLocked: BigDecimal.fromString('1'),
+      stablecoinAddresses: [USDT0, USDm, MEGAETH],
+      whitelistTokens: [WETH, USDT0, USDm, MEGAETH],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'ETH',
+        name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
     }

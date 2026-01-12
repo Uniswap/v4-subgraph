@@ -200,5 +200,15 @@
       "address": "0xcF1EAFC6928dC385A342E7C6491d371d2871458b",
       "startBlock": 46106401
     }
+  },
+  "megaeth-mainnet": {
+    "PoolManager": {
+      "address": "0x58dd83c317b03e6ebd72c3e912adf60a8e97aa95",
+      "startBlock": 3637446
+    },
+    "PositionManager": {
+      "address": "0xcae584c1f193cb3c090324ca8a1af4ce378e37e1",
+      "startBlock": 3637446
+    }
   }
 }

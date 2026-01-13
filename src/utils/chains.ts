@@ -190,6 +190,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // USDC
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0x82af49447d8a07e3bd95bd0d56f35241523fbab1', // WETH
         '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // USDC.e
         '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI
@@ -230,6 +231,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0x4200000000000000000000000000000000000006', // WETH
         '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
         '0x0000000000000000000000000000000000000000', // Native ETH
@@ -257,6 +259,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', // USDC
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', // WMATIC
         '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619', // WETH
         '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC.e
@@ -285,6 +288,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', // WBNB
         '0x55d398326f99059ff775485246999027b3197955', // USDT
         '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
@@ -313,6 +317,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x0b2c639c533813f4aa9d7837caf62653d097ff85', // USDC
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0x4200000000000000000000000000000000000006', // WETH
         '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI
         '0x7f5c764cbc14f9669b88837ca1490cca17c31607', // USDC.e
@@ -356,6 +361,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7', // USDT
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7', // WAVAX
         '0xd586e7f844cea2f87f50152665bcbc2c279d8d70', // DAI_E
         '0xba7deebbfc5fa1100fb055a87773e1e99cd3507a', // DAI
@@ -386,6 +392,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x79a02482a880bce3f13e09da970dc34db4cd24d1', // USDC.e
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0x4200000000000000000000000000000000000006', // WETH
         '0x79a02482a880bce3f13e09da970dc34db4cd24d1', // USDC.e
         '0x03c7054bcb39f7b2e5b2c7acb37583e32d70cfa3', // WBTC
@@ -413,6 +420,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0xcccccccc7021b32ebb4e8c08314bd62f7c653ec4', // USDzC
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0x4200000000000000000000000000000000000006', // WETH
         '0xcccccccc7021b32ebb4e8c08314bd62f7c653ec4', // USDzC
         '0x0000000000000000000000000000000000000000', // Native ETH
@@ -521,6 +529,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x4300000000000000000000000000000000000003', // USDB
       ],
       whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
         '0x4300000000000000000000000000000000000004', // WETH
         '0x4300000000000000000000000000000000000003', // USDB
         '0x0000000000000000000000000000000000000000', // Native ETH

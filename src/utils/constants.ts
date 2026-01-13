@@ -10,3 +10,5 @@ export const ZERO_BD = BigDecimal.fromString('0')
 export const ONE_BD = BigDecimal.fromString('1')
 export const Q96 = BigInt.fromI32(2).pow(96)
 export const MaxUint256 = hexToBigInt('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+
+export const MAX_LP_FEE = BigDecimal.fromString('1000000')

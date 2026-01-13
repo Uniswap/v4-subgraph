@@ -686,7 +686,7 @@ export function getSubgraphConfig(): SubgraphConfig {
     const WETH = '0x4200000000000000000000000000000000000006'.toLowerCase()
     const USDT0 = '0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb'.toLowerCase()
     const USDm = '0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7'.toLowerCase()
-    const MEGAETH = '0x28B7E77f82B25B95953825F1E3eA0E36c1c29861'.toLowerCase()
+    const MEGA = '0x28B7E77f82B25B95953825F1E3eA0E36c1c29861'.toLowerCase()
     const nativeToUSDT0 = '0xf1fc7e1b96823086b3821db02223910112d139b28c6a132befccada2a3ecae89'.toLowerCase()
 
     return {
@@ -695,8 +695,8 @@ export function getSubgraphConfig(): SubgraphConfig {
       stablecoinIsToken0: false,
       wrappedNativeAddress: WETH,
       minimumNativeLocked: BigDecimal.fromString('1'),
-      stablecoinAddresses: [USDT0, USDm, MEGAETH],
-      whitelistTokens: [WETH, USDT0, USDm, MEGAETH],
+      stablecoinAddresses: [USDT0, USDm],
+      whitelistTokens: [WETH, USDT0, USDm, MEGA],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],

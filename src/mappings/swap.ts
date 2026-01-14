@@ -105,8 +105,20 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.liquidity = event.params.liquidity
     pool.tick = BigInt.fromI32(event.params.tick as i32)
     pool.sqrtPrice = event.params.sqrtPriceX96
-    pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
-    pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
+
+    let amount0WithFee = amount0
+    let amount1WithFee = amount1
+
+    if (amount0.gt(ZERO_BD)) {
+      const fee0 = amount0.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+      amount0WithFee = amount0.minus(fee0)
+    } else if (amount1.gt(ZERO_BD)) {
+      const fee1 = amount1.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+      amount1WithFee = amount1.minus(fee1)
+    }
+
+    pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0WithFee)
+    pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1WithFee)
 
     // update token0 data
     token0.volume = token0.volume.plus(amount0Abs)

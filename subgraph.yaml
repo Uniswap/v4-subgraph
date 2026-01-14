@@ -6,13 +6,16 @@ schema:
 features:
   - nonFatalErrors
   - grafting
+graft: 
+  base: QmS1ehFzXTD9eA1f1EgjZvdyAj2EHtVNMrEN91H3pLuHMy
+  block: 26990278
 dataSources:
   - source:
       abi: PoolManager
-      address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
-      startBlock: 21688329
+      address: "0x498581fF718922c3f8e6A244956aF099B2652b2b"
+      startBlock: 25350988
     name: PoolManager
-    network: mainnet
+    network: base
     kind: ethereum/contract
     mapping:
       kind: ethereum/events
@@ -43,10 +46,10 @@ dataSources:
           handler: handleSwap
   - source:
       abi: PositionManager
-      address: "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e"
-      startBlock: 21689089
+      address: "0x7C5f5A4bBd8fD63184577525326123B519429bDc"
+      startBlock: 25350993
     name: PositionManager
-    network: mainnet
+    network: base
     kind: ethereum/contract
     mapping:
       kind: ethereum/events
@@ -66,24 +69,22 @@ dataSources:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
   - source:
-      abi: EulerSwapFactory
-      address: "0xb013be1D0D380C13B58e889f412895970A2Cf228"
-      startBlock: 22676162
-    name: EulerSwapFactory
-    network: mainnet
+      abi: ArrakisHookFactory
+      address: "0xeF129a430032C8183abA158C1a70799e3b840dF9"
+      startBlock: 28450225
+    name: ArrakisHookFactory
+    network: base
     kind: ethereum/contract
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
-      file: ./src/mappings/euler.mapping.ts
+      file: ./src/mappings/arrakis.mapping.ts
       entities:
-        - Position
+        - ArrakisHook
       abis:
-        - name: EulerSwapFactory
-          file: ./abis/EulerSwapFactory.json
+        - name: ArrakisHookFactory
+          file: ./abis/ArrakisHookFactory.json
       eventHandlers:
-        - event: PoolDeployed(indexed address,indexed address,indexed address,address)
-          handler: handleHookDeployed
-        - event: PoolUninstalled(indexed address,indexed address,indexed address,address)
-          handler: handleHookUninstalled
+        - event: LogCreatePrivateHook(indexed address,indexed address,bytes32)
+          handler: handleArrakisHookDeployed

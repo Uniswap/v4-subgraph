@@ -587,6 +587,14 @@ type PoolAllowCollateral @entity {
   liquidationFee: BigInt!
 }
 
+# Maps positionId (from KittycornBank) to tokenId (from PositionManager NFT)
+type PositionIdMapping @entity {
+  # positionId as string
+  id: ID!
+  # the corresponding tokenId
+  tokenId: String!
+}
+
 type KittycornPositionManager @entity {
   # positionManager address
   id: ID!

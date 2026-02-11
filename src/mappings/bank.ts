@@ -1,4 +1,4 @@
-import { BigDecimal, log } from '@graphprotocol/graph-ts'
+import { BigDecimal, log, store } from '@graphprotocol/graph-ts'
 
 import {
   Borrow,
@@ -17,6 +17,7 @@ import {
   Pool,
   PoolAllowCollateral,
   Position,
+  PositionIdMapping,
   Token,
 } from '../types/schema'
 import { exponentToBigDecimal, loadKittycornPositionManager } from '../utils'
@@ -68,8 +69,16 @@ export function handleRepay(event: Repay): void {
     kittycornDayData.save()
   }
 
-  // Update borrow amount for the liquidity position
-  const liquidityPosition = LiquidityPosition.load(positionId)
+  // Look up the tokenId from the positionId mapping
+  const mapping = PositionIdMapping.load(positionId)
+  if (mapping === null) {
+    log.warning('handleRepay: no PositionIdMapping found for positionId {}', [positionId])
+    return
+  }
+  const tokenId = mapping.tokenId
+
+  // Update borrow amount for the liquidity position using tokenId
+  const liquidityPosition = LiquidityPosition.load(tokenId)
   if (liquidityPosition !== null) {
     const newBorrowAmount = liquidityPosition.borrowAmount.minus(repayAmount)
     // Clamp to zero to handle cases where repayAmount includes interest
@@ -90,8 +99,16 @@ export function handleBorrow(event: Borrow): void {
     borrowAsset.save()
   }
 
-  // Update borrow amount for the liquidity position
-  const liquidityPosition = LiquidityPosition.load(positionId)
+  // Look up the tokenId from the positionId mapping
+  const mapping = PositionIdMapping.load(positionId)
+  if (mapping === null) {
+    log.warning('handleBorrow: no PositionIdMapping found for positionId {}', [positionId])
+    return
+  }
+  const tokenId = mapping.tokenId
+
+  // Update borrow amount for the liquidity position using tokenId
+  const liquidityPosition = LiquidityPosition.load(tokenId)
   if (liquidityPosition !== null) {
     liquidityPosition.borrowToken = assetId
     liquidityPosition.borrowAmount = liquidityPosition.borrowAmount.plus(borrowAmount)
@@ -101,6 +118,7 @@ export function handleBorrow(event: Borrow): void {
 
 function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: boolean): void {
   const tokenId = event.params.tokenId.toString()
+  const positionId = event.params.positionId.toString()
   const position = Position.load(tokenId)
   if (position === null) {
     log.error('handleCollateralEnableDisable: position not found for tokenId {}', [tokenId])
@@ -108,6 +126,23 @@ function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: bo
   }
   position.isCollateral = isCollateral
   position.save()
+
+  // Create or remove the positionId -> tokenId mapping
+  if (isCollateral) {
+    // EnableCollateral: create the mapping
+    let mapping = PositionIdMapping.load(positionId)
+    if (mapping === null) {
+      mapping = new PositionIdMapping(positionId)
+    }
+    mapping.tokenId = tokenId
+    mapping.save()
+  } else {
+    // DisableCollateral: remove the mapping
+    const mapping = PositionIdMapping.load(positionId)
+    if (mapping !== null) {
+      store.remove('PositionIdMapping', positionId)
+    }
+  }
 }
 
 export function handleSetConfigCollateralHelper(

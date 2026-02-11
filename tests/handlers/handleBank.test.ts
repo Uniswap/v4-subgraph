@@ -1,11 +1,19 @@
 import { Address, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
 import { afterEach, assert, beforeEach, clearStore, describe, test } from 'matchstick-as'
 
-import { handleBorrow, handleRepay } from '../../src/mappings/bank'
+import { handleBorrow, handleDisableCollateral, handleEnableCollateral, handleRepay } from '../../src/mappings/bank'
 import { handleModifyLiquidityHelper } from '../../src/mappings/modifyLiquidity'
-import { Borrow, Repay } from '../../src/types/KittycornBank/KittycornBank'
+import { Borrow, EnableCollateral, Repay } from '../../src/types/KittycornBank/KittycornBank'
 import { ModifyLiquidity } from '../../src/types/PoolManager/PoolManager'
-import { BorrowAsset, Bundle, LiquidityPosition, Pool, Token } from '../../src/types/schema'
+import {
+  BorrowAsset,
+  Bundle,
+  LiquidityPosition,
+  Pool,
+  Position,
+  PositionIdMapping,
+  Token,
+} from '../../src/types/schema'
 import { ZERO_BD, ZERO_BI } from '../../src/utils/constants'
 import { TickMath } from '../../src/utils/liquidityMath/tickMath'
 import {
@@ -109,6 +117,12 @@ function setupBorrowAsset(tokenAddress: string): void {
   borrowAsset.save()
 }
 
+function setupPositionIdMapping(positionId: string, tokenId: string): void {
+  const mapping = new PositionIdMapping(positionId)
+  mapping.tokenId = tokenId
+  mapping.save()
+}
+
 function setupUSDTToken(): void {
   const usdtToken = new Token(USDT_ADDRESS)
   usdtToken.symbol = 'USDT'
@@ -157,12 +171,16 @@ describe('handleBorrow', () => {
 
   test('success - handleBorrow sets borrowToken and borrowAmount on LiquidityPosition', () => {
     const positionId = '9'
+    const tokenId = '9'
 
     // Create LiquidityPosition via ModifyLiquidity
-    setupLiquidityPosition(positionId)
+    setupLiquidityPosition(tokenId)
+
+    // Create PositionIdMapping (positionId -> tokenId)
+    setupPositionIdMapping(positionId, tokenId)
 
     // Verify initial state - borrowToken is null, borrowAmount is zero
-    const initialPosition = LiquidityPosition.load(positionId)!
+    const initialPosition = LiquidityPosition.load(tokenId)!
     assert.assertNotNull(initialPosition)
     assert.assertNull(initialPosition.borrowToken)
     assert.bigIntEquals(ZERO_BI, initialPosition.borrowAmount)
@@ -174,7 +192,7 @@ describe('handleBorrow', () => {
     handleBorrow(borrowEvent)
 
     // Verify borrowToken references Token entity and borrowAmount is set
-    assertObjectMatches('LiquidityPosition', positionId, [
+    assertObjectMatches('LiquidityPosition', tokenId, [
       ['borrowToken', USDT_ADDRESS],
       ['borrowAmount', borrowAmount.toString()],
     ])
@@ -182,8 +200,10 @@ describe('handleBorrow', () => {
 
   test('success - handleBorrow accumulates borrowAmount on multiple borrows', () => {
     const positionId = '9'
+    const tokenId = '9'
 
-    setupLiquidityPosition(positionId)
+    setupLiquidityPosition(tokenId)
+    setupPositionIdMapping(positionId, tokenId)
 
     // First borrow: 1 USDT
     const borrowAmount1 = BigInt.fromString('1000000')
@@ -205,7 +225,7 @@ describe('handleBorrow', () => {
 
     // Verify borrowAmount is accumulated
     const expectedTotal = borrowAmount1.plus(borrowAmount2)
-    assertObjectMatches('LiquidityPosition', positionId, [
+    assertObjectMatches('LiquidityPosition', tokenId, [
       ['borrowToken', USDT_ADDRESS],
       ['borrowAmount', expectedTotal.toString()],
     ])
@@ -213,8 +233,10 @@ describe('handleBorrow', () => {
 
   test('success - handleBorrow updates BorrowAsset totalBorrowAmount', () => {
     const positionId = '9'
+    const tokenId = '9'
 
-    setupLiquidityPosition(positionId)
+    setupLiquidityPosition(tokenId)
+    setupPositionIdMapping(positionId, tokenId)
 
     const borrowAmount = BigInt.fromString('1000000')
     const borrowEvent = createBorrowEvent(BigInt.fromString(positionId), Address.fromString(USDT_ADDRESS), borrowAmount)
@@ -223,7 +245,7 @@ describe('handleBorrow', () => {
     assertObjectMatches('BorrowAsset', USDT_ADDRESS, [['totalBorrowAmount', borrowAmount.toString()]])
   })
 
-  test('success - handleBorrow does nothing if LiquidityPosition does not exist', () => {
+  test('success - handleBorrow does nothing if PositionIdMapping does not exist', () => {
     const positionId = '999'
 
     const borrowAmount = BigInt.fromString('1000000')
@@ -231,6 +253,7 @@ describe('handleBorrow', () => {
 
     handleBorrow(borrowEvent)
 
+    // No mapping exists, so no LiquidityPosition should be updated
     const position = LiquidityPosition.load(positionId)
     assert.assertNull(position)
   })
@@ -262,8 +285,10 @@ describe('handleRepay', () => {
 
   test('success - handleRepay decreases borrowAmount on LiquidityPosition', () => {
     const positionId = '9'
+    const tokenId = '9'
 
-    setupLiquidityPosition(positionId)
+    setupLiquidityPosition(tokenId)
+    setupPositionIdMapping(positionId, tokenId)
 
     // Borrow 5 USDT
     const borrowAmount = BigInt.fromString('5000000')
@@ -282,13 +307,15 @@ describe('handleRepay', () => {
     handleRepay(repayEvent)
 
     const expectedRemaining = borrowAmount.minus(repayAmount)
-    assertObjectMatches('LiquidityPosition', positionId, [['borrowAmount', expectedRemaining.toString()]])
+    assertObjectMatches('LiquidityPosition', tokenId, [['borrowAmount', expectedRemaining.toString()]])
   })
 
   test('success - handleRepay decreases BorrowAsset totalBorrowAmount', () => {
     const positionId = '9'
+    const tokenId = '9'
 
-    setupLiquidityPosition(positionId)
+    setupLiquidityPosition(tokenId)
+    setupPositionIdMapping(positionId, tokenId)
 
     // Borrow 5 USDT
     const borrowAmount = BigInt.fromString('5000000')
@@ -312,8 +339,10 @@ describe('handleRepay', () => {
 
   test('success - handleRepay to zero clears borrowAmount', () => {
     const positionId = '9'
+    const tokenId = '9'
 
-    setupLiquidityPosition(positionId)
+    setupLiquidityPosition(tokenId)
+    setupPositionIdMapping(positionId, tokenId)
 
     // Borrow 1 USDT
     const borrowAmount = BigInt.fromString('1000000')
@@ -330,7 +359,7 @@ describe('handleRepay', () => {
     )
     handleRepay(repayEvent)
 
-    assertObjectMatches('LiquidityPosition', positionId, [['borrowAmount', '0']])
+    assertObjectMatches('LiquidityPosition', tokenId, [['borrowAmount', '0']])
   })
 
   // Test with real data from arbiscan tx:
@@ -338,8 +367,10 @@ describe('handleRepay', () => {
   // Repay: https://arbiscan.io/tx/0x9b86ae8dd30b3fe592af833621f288a8aa2d0498ecfc782f5b6d9d776ae5e744#eventlog
   test('success - handleRepay clamps to zero when repayAmount exceeds borrowAmount (real arbiscan data)', () => {
     const positionId = '9'
+    const tokenId = '9'
 
-    setupLiquidityPosition(positionId)
+    setupLiquidityPosition(tokenId)
+    setupPositionIdMapping(positionId, tokenId)
 
     // Real Borrow event data: positionId=9, ulToken=USDT, borrowAmount=1000000
     const borrowAmount = BigInt.fromString('1000000')
@@ -347,7 +378,7 @@ describe('handleRepay', () => {
     handleBorrow(borrowEvent)
 
     // Verify after borrow
-    assertObjectMatches('LiquidityPosition', positionId, [
+    assertObjectMatches('LiquidityPosition', tokenId, [
       ['borrowToken', USDT_ADDRESS],
       ['borrowAmount', '1000000'],
     ])
@@ -365,6 +396,160 @@ describe('handleRepay', () => {
     handleRepay(repayEvent)
 
     // borrowAmount should be clamped to 0 (not negative -12)
-    assertObjectMatches('LiquidityPosition', positionId, [['borrowAmount', '0']])
+    assertObjectMatches('LiquidityPosition', tokenId, [['borrowAmount', '0']])
+  })
+})
+
+function createEnableCollateralEvent(positionId: BigInt, tokenId: BigInt, owner: Address): EnableCollateral {
+  return new EnableCollateral(
+    MOCK_EVENT.address,
+    MOCK_EVENT.logIndex,
+    MOCK_EVENT.transactionLogIndex,
+    MOCK_EVENT.logType,
+    MOCK_EVENT.block,
+    MOCK_EVENT.transaction,
+    [
+      new ethereum.EventParam('positionId', ethereum.Value.fromUnsignedBigInt(positionId)),
+      new ethereum.EventParam('tokenId', ethereum.Value.fromUnsignedBigInt(tokenId)),
+      new ethereum.EventParam('owner', ethereum.Value.fromAddress(owner)),
+    ],
+    MOCK_EVENT.receipt,
+  )
+}
+
+function setupPosition(tokenId: string): void {
+  const position = new Position(tokenId)
+  position.tokenId = BigInt.fromString(tokenId)
+  position.owner = '0x1234567890123456789012345678901234567890'
+  position.origin = '0x1234567890123456789012345678901234567890'
+  position.createdAtTimestamp = ZERO_BI
+  position.isLiquidated = false
+  position.isCollateral = false
+  position.isMigrated = false
+  position.save()
+}
+
+describe('handleEnableCollateral', () => {
+  beforeEach(() => {
+    invokePoolCreatedWithMockedEthCalls(MOCK_EVENT, TEST_CONFIG)
+  })
+
+  afterEach(() => {
+    clearStore()
+  })
+
+  test('success - creates PositionIdMapping when collateral is enabled', () => {
+    const positionId = '11'
+    const tokenId = '78'
+
+    setupPosition(tokenId)
+
+    const event = createEnableCollateralEvent(
+      BigInt.fromString(positionId),
+      BigInt.fromString(tokenId),
+      Address.fromString('0x1234567890123456789012345678901234567890'),
+    )
+    handleEnableCollateral(event)
+
+    // Verify PositionIdMapping is created
+    const mapping = PositionIdMapping.load(positionId)
+    assert.assertNotNull(mapping)
+    assert.stringEquals(tokenId, mapping!.tokenId)
+
+    // Verify Position.isCollateral is set to true
+    const position = Position.load(tokenId)
+    assert.assertTrue(position!.isCollateral)
+  })
+
+  test('success - updates existing PositionIdMapping', () => {
+    const positionId = '11'
+    const tokenId = '78'
+
+    setupPosition(tokenId)
+
+    // Create initial mapping
+    const initialMapping = new PositionIdMapping(positionId)
+    initialMapping.tokenId = '999' // different tokenId
+    initialMapping.save()
+
+    const event = createEnableCollateralEvent(
+      BigInt.fromString(positionId),
+      BigInt.fromString(tokenId),
+      Address.fromString('0x1234567890123456789012345678901234567890'),
+    )
+    handleEnableCollateral(event)
+
+    // Verify PositionIdMapping is updated
+    const mapping = PositionIdMapping.load(positionId)
+    assert.assertNotNull(mapping)
+    assert.stringEquals(tokenId, mapping!.tokenId)
+  })
+})
+
+describe('handleDisableCollateral', () => {
+  beforeEach(() => {
+    invokePoolCreatedWithMockedEthCalls(MOCK_EVENT, TEST_CONFIG)
+  })
+
+  afterEach(() => {
+    clearStore()
+  })
+
+  test('success - removes PositionIdMapping when collateral is disabled', () => {
+    const positionId = '11'
+    const tokenId = '78'
+
+    setupPosition(tokenId)
+
+    // First enable collateral
+    const enableEvent = createEnableCollateralEvent(
+      BigInt.fromString(positionId),
+      BigInt.fromString(tokenId),
+      Address.fromString('0x1234567890123456789012345678901234567890'),
+    )
+    handleEnableCollateral(enableEvent)
+
+    // Verify mapping exists
+    let mapping = PositionIdMapping.load(positionId)
+    assert.assertNotNull(mapping)
+
+    // Now disable collateral
+    const disableEvent = createEnableCollateralEvent(
+      BigInt.fromString(positionId),
+      BigInt.fromString(tokenId),
+      Address.fromString('0x1234567890123456789012345678901234567890'),
+    )
+    handleDisableCollateral(disableEvent)
+
+    // Verify PositionIdMapping is removed
+    mapping = PositionIdMapping.load(positionId)
+    assert.assertNull(mapping)
+
+    // Verify Position.isCollateral is set to false
+    const position = Position.load(tokenId)
+    assert.assertTrue(!position!.isCollateral)
+  })
+
+  test('success - handles DisableCollateral when no mapping exists', () => {
+    const positionId = '11'
+    const tokenId = '78'
+
+    setupPosition(tokenId)
+
+    // Set position as collateral without creating mapping (edge case)
+    const position = Position.load(tokenId)!
+    position.isCollateral = true
+    position.save()
+
+    const event = createEnableCollateralEvent(
+      BigInt.fromString(positionId),
+      BigInt.fromString(tokenId),
+      Address.fromString('0x1234567890123456789012345678901234567890'),
+    )
+    handleDisableCollateral(event)
+
+    // Verify Position.isCollateral is set to false
+    const updatedPosition = Position.load(tokenId)
+    assert.assertTrue(!updatedPosition!.isCollateral)
   })
 })

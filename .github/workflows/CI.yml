@@ -8,6 +8,8 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   lint:
     name: lint
@@ -16,6 +18,8 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up node
         uses: actions/setup-node@v3
@@ -49,6 +53,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v2

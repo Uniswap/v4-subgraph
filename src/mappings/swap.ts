@@ -3,7 +3,7 @@ import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
-import { getAggregatorHookAddress, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getAggregatorHookAddress, getStaticNativePriceUSD, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
@@ -149,7 +149,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     }
 
     // update USD pricing
-    bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+    const staticNativePrice = getStaticNativePriceUSD()
+    bundle.ethPriceUSD = staticNativePrice.gt(ZERO_BD)
+      ? staticNativePrice
+      : getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
 
     bundle.save()
     token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)

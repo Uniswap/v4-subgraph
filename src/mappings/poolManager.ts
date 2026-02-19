@@ -3,7 +3,7 @@ import { BigInt, log } from '@graphprotocol/graph-ts'
 import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
 import { PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
-import { getAggregatorHookAddress, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getAggregatorHookAddress, getStaticNativePriceUSD, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ADDRESS_ZERO, ONE_BD, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
@@ -183,7 +183,10 @@ export function handleInitializeHelper(
   // update prices
   // update ETH price now that prices could have changed
   const bundle = Bundle.load('1')!
-  bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+  const staticNativePrice = getStaticNativePriceUSD()
+  bundle.ethPriceUSD = staticNativePrice.gt(ZERO_BD)
+    ? staticNativePrice
+    : getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
   bundle.save()
   updatePoolDayData(poolId, event)
   updatePoolHourData(poolId, event)

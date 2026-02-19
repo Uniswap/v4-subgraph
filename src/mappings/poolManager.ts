@@ -169,9 +169,9 @@ export function handleInitializeHelper(
   // For aggregator hook pools on Tempo, both tokens are USD stablecoins trading at parity,
   // so the token-to-token exchange rate is always 1:1. The sqrtPriceX96 emitted by the
   // hook is not meaningful (it routes to an external DEX and does not reflect pool state).
-  const aggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
+  const usdStableStableAggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
   const isUSDStableStableAggregatorPool =
-    aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
+    usdStableStableAggregatorHookAddress != '' && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
   if (isUSDStableStableAggregatorPool) {
     pool.token0Price = ONE_BD
     pool.token1Price = ONE_BD

@@ -80,9 +80,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // For aggregator hook pools on Tempo: both tokens are USD stablecoins, so USD volume is
     // derived directly from token amounts (sum / 2 to avoid double-counting input + output).
     // sqrtPriceX96 / liquidity / tick from the swap event are not meaningful for these pools.
-    const aggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
+    const usdStableStableAggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
     const isUSDStableStableAggregatorPool =
-      aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
+      usdStableStableAggregatorHookAddress != '' && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
 
     let amountTotalUSDTracked: BigDecimal
     let amountTotalETHTracked: BigDecimal
@@ -182,7 +182,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // Both tokens are USD stablecoins so token TVL in USD = raw decimal amount, and pool
     // TVL comes directly from the hook rather than relying on derivedETH * ethPriceUSD.
     if (isUSDStableStableAggregatorPool) {
-      const hookContract = AggregatorHook.bind(Address.fromString(aggregatorHookAddress))
+      const hookContract = AggregatorHook.bind(Address.fromString(usdStableStableAggregatorHookAddress))
       const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
       if (!tvlResult.reverted) {
         const tvlUSD = convertTokenToDecimal(tvlResult.value, BigInt.fromI32(18))

@@ -11,7 +11,12 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "amount0",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount1",
         "type": "uint256"
       }
     ],

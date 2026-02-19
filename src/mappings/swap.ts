@@ -185,7 +185,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       const hookContract = AggregatorHook.bind(Address.fromString(usdStableStableAggregatorHookAddress))
       const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
       if (!tvlResult.reverted) {
-        const tvlUSD = convertTokenToDecimal(tvlResult.value, BigInt.fromI32(18))
+        const tvl0USD = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
+        const tvl1USD = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
+        const tvlUSD = tvl0USD.plus(tvl1USD)
         pool.totalValueLockedUSD = tvlUSD
         pool.totalValueLockedETH = tvlUSD
       }

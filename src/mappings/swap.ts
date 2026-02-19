@@ -1,5 +1,6 @@
-import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
+import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
 import { getAggregatorHookAddress, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
@@ -167,6 +168,21 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
+
+    // For aggregator hook pools, override TVL from the hook's pseudoTotalValueLocked.
+    // Both tokens are USD stablecoins so token TVL in USD = raw decimal amount, and pool
+    // TVL comes directly from the hook rather than relying on derivedETH * ethPriceUSD.
+    if (isAggregatorPool) {
+      const hookContract = AggregatorHook.bind(Address.fromString(aggregatorHookAddress))
+      const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
+      if (!tvlResult.reverted) {
+        const tvlUSD = convertTokenToDecimal(tvlResult.value, BigInt.fromI32(18))
+        pool.totalValueLockedUSD = tvlUSD
+        pool.totalValueLockedETH = tvlUSD
+      }
+      token0.totalValueLockedUSD = token0.totalValueLocked
+      token1.totalValueLockedUSD = token1.totalValueLocked
+    }
 
     // create Swap event
     const transaction = loadTransaction(event)

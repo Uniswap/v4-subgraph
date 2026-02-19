@@ -30,6 +30,7 @@ const contractTemplates = {
         { name: 'ERC20SymbolBytes', file: './abis/ERC20SymbolBytes.json' },
         { name: 'ERC20NameBytes', file: './abis/ERC20NameBytes.json' },
         { name: 'PoolManager', file: './abis/PoolManager.json' },
+        { name: 'AggregatorHook', file: './abis/AggregatorHook.json' },
       ],
       eventHandlers: [
         {

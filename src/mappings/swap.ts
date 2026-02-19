@@ -3,7 +3,12 @@ import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
-import { getAggregatorHookAddress, getStaticNativePriceUSD, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import {
+  getStaticNativePriceUSD,
+  getSubgraphConfig,
+  getUSDStableStableAggregatorHookAddress,
+  SubgraphConfig,
+} from '../utils/chains'
 import { ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
@@ -75,13 +80,14 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // For aggregator hook pools on Tempo: both tokens are USD stablecoins, so USD volume is
     // derived directly from token amounts (sum / 2 to avoid double-counting input + output).
     // sqrtPriceX96 / liquidity / tick from the swap event are not meaningful for these pools.
-    const aggregatorHookAddress = getAggregatorHookAddress()
-    const isAggregatorPool = aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
+    const aggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
+    const isUSDStableStableAggregatorPool =
+      aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
 
     let amountTotalUSDTracked: BigDecimal
     let amountTotalETHTracked: BigDecimal
     let amountTotalUSDUntracked: BigDecimal
-    if (isAggregatorPool) {
+    if (isUSDStableStableAggregatorPool) {
       amountTotalUSDTracked = amount0Abs.plus(amount1Abs).div(BigDecimal.fromString('2'))
       amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
       amountTotalUSDUntracked = amountTotalUSDTracked
@@ -142,7 +148,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // updated pool rates
     // Aggregator hook pools always trade stablecoin:stablecoin at parity — skip recomputing
     // from sqrtPriceX96 which is not meaningful for these pools.
-    if (!isAggregatorPool) {
+    if (!isUSDStableStableAggregatorPool) {
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
@@ -175,7 +181,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // For aggregator hook pools, override TVL from the hook's pseudoTotalValueLocked.
     // Both tokens are USD stablecoins so token TVL in USD = raw decimal amount, and pool
     // TVL comes directly from the hook rather than relying on derivedETH * ethPriceUSD.
-    if (isAggregatorPool) {
+    if (isUSDStableStableAggregatorPool) {
       const hookContract = AggregatorHook.bind(Address.fromString(aggregatorHookAddress))
       const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
       if (!tvlResult.reverted) {

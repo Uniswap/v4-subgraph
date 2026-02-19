@@ -3,7 +3,12 @@ import { BigInt, log } from '@graphprotocol/graph-ts'
 import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
 import { PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
-import { getAggregatorHookAddress, getStaticNativePriceUSD, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import {
+  getStaticNativePriceUSD,
+  getSubgraphConfig,
+  getUSDStableStableAggregatorHookAddress,
+  SubgraphConfig,
+} from '../utils/chains'
 import { ADDRESS_ZERO, ONE_BD, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
@@ -164,9 +169,10 @@ export function handleInitializeHelper(
   // For aggregator hook pools on Tempo, both tokens are USD stablecoins trading at parity,
   // so the token-to-token exchange rate is always 1:1. The sqrtPriceX96 emitted by the
   // hook is not meaningful (it routes to an external DEX and does not reflect pool state).
-  const aggregatorHookAddress = getAggregatorHookAddress()
-  const isAggregatorPool = aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
-  if (isAggregatorPool) {
+  const aggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
+  const isUSDStableStableAggregatorPool =
+    aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
+  if (isUSDStableStableAggregatorPool) {
     pool.token0Price = ONE_BD
     pool.token1Price = ONE_BD
   } else {

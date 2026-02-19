@@ -172,9 +172,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
     pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
 
-    poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
-    poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
-
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
 
@@ -194,6 +191,11 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       token0.totalValueLockedUSD = token0.totalValueLocked
       token1.totalValueLockedUSD = token1.totalValueLocked
     }
+
+    // pool.totalValueLockedETH may have been overridden above for aggregator pools,
+    // so update poolManager after the override to capture the correct value.
+    poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
+    poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
 
     // create Swap event
     const transaction = loadTransaction(event)

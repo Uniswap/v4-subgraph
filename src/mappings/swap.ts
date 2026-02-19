@@ -2,7 +2,7 @@ import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getAggregatorHookAddress, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
@@ -71,12 +71,26 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const amount0USD = amount0ETH.times(bundle.ethPriceUSD)
     const amount1USD = amount1ETH.times(bundle.ethPriceUSD)
 
-    // get amount that should be tracked only - div 2 because cant count both input and output as volume
-    const amountTotalUSDTracked = getTrackedAmountUSD(amount0Abs, token0, amount1Abs, token1, whitelistTokens).div(
-      BigDecimal.fromString('2'),
-    )
-    const amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
-    const amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
+    // For aggregator hook pools on Tempo: both tokens are USD stablecoins, so USD volume is
+    // derived directly from token amounts (sum / 2 to avoid double-counting input + output).
+    // sqrtPriceX96 / liquidity / tick from the swap event are not meaningful for these pools.
+    const aggregatorHookAddress = getAggregatorHookAddress()
+    const isAggregatorPool = aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
+
+    let amountTotalUSDTracked: BigDecimal
+    let amountTotalETHTracked: BigDecimal
+    let amountTotalUSDUntracked: BigDecimal
+    if (isAggregatorPool) {
+      amountTotalUSDTracked = amount0Abs.plus(amount1Abs).div(BigDecimal.fromString('2'))
+      amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
+      amountTotalUSDUntracked = amountTotalUSDTracked
+    } else {
+      amountTotalUSDTracked = getTrackedAmountUSD(amount0Abs, token0, amount1Abs, token1, whitelistTokens).div(
+        BigDecimal.fromString('2'),
+      )
+      amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
+      amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
+    }
 
     const feesETH = amountTotalETHTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
     const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
@@ -124,10 +138,14 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1.feesUSD = token1.feesUSD.plus(feesUSD)
     token1.txCount = token1.txCount.plus(ONE_BI)
 
-    // updated pool ratess
-    const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
-    pool.token0Price = prices[0]
-    pool.token1Price = prices[1]
+    // updated pool rates
+    // Aggregator hook pools always trade stablecoin:stablecoin at parity — skip recomputing
+    // from sqrtPriceX96 which is not meaningful for these pools.
+    if (!isAggregatorPool) {
+      const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
+      pool.token0Price = prices[0]
+      pool.token1Price = prices[1]
+    }
 
     // update USD pricing
     bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)

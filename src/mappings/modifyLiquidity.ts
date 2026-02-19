@@ -2,7 +2,7 @@ import { BigInt, log } from '@graphprotocol/graph-ts'
 
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getAggregatorHookAddress, getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction } from '../utils/index'
 import {
@@ -66,7 +66,14 @@ export function handleModifyLiquidityHelper(
     const amount0 = convertTokenToDecimal(amount0Raw, token0.decimals)
     const amount1 = convertTokenToDecimal(amount1Raw, token1.decimals)
 
-    const amountUSD = calculateAmountUSD(amount0, amount1, token0.derivedETH, token1.derivedETH, bundle.ethPriceUSD)
+    // For aggregator hook pools both tokens are USD stablecoins worth $1, so USD value
+    // is the sum of the decimal amounts directly. This also avoids relying on derivedETH
+    // and ethPriceUSD which may be zero on Tempo before an oracle pool is deployed.
+    const aggregatorHookAddress = getAggregatorHookAddress()
+    const isAggregatorPool = aggregatorHookAddress != '' && pool.hooks.toLowerCase() == aggregatorHookAddress
+    const amountUSD = isAggregatorPool
+      ? amount0.plus(amount1)
+      : calculateAmountUSD(amount0, amount1, token0.derivedETH, token1.derivedETH, bundle.ethPriceUSD)
 
     // reset tvl aggregates until new amounts calculated
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(pool.totalValueLockedETH)

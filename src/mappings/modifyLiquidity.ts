@@ -44,7 +44,10 @@ export function handleModifyLiquidityHelper(
   // Aggregator hook pools hold no liquidity directly — all liquidity is managed externally.
   // ModifyLiquidity events cannot occur for these pools.
   const usdStableStableAggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
-  if (usdStableStableAggregatorHookAddress != '' && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress) {
+  if (
+    usdStableStableAggregatorHookAddress != null &&
+    pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
+  ) {
     return
   }
 

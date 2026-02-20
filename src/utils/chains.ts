@@ -736,21 +736,21 @@ export function getSubgraphConfig(): SubgraphConfig {
 }
 
 // Returns a hardcoded native token price in USD for chains where the native is a stablecoin
-// whose price is fixed by definition (e.g. Tempo's pathUSD = $1). Returns zero for all
+// whose price is fixed by definition (e.g. Tempo's pathUSD = $1). Returns null for all
 // other chains, which signals callers to derive the price from the oracle pool as normal.
-export function getStaticNativePriceUSD(): BigDecimal {
+export function getStaticNativePriceUSD(): BigDecimal | null {
   if (dataSource.network() == TEMPO_TESTNET_NETWORK_NAME) {
     return BigDecimal.fromString('1')
   }
-  return BigDecimal.fromString('0')
+  return null
 }
 
 // Returns the aggregator hook address for chains that route pools through an external DEX
-// via an onchain aggregator hook. Only applicable to Tempo testnet — returns empty string
-// for every other chain so callers can gate on `address != ''`.
-export function getUSDStableStableAggregatorHookAddress(): string {
+// via an onchain aggregator hook. Only applicable to Tempo testnet — returns null
+// for every other chain so callers can gate on `address != null`.
+export function getUSDStableStableAggregatorHookAddress(): string | null {
   if (dataSource.network() == TEMPO_TESTNET_NETWORK_NAME) {
     return '0x0000000000000000000000000000000000000000' // TODO: replace with deployed aggregator hook address
   }
-  return ''
+  return null
 }

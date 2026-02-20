@@ -171,7 +171,7 @@ export function handleInitializeHelper(
   // hook is not meaningful (it routes to an external DEX and does not reflect pool state).
   const usdStableStableAggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
   const isUSDStableStableAggregatorPool =
-    usdStableStableAggregatorHookAddress != '' && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
+    usdStableStableAggregatorHookAddress != null && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
   if (isUSDStableStableAggregatorPool) {
     pool.token0Price = ONE_BD
     pool.token1Price = ONE_BD
@@ -190,9 +190,10 @@ export function handleInitializeHelper(
   // update ETH price now that prices could have changed
   const bundle = Bundle.load('1')!
   const staticNativePrice = getStaticNativePriceUSD()
-  bundle.ethPriceUSD = staticNativePrice.gt(ZERO_BD)
-    ? staticNativePrice
-    : getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+  bundle.ethPriceUSD =
+    staticNativePrice != null
+      ? staticNativePrice
+      : getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
   bundle.save()
   updatePoolDayData(poolId, event)
   updatePoolHourData(poolId, event)

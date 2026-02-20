@@ -82,7 +82,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // sqrtPriceX96 / liquidity / tick from the swap event are not meaningful for these pools.
     const usdStableStableAggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
     const isUSDStableStableAggregatorPool =
-      usdStableStableAggregatorHookAddress != '' && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
+      usdStableStableAggregatorHookAddress != null && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
 
     let amountTotalUSDTracked: BigDecimal
     let amountTotalETHTracked: BigDecimal
@@ -156,9 +156,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // update USD pricing
     const staticNativePrice = getStaticNativePriceUSD()
-    bundle.ethPriceUSD = staticNativePrice.gt(ZERO_BD)
-      ? staticNativePrice
-      : getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+    bundle.ethPriceUSD =
+      staticNativePrice != null
+        ? staticNativePrice
+        : getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
 
     bundle.save()
     token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)

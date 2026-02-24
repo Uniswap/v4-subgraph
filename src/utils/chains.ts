@@ -663,6 +663,8 @@ export function getSubgraphConfig(): SubgraphConfig {
     const USDCe = '0xA8CE8aee21bC2A48a5EF670afCc9274C7bbbC035'.toLowerCase()
     const WBTC = '0xEA034fb02eB1808C2cc3adbC15f447B93CbE08e1'.toLowerCase()
     const DAI = '0xC5015b9d9161Dca7e18e32f6f25C4aD850731Fd4'.toLowerCase()
+    const xETH = '0xE7B000003A45145decf8a28FC755aD5eC5EA025A'.toLowerCase()
+    const xSOL = '0x505000008DE8748DBd4422ff4687a4FC9bEba15b'.toLowerCase()
     const nativeToUSDC = '0x9072107b33ad70c231602b537d91774a43c1837f9b28040ee9bf8cad0a0ab4a1'.toLowerCase()
 
     return {
@@ -672,7 +674,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       wrappedNativeAddress: WOKB,
       minimumNativeLocked: BigDecimal.fromString('25'),
       stablecoinAddresses: [USDC, USDT, DAI],
-      whitelistTokens: [WOKB, WETH, USDT, USDT0, USDC, USDCe, WBTC, DAI],
+      whitelistTokens: [WOKB, WETH, USDT, USDT0, USDC, USDCe, WBTC, DAI, xETH, xSOL],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],

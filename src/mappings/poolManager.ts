@@ -3,8 +3,13 @@ import { BigInt, log } from '@graphprotocol/graph-ts'
 import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
 import { PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
+import {
+  getStaticNativePriceUSD,
+  getSubgraphConfig,
+  getUSDStableStableAggregatorHookAddress,
+  SubgraphConfig,
+} from '../utils/chains'
+import { ADDRESS_ZERO, ONE_BD, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
@@ -161,9 +166,20 @@ export function handleInitializeHelper(
   pool.sqrtPrice = event.params.sqrtPriceX96
   pool.tick = BigInt.fromI32(event.params.tick)
 
-  const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
-  pool.token0Price = prices[0]
-  pool.token1Price = prices[1]
+  // For aggregator hook pools on Tempo, both tokens are USD stablecoins trading at parity,
+  // so the token-to-token exchange rate is always 1:1. The sqrtPriceX96 emitted by the
+  // hook is not meaningful (it routes to an external DEX and does not reflect pool state).
+  const usdStableStableAggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
+  const isUSDStableStableAggregatorPool =
+    usdStableStableAggregatorHookAddress != null && pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
+  if (isUSDStableStableAggregatorPool) {
+    pool.token0Price = ONE_BD
+    pool.token1Price = ONE_BD
+  } else {
+    const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
+    pool.token0Price = prices[0]
+    pool.token1Price = prices[1]
+  }
 
   pool.save()
   token0.save()
@@ -173,7 +189,11 @@ export function handleInitializeHelper(
   // update prices
   // update ETH price now that prices could have changed
   const bundle = Bundle.load('1')!
-  bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+  const staticNativePrice = getStaticNativePriceUSD()
+  bundle.ethPriceUSD =
+    staticNativePrice != null
+      ? staticNativePrice
+      : getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
   bundle.save()
   updatePoolDayData(poolId, event)
   updatePoolHourData(poolId, event)

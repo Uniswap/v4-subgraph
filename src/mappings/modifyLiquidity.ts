@@ -2,7 +2,7 @@ import { BigInt, log } from '@graphprotocol/graph-ts'
 
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getSubgraphConfig, getUSDStableStableAggregatorHookAddress, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction } from '../utils/index'
 import {
@@ -38,6 +38,16 @@ export function handleModifyLiquidityHelper(
 
   if (poolManager === null) {
     log.debug('handleModifyLiquidityHelper: pool manager not found {}', [poolManagerAddress])
+    return
+  }
+
+  // Aggregator hook pools hold no liquidity directly — all liquidity is managed externally.
+  // ModifyLiquidity events cannot occur for these pools.
+  const usdStableStableAggregatorHookAddress = getUSDStableStableAggregatorHookAddress()
+  if (
+    usdStableStableAggregatorHookAddress != null &&
+    pool.hooks.toLowerCase() == usdStableStableAggregatorHookAddress
+  ) {
     return
   }
 

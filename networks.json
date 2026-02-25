@@ -210,5 +210,15 @@
       "address": "0xcae584c1f193cb3c090324ca8a1af4ce378e37e1",
       "startBlock": 3637446
     }
+  },
+  "tempo-testnet": {
+    "PoolManager": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 0
+    },
+    "PositionManager": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 0
+    }
   }
 }

@@ -31,6 +31,8 @@ dataSources:
           file: ./abis/ERC20NameBytes.json
         - name: PoolManager
           file: ./abis/PoolManager.json
+        - name: AggregatorHook
+          file: ./abis/AggregatorHook.json
       eventHandlers:
         - event: Initialize(indexed bytes32,indexed address,indexed
             address,uint24,int24,address,uint160,int24)

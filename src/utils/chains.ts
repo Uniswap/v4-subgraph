@@ -28,6 +28,7 @@ const CELO_NETWORK_NAME = 'celo'
 const MONAD_NETWORK_NAME = 'monad'
 const XLAYER_MAINNET_NETWORK_NAME = 'xlayer-mainnet'
 const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
+const TEMPO_TESTNET_NETWORK_NAME = 'tempo-testnet'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -708,7 +709,50 @@ export function getSubgraphConfig(): SubgraphConfig {
         decimals: BigInt.fromI32(18),
       },
     }
+  } else if (selectedNetwork == TEMPO_TESTNET_NETWORK_NAME) {
+    return {
+      poolManagerAddress: '0x0000000000000000000000000000000000000000', // TODO: replace with deployed address
+      stablecoinWrappedNativePoolId: '', // no pool deployed yet, prices will show $0
+      stablecoinIsToken0: true,
+      wrappedNativeAddress: '0x20c0000000000000000000000000000000000000', // pathUSD (native stablecoin)
+      minimumNativeLocked: BigDecimal.fromString('1'),
+      stablecoinAddresses: [
+        '0x20c0000000000000000000000000000000000000', // pathUSD
+      ],
+      whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native pathUSD
+        '0x20c0000000000000000000000000000000000000', // pathUSD
+      ],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'pathUSD',
+        name: 'pathUSD',
+        decimals: BigInt.fromI32(18),
+      },
+    }
   } else {
     throw new Error('Unsupported Network')
   }
+}
+
+// Returns a hardcoded native token price in USD for chains where the native is a stablecoin
+// whose price is fixed by definition (e.g. Tempo's pathUSD = $1). Returns null for all
+// other chains, which signals callers to derive the price from the oracle pool as normal.
+export function getStaticNativePriceUSD(): BigDecimal | null {
+  if (dataSource.network() == TEMPO_TESTNET_NETWORK_NAME) {
+    return BigDecimal.fromString('1')
+  }
+  return null
+}
+
+// Returns the aggregator hook address for chains that route pools through an external DEX
+// via an onchain aggregator hook. Only applicable to Tempo testnet — returns null
+// for every other chain so callers can gate on `address != null`.
+export function getUSDStableStableAggregatorHookAddress(): string | null {
+  if (dataSource.network() == TEMPO_TESTNET_NETWORK_NAME) {
+    return '0x0000000000000000000000000000000000000000' // TODO: replace with deployed aggregator hook address
+  }
+  return null
 }

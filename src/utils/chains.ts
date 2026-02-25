@@ -28,6 +28,7 @@ const CELO_NETWORK_NAME = 'celo'
 const MONAD_NETWORK_NAME = 'monad'
 const XLAYER_MAINNET_NETWORK_NAME = 'xlayer-mainnet'
 const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
+const LINEA_MAINNET_NETWORK_NAME = 'linea'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -699,6 +700,36 @@ export function getSubgraphConfig(): SubgraphConfig {
       minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: [USDT0, USDm],
       whitelistTokens: [WETH, USDT0, USDm, MEGA],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: BigInt.fromI32(18),
+      },
+    }
+  } else if (selectedNetwork == LINEA_MAINNET_NETWORK_NAME) {
+    const WETH = '0xe5d7c2a44ffddf6b295a15c148167daaaf5cf34f'.toLowerCase()
+    const USDC = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff'.toLowerCase()
+    const MUSD = '0xacA92E438df0B2401fF60dA7E4337B687a2435DA'.toLowerCase()
+    const USDT = '0xA219439258ca9da29E9Cc4cE5596924745e12B93'.toLowerCase()
+    const LINEA = '0x1789e0043623282d5dcc7f213d703c6d8bafbb04'.toLowerCase()
+    const WBTC = '0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4'.toLowerCase()
+    const REX33 = '0xe4eEB461Ad1e4ef8b8EF71a33694CCD84Af051C4'.toLowerCase()
+    const WSTETH = '0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F'.toLowerCase()
+    const EZETH = '0x2416092f143378750bb29b79ed961ab195cceea5'.toLowerCase()
+    const WEETH = '0x1bf74c010e6320bab11e2e5a532b5ac15e0b8aa6'.toLowerCase()
+    const USDCE = '0x79a02482a880bce3f13e09da970dc34db4cd24d1'.toLowerCase()
+    const NATIVE_USDC = '0x9949478188160639c18d4948d6d839d3937ffff34bbb3f62f7c557daab069bb9'.toLowerCase()
+    return {
+      poolManagerAddress: '0x248083fb965359d82b06c1f5322480dcfc1ad857'.toLowerCase(),
+      stablecoinWrappedNativePoolId: NATIVE_USDC,
+      stablecoinIsToken0: false,
+      wrappedNativeAddress: WETH,
+      minimumNativeLocked: BigDecimal.fromString('1'),
+      stablecoinAddresses: [USDC, USDT, MUSD, USDCE],
+      whitelistTokens: [WETH, USDT, MUSD, LINEA, WBTC, REX33, WSTETH, EZETH, WEETH, USDCE],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],

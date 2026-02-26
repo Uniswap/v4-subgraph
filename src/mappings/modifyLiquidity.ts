@@ -105,8 +105,6 @@ export function handleModifyLiquidityHelper(
       .times(token0.derivedETH)
       .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
     pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
-    let externalPoolTVLUSD = pool.totalValueLockedUSD
-    let externalPoolTVLETH = pool.totalValueLockedETH
 
     // For Tempo stable-stable hook pools, source external TVL from the hook contract.
     if (usdStableStableHookAddresses.includes(pool.hooks.toLowerCase())) {
@@ -115,13 +113,12 @@ export function handleModifyLiquidityHelper(
       if (!tvlResult.reverted) {
         const tvl0USD = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
         const tvl1USD = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
-        externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
-        externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
+        const externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
+        const externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
+        pool.externalTotalValueLockedUSD = externalPoolTVLUSD
+        pool.externalTotalValueLockedETH = externalPoolTVLETH
       }
     }
-
-    pool.externalTotalValueLockedUSD = externalPoolTVLUSD
-    pool.externalTotalValueLockedETH = externalPoolTVLETH
 
     // reset aggregates with new amounts
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)

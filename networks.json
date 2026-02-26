@@ -220,5 +220,15 @@
       "address": "0xddcad5775b2816a87495f207731b3571d7ee3c76",
       "startBlock": 28974972
     }
+  },
+  "tempo": {
+    "PoolManager": {
+      "address": "0x33620f62c5b9b2086dd6b62f4a297a9f30347029",
+      "startBlock": 6606180
+    },
+    "PositionManager": {
+      "address": "0x3fc79444f8eacc1894775493ff3fa41f1e35ce11",
+      "startBlock": 6606180
+    }
   }
 }

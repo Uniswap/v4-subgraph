@@ -745,6 +745,7 @@ export function getSubgraphConfig(): SubgraphConfig {
     const USDT0 = '0x20c00000000000000000000014f22ca97301eb73'.toLowerCase()
     const USDCE = '0x20C000000000000000000000b9537d11c60E8b50'.toLowerCase()
     const EURC = '0x20c0000000000000000000001621e21F71CF12fb'.toLowerCase()
+    const FRXUSD = '0x20C0000000000000000000003554d28269E0f3c2'.toLowerCase()
     const PATHUSD_TO_USDCE_POOL = '0xfbdfb13c871193aa697590a86c70ebceea19ee03ec077fe808fc743d3310e709'.toLowerCase()
     return {
       poolManagerAddress: '0x33620f62c5b9b2086dd6b62f4a297a9f30347029'.toLowerCase(),
@@ -753,7 +754,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       wrappedNativeAddress: PATHUSD,
       minimumNativeLocked: BigDecimal.fromString('2000'),
       stablecoinAddresses: [PATHUSD, USDT0, USDCE],
-      whitelistTokens: [PATHUSD, USDT0, USDCE, EURC],
+      whitelistTokens: [PATHUSD, USDT0, USDCE, EURC, FRXUSD],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],

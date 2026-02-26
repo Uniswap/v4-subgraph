@@ -759,9 +759,9 @@ export function getSubgraphConfig(): SubgraphConfig {
       poolsToSkip: [],
       poolMappings: [],
       nativeTokenDetails: {
-        symbol: 'PATHUSD',
-        name: 'PATHUSD',
-        decimals: BigInt.fromI32(18),
+        symbol: 'pathUSD',
+        name: 'PathUSD',
+        decimals: BigInt.fromI32(6),
       },
     }
   } else {

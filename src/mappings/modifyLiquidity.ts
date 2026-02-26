@@ -1,10 +1,11 @@
-import { BigInt, log } from '@graphprotocol/graph-ts'
+import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 
+import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getSubgraphConfig, getUSDStableStableHookAddresses, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
-import { convertTokenToDecimal, loadTransaction } from '../utils/index'
+import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
   updatePoolDayData,
   updatePoolHourData,
@@ -25,6 +26,7 @@ export function handleModifyLiquidityHelper(
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
   const poolManagerAddress = subgraphConfig.poolManagerAddress
+  const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
 
   const bundle = Bundle.load('1')!
   const poolId = event.params.id.toHexString()
@@ -70,12 +72,6 @@ export function handleModifyLiquidityHelper(
 
     // reset tvl aggregates until new amounts calculated
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(pool.totalValueLockedETH)
-    poolManager.externalTotalValueLockedETH = poolManager.externalTotalValueLockedETH.minus(
-      pool.externalTotalValueLockedETH,
-    )
-    poolManager.externalTotalValueLockedUSD = poolManager.externalTotalValueLockedUSD.minus(
-      pool.externalTotalValueLockedUSD,
-    )
 
     // update globals
     poolManager.txCount = poolManager.txCount.plus(ONE_BI)
@@ -84,15 +80,11 @@ export function handleModifyLiquidityHelper(
     token0.txCount = token0.txCount.plus(ONE_BI)
     token0.totalValueLocked = token0.totalValueLocked.plus(amount0)
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH.times(bundle.ethPriceUSD))
-    token0.externalTotalValueLockedETH = token0.totalValueLocked.times(token0.derivedETH)
-    token0.externalTotalValueLockedUSD = token0.externalTotalValueLockedETH.times(bundle.ethPriceUSD)
 
     // update token1 data
     token1.txCount = token1.txCount.plus(ONE_BI)
     token1.totalValueLocked = token1.totalValueLocked.plus(amount1)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH.times(bundle.ethPriceUSD))
-    token1.externalTotalValueLockedETH = token1.totalValueLocked.times(token1.derivedETH)
-    token1.externalTotalValueLockedUSD = token1.externalTotalValueLockedETH.times(bundle.ethPriceUSD)
 
     // pool data
     pool.txCount = pool.txCount.plus(ONE_BI)
@@ -113,18 +105,27 @@ export function handleModifyLiquidityHelper(
       .times(token0.derivedETH)
       .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
     pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
-    pool.externalTotalValueLockedETH = pool.totalValueLockedETH
-    pool.externalTotalValueLockedUSD = pool.totalValueLockedUSD
+    let externalPoolTVLUSD = pool.totalValueLockedUSD
+    let externalPoolTVLETH = pool.totalValueLockedETH
+
+    // For Tempo stable-stable hook pools, source external TVL from the hook contract.
+    if (usdStableStableHookAddresses.includes(pool.hooks.toLowerCase())) {
+      const hookContract = AggregatorHook.bind(Address.fromString(pool.hooks))
+      const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
+      if (!tvlResult.reverted) {
+        const tvl0USD = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
+        const tvl1USD = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
+        externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
+        externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
+      }
+    }
+
+    pool.externalTotalValueLockedUSD = externalPoolTVLUSD
+    pool.externalTotalValueLockedETH = externalPoolTVLETH
 
     // reset aggregates with new amounts
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
-    poolManager.externalTotalValueLockedETH = poolManager.externalTotalValueLockedETH.plus(
-      pool.externalTotalValueLockedETH,
-    )
-    poolManager.externalTotalValueLockedUSD = poolManager.externalTotalValueLockedUSD.plus(
-      pool.externalTotalValueLockedUSD,
-    )
 
     const transaction = loadTransaction(event)
     const modifyLiquidity = new ModifyLiquidity(transaction.id.toString() + '-' + event.logIndex.toString())

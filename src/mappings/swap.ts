@@ -3,13 +3,8 @@ import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
-import {
-  getStaticNativePriceUSD,
-  getSubgraphConfig,
-  getUSDStableStableHookAddresses,
-  SubgraphConfig,
-} from '../utils/chains'
-import { ONE_BD, ONE_BI, ZERO_BD } from '../utils/constants'
+import { getSubgraphConfig, getUSDStableStableHookAddresses, SubgraphConfig } from '../utils/chains'
+import { ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
   updatePoolDayData,
@@ -143,20 +138,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1.txCount = token1.txCount.plus(ONE_BI)
 
     // updated pool rates
-    if (isUSDStableStableHookPool) {
-      pool.token0Price = ONE_BD
-      pool.token1Price = ONE_BD
-    } else {
+    if (!isUSDStableStableHookPool) {
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
-    }
-
-    // update USD pricing
-    const staticNativePriceUSD = getStaticNativePriceUSD()
-    if (staticNativePriceUSD.gt(ZERO_BD)) {
-      bundle.ethPriceUSD = staticNativePriceUSD
-    } else {
       bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
     }
 
@@ -171,8 +156,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       .times(token0.derivedETH)
       .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
     pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
-    let externalPoolTVLUSD = pool.totalValueLockedUSD
-    let externalPoolTVLETH = pool.totalValueLockedETH
 
     // For Tempo stable-stable hook pools, source external TVL from the hook contract.
     if (isUSDStableStableHookPool) {
@@ -181,13 +164,12 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       if (!tvlResult.reverted) {
         const tvl0USD = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
         const tvl1USD = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
-        externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
-        externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
+        const externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
+        const externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
+        pool.externalTotalValueLockedUSD = externalPoolTVLUSD
+        pool.externalTotalValueLockedETH = externalPoolTVLETH
       }
     }
-
-    pool.externalTotalValueLockedUSD = externalPoolTVLUSD
-    pool.externalTotalValueLockedETH = externalPoolTVLETH
 
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)

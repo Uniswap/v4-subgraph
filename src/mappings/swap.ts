@@ -2,8 +2,13 @@ import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ONE_BI, ZERO_BD } from '../utils/constants'
+import {
+  getStaticNativePriceUSD,
+  getSubgraphConfig,
+  getUSDStableStableHookAddresses,
+  SubgraphConfig,
+} from '../utils/chains'
+import { ONE_BD, ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
   updatePoolDayData,
@@ -32,6 +37,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const whitelistTokens = subgraphConfig.whitelistTokens
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
+  const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
 
   const bundle = Bundle.load('1')!
   const poolManager = PoolManager.load(poolManagerAddress)!
@@ -92,6 +98,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // reset aggregate tvl before individual pool tvl updates
     const currentPoolTvlETH = pool.totalValueLockedETH
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(currentPoolTvlETH)
+    const currentPoolExternalTvlETH = pool.externalTotalValueLockedETH
+    const currentPoolExternalTvlUSD = pool.externalTotalValueLockedUSD
+    poolManager.externalTotalValueLockedETH = poolManager.externalTotalValueLockedETH.minus(currentPoolExternalTvlETH)
+    poolManager.externalTotalValueLockedUSD = poolManager.externalTotalValueLockedUSD.minus(currentPoolExternalTvlUSD)
 
     // pool volume
     pool.volumeToken0 = pool.volumeToken0.plus(amount0Abs)
@@ -102,9 +112,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.txCount = pool.txCount.plus(ONE_BI)
 
     // Update the pool with the new active liquidity, price, and tick.
+    const isUSDStableStableHookPool = usdStableStableHookAddresses.includes(pool.hooks.toLowerCase())
     pool.liquidity = event.params.liquidity
-    pool.tick = BigInt.fromI32(event.params.tick as i32)
     pool.sqrtPrice = event.params.sqrtPriceX96
+    pool.tick = BigInt.fromI32(event.params.tick as i32)
     pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
     pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
 
@@ -124,13 +135,23 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1.feesUSD = token1.feesUSD.plus(feesUSD)
     token1.txCount = token1.txCount.plus(ONE_BI)
 
-    // updated pool ratess
-    const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
-    pool.token0Price = prices[0]
-    pool.token1Price = prices[1]
+    // updated pool rates
+    if (isUSDStableStableHookPool) {
+      pool.token0Price = ONE_BD
+      pool.token1Price = ONE_BD
+    } else {
+      const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
+      pool.token0Price = prices[0]
+      pool.token1Price = prices[1]
+    }
 
     // update USD pricing
-    bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+    const staticNativePriceUSD = getStaticNativePriceUSD()
+    if (staticNativePriceUSD.gt(ZERO_BD)) {
+      bundle.ethPriceUSD = staticNativePriceUSD
+    } else {
+      bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+    }
 
     bundle.save()
     token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
@@ -143,12 +164,24 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       .times(token0.derivedETH)
       .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
     pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
+    pool.externalTotalValueLockedETH = pool.totalValueLockedETH
+    pool.externalTotalValueLockedUSD = pool.totalValueLockedUSD
 
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
+    poolManager.externalTotalValueLockedETH = poolManager.externalTotalValueLockedETH.plus(
+      pool.externalTotalValueLockedETH,
+    )
+    poolManager.externalTotalValueLockedUSD = poolManager.externalTotalValueLockedUSD.plus(
+      pool.externalTotalValueLockedUSD,
+    )
 
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
+    token0.externalTotalValueLockedETH = token0.totalValueLocked.times(token0.derivedETH)
+    token1.externalTotalValueLockedETH = token1.totalValueLocked.times(token1.derivedETH)
+    token0.externalTotalValueLockedUSD = token0.externalTotalValueLockedETH.times(bundle.ethPriceUSD)
+    token1.externalTotalValueLockedUSD = token1.externalTotalValueLockedETH.times(bundle.ethPriceUSD)
 
     // create Swap event
     const transaction = loadTransaction(event)

@@ -19,6 +19,10 @@ type PoolManager @entity(immutable: false) {
   totalValueLockedUSD: BigDecimal!
   # TVL derived in ETH
   totalValueLockedETH: BigDecimal!
+  # external-source TVL in USD
+  externalTotalValueLockedUSD: BigDecimal!
+  # external-source TVL in ETH
+  externalTotalValueLockedETH: BigDecimal!
   # TVL derived in USD untracked
   totalValueLockedUSDUntracked: BigDecimal!
   # TVL derived in ETH untracked
@@ -61,6 +65,10 @@ type Token @entity(immutable: false) {
   totalValueLocked: BigDecimal!
   # liquidity across all pools in derived USD
   totalValueLockedUSD: BigDecimal!
+  # external-source liquidity across all pools in derived USD
+  externalTotalValueLockedUSD: BigDecimal!
+  # external-source liquidity across all pools in derived ETH
+  externalTotalValueLockedETH: BigDecimal!
   # TVL derived in USD untracked
   totalValueLockedUSDUntracked: BigDecimal!
   # Note: for chains where ETH is not the native token, this will be the derived
@@ -126,6 +134,10 @@ type Pool @entity(immutable: false) {
   totalValueLockedETH: BigDecimal!
   # tvl USD
   totalValueLockedUSD: BigDecimal!
+  # external-source tvl in ETH
+  externalTotalValueLockedETH: BigDecimal!
+  # external-source tvl in USD
+  externalTotalValueLockedUSD: BigDecimal!
   # TVL derived in USD untracked
   totalValueLockedUSDUntracked: BigDecimal!
   # Fields used to help derived relationship

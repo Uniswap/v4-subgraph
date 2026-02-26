@@ -29,6 +29,7 @@ const MONAD_NETWORK_NAME = 'monad'
 const XLAYER_MAINNET_NETWORK_NAME = 'xlayer-mainnet'
 const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
 const LINEA_MAINNET_NETWORK_NAME = 'linea'
+const TEMPO_NETWORK_NAME = 'tempo'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -742,4 +743,21 @@ export function getSubgraphConfig(): SubgraphConfig {
   } else {
     throw new Error('Unsupported Network')
   }
+}
+
+// Hooks that represent USD-stable <> USD-stable aggregator pools where pool price should be treated as parity.
+export function getUSDStableStableHookAddresses(): string[] {
+  if (dataSource.network() == TEMPO_NETWORK_NAME) {
+    return ['0x2929d242c6c475f78ea7ce8837c9078bcd9ca088']
+  }
+  return []
+}
+
+// Returns a hardcoded native token USD price for chains where native token is itself a USD stable asset.
+// Returns 0 for other chains, signaling callers to derive the price normally.
+export function getStaticNativePriceUSD(): BigDecimal {
+  if (dataSource.network() == TEMPO_NETWORK_NAME) {
+    return BigDecimal.fromString('1')
+  }
+  return BigDecimal.fromString('0')
 }

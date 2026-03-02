@@ -1,8 +1,9 @@
-import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
+import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getSubgraphConfig, getUSDStableStableHookAddresses, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD } from '../utils/constants'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
@@ -32,6 +33,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
   const whitelistTokens = subgraphConfig.whitelistTokens
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
+  const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
 
   const bundle = Bundle.load('1')!
   const poolManager = PoolManager.load(poolManagerAddress)!
@@ -71,12 +73,23 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const amount0USD = amount0ETH.times(bundle.ethPriceUSD)
     const amount1USD = amount1ETH.times(bundle.ethPriceUSD)
 
-    // get amount that should be tracked only - div 2 because cant count both input and output as volume
-    const amountTotalUSDTracked = getTrackedAmountUSD(amount0Abs, token0, amount1Abs, token1, whitelistTokens).div(
-      BigDecimal.fromString('2'),
-    )
-    const amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
-    const amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
+    const isUSDStableStableHookPool = usdStableStableHookAddresses.includes(pool.hooks.toLowerCase())
+
+    let amountTotalUSDTracked: BigDecimal
+    let amountTotalETHTracked: BigDecimal
+    let amountTotalUSDUntracked: BigDecimal
+    if (isUSDStableStableHookPool) {
+      amountTotalUSDTracked = amount0Abs.plus(amount1Abs).div(BigDecimal.fromString('2'))
+      amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
+      amountTotalUSDUntracked = amountTotalUSDTracked
+    } else {
+      // get amount that should be tracked only - div 2 because cant count both input and output as volume
+      amountTotalUSDTracked = getTrackedAmountUSD(amount0Abs, token0, amount1Abs, token1, whitelistTokens).div(
+        BigDecimal.fromString('2'),
+      )
+      amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
+      amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
+    }
 
     const feesETH = amountTotalETHTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
     const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
@@ -103,8 +116,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // Update the pool with the new active liquidity, price, and tick.
     pool.liquidity = event.params.liquidity
-    pool.tick = BigInt.fromI32(event.params.tick as i32)
     pool.sqrtPrice = event.params.sqrtPriceX96
+    pool.tick = BigInt.fromI32(event.params.tick as i32)
     pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
     pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
 
@@ -124,13 +137,13 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1.feesUSD = token1.feesUSD.plus(feesUSD)
     token1.txCount = token1.txCount.plus(ONE_BI)
 
-    // updated pool ratess
-    const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
-    pool.token0Price = prices[0]
-    pool.token1Price = prices[1]
-
-    // update USD pricing
-    bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+    // updated pool rates
+    if (!isUSDStableStableHookPool) {
+      const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
+      pool.token0Price = prices[0]
+      pool.token1Price = prices[1]
+      bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+    }
 
     bundle.save()
     token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
@@ -143,6 +156,20 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       .times(token0.derivedETH)
       .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
     pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
+
+    // For Tempo stable-stable hook pools, source external TVL from the hook contract.
+    if (isUSDStableStableHookPool) {
+      const hookContract = AggregatorHook.bind(Address.fromString(pool.hooks))
+      const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
+      if (!tvlResult.reverted) {
+        const tvl0USD = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
+        const tvl1USD = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
+        const externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
+        const externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
+        pool.externalTotalValueLockedUSD = externalPoolTVLUSD
+        pool.externalTotalValueLockedETH = externalPoolTVLETH
+      }
+    }
 
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)

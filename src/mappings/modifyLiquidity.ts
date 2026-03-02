@@ -1,10 +1,11 @@
-import { BigInt, log } from '@graphprotocol/graph-ts'
+import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 
+import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
-import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
+import { getSubgraphConfig, getUSDStableStableHookAddresses, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
-import { convertTokenToDecimal, loadTransaction } from '../utils/index'
+import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils/index'
 import {
   updatePoolDayData,
   updatePoolHourData,
@@ -25,6 +26,7 @@ export function handleModifyLiquidityHelper(
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
   const poolManagerAddress = subgraphConfig.poolManagerAddress
+  const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
 
   const bundle = Bundle.load('1')!
   const poolId = event.params.id.toHexString()
@@ -103,6 +105,20 @@ export function handleModifyLiquidityHelper(
       .times(token0.derivedETH)
       .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
     pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
+
+    // For Tempo stable-stable hook pools, source external TVL from the hook contract.
+    if (usdStableStableHookAddresses.includes(pool.hooks.toLowerCase())) {
+      const hookContract = AggregatorHook.bind(Address.fromString(pool.hooks))
+      const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
+      if (!tvlResult.reverted) {
+        const tvl0USD = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
+        const tvl1USD = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
+        const externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
+        const externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
+        pool.externalTotalValueLockedUSD = externalPoolTVLUSD
+        pool.externalTotalValueLockedETH = externalPoolTVLETH
+      }
+    }
 
     // reset aggregates with new amounts
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)

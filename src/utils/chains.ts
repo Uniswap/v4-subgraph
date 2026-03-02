@@ -29,6 +29,7 @@ const MONAD_NETWORK_NAME = 'monad'
 const XLAYER_MAINNET_NETWORK_NAME = 'xlayer-mainnet'
 const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
 const LINEA_MAINNET_NETWORK_NAME = 'linea'
+const TEMPO_NETWORK_NAME = 'tempo'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -739,7 +740,48 @@ export function getSubgraphConfig(): SubgraphConfig {
         decimals: BigInt.fromI32(18),
       },
     }
+  } else if (selectedNetwork == TEMPO_NETWORK_NAME) {
+    const PATHUSD = '0x20C0000000000000000000000000000000000000'.toLowerCase()
+    const USDT0 = '0x20c00000000000000000000014f22ca97301eb73'.toLowerCase()
+    const USDCE = '0x20C000000000000000000000b9537d11c60E8b50'.toLowerCase()
+    const EURC = '0x20c0000000000000000000001621e21F71CF12fb'.toLowerCase()
+    const FRXUSD = '0x20C0000000000000000000003554d28269E0f3c2'.toLowerCase()
+    const PATHUSD_TO_USDCE_POOL = '0xfbdfb13c871193aa697590a86c70ebceea19ee03ec077fe808fc743d3310e709'.toLowerCase()
+    return {
+      poolManagerAddress: '0x33620f62c5b9b2086dd6b62f4a297a9f30347029'.toLowerCase(),
+      stablecoinWrappedNativePoolId: PATHUSD_TO_USDCE_POOL,
+      stablecoinIsToken0: false,
+      wrappedNativeAddress: PATHUSD,
+      minimumNativeLocked: BigDecimal.fromString('2000'),
+      stablecoinAddresses: [PATHUSD, USDT0, USDCE],
+      whitelistTokens: [PATHUSD, USDT0, USDCE, EURC, FRXUSD],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'pathUSD',
+        name: 'PathUSD',
+        decimals: BigInt.fromI32(6),
+      },
+    }
   } else {
     throw new Error('Unsupported Network')
   }
+}
+
+// Hooks that represent USD-stable <> USD-stable aggregator pools where pool price should be treated as parity.
+export function getUSDStableStableHookAddresses(): string[] {
+  if (dataSource.network() == TEMPO_NETWORK_NAME) {
+    return ['0x2929d242c6c475f78ea7ce8837c9078bcd9ca088']
+  }
+  return []
+}
+
+// Returns a hardcoded native token USD price for chains where native token is itself a USD stable asset.
+// Returns 0 for other chains, signaling callers to derive the price normally.
+export function getStaticNativePriceUSD(): BigDecimal {
+  if (dataSource.network() == TEMPO_NETWORK_NAME) {
+    return BigDecimal.fromString('1')
+  }
+  return BigDecimal.fromString('0')
 }

@@ -126,6 +126,10 @@ type Pool @entity(immutable: false) {
   totalValueLockedETH: BigDecimal!
   # tvl USD
   totalValueLockedUSD: BigDecimal!
+  # external-source tvl in ETH
+  externalTotalValueLockedETH: BigDecimal!
+  # external-source tvl in USD
+  externalTotalValueLockedUSD: BigDecimal!
   # TVL derived in USD untracked
   totalValueLockedUSDUntracked: BigDecimal!
   # Fields used to help derived relationship

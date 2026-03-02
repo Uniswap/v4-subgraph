@@ -118,8 +118,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.liquidity = event.params.liquidity
     pool.sqrtPrice = event.params.sqrtPriceX96
     pool.tick = BigInt.fromI32(event.params.tick as i32)
-    pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
-    pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
+    if (!isUSDStableStableHookPool) {
+      pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
+      pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
+    }
 
     // update token0 data
     token0.volume = token0.volume.plus(amount0Abs)
@@ -152,22 +154,26 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     /**
      * Things afffected by new USD rates
      */
-    pool.totalValueLockedETH = pool.totalValueLockedToken0
-      .times(token0.derivedETH)
-      .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
-    pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
+    if (!isUSDStableStableHookPool) {
+      pool.totalValueLockedETH = pool.totalValueLockedToken0
+        .times(token0.derivedETH)
+        .plus(pool.totalValueLockedToken1.times(token1.derivedETH))
+      pool.totalValueLockedUSD = pool.totalValueLockedETH.times(bundle.ethPriceUSD)
+    }
 
-    // For Tempo stable-stable hook pools, source external TVL from the hook contract.
+    // For Tempo stable-stable hook pools, source TVL from the hook contract.
     if (isUSDStableStableHookPool) {
       const hookContract = AggregatorHook.bind(Address.fromString(pool.hooks))
       const tvlResult = hookContract.try_pseudoTotalValueLocked(event.params.id)
       if (!tvlResult.reverted) {
-        const tvl0USD = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
-        const tvl1USD = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
-        const externalPoolTVLUSD = tvl0USD.plus(tvl1USD)
-        const externalPoolTVLETH = safeDiv(externalPoolTVLUSD, bundle.ethPriceUSD)
-        pool.externalTotalValueLockedUSD = externalPoolTVLUSD
-        pool.externalTotalValueLockedETH = externalPoolTVLETH
+        const tvl0Token = convertTokenToDecimal(tvlResult.value.value0, token0.decimals)
+        const tvl1Token = convertTokenToDecimal(tvlResult.value.value1, token1.decimals)
+        const hookPoolTVLUSD = tvl0Token.plus(tvl1Token)
+        const hookPoolTVLETH = safeDiv(hookPoolTVLUSD, bundle.ethPriceUSD)
+        pool.totalValueLockedToken0 = tvl0Token
+        pool.totalValueLockedToken1 = tvl1Token
+        pool.totalValueLockedUSD = hookPoolTVLUSD
+        pool.totalValueLockedETH = hookPoolTVLETH
       }
     }
 

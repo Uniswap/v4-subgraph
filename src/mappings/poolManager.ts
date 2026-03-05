@@ -153,8 +153,7 @@ export function handleInitializeHelper(
   pool.totalValueLockedToken1 = ZERO_BD
   pool.totalValueLockedUSD = ZERO_BD
   pool.totalValueLockedETH = ZERO_BD
-  pool.externalTotalValueLockedUSD = ZERO_BD
-  pool.externalTotalValueLockedETH = ZERO_BD
+  pool.isExternalLiquidity = false
   pool.totalValueLockedUSDUntracked = ZERO_BD
   pool.volumeToken0 = ZERO_BD
   pool.volumeToken1 = ZERO_BD
@@ -167,6 +166,7 @@ export function handleInitializeHelper(
   pool.collectedFeesUSD = ZERO_BD
 
   const isUSDStableStableHookPool = usdStableStableHookAddresses.includes(pool.hooks.toLowerCase())
+  pool.isExternalLiquidity = isUSDStableStableHookPool
   pool.sqrtPrice = event.params.sqrtPriceX96
   pool.tick = BigInt.fromI32(event.params.tick)
   if (isUSDStableStableHookPool) {

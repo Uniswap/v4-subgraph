@@ -772,7 +772,7 @@ export function getSubgraphConfig(): SubgraphConfig {
 // Hooks that represent USD-stable <> USD-stable aggregator pools where pool price should be treated as parity.
 export function getUSDStableStableHookAddresses(): string[] {
   if (dataSource.network() == TEMPO_NETWORK_NAME) {
-    return ['0x2929d242c6c475f78ea7ce8837c9078bcd9ca088']
+    return ['0x717c31c3Ea5F9070297f239FaFD63d21Afdaa888']
   }
   return []
 }

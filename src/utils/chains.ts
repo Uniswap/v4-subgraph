@@ -667,11 +667,11 @@ export function getSubgraphConfig(): SubgraphConfig {
     const DAI = '0xC5015b9d9161Dca7e18e32f6f25C4aD850731Fd4'.toLowerCase()
     const xETH = '0xE7B000003A45145decf8a28FC755aD5eC5EA025A'.toLowerCase()
     const xSOL = '0x505000008DE8748DBd4422ff4687a4FC9bEba15b'.toLowerCase()
-    const nativeToUSDC = '0x9072107b33ad70c231602b537d91774a43c1837f9b28040ee9bf8cad0a0ab4a1'.toLowerCase()
+    const nativeToUSDT0 = '0xf8096cd5528d825ddeb799c32ea793e5952b72b91f016ed19314981fcd142cb8'.toLowerCase()
 
     return {
       poolManagerAddress: '0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32'.toLowerCase(),
-      stablecoinWrappedNativePoolId: nativeToUSDC,
+      stablecoinWrappedNativePoolId: nativeToUSDT0,
       stablecoinIsToken0: false,
       wrappedNativeAddress: WOKB,
       minimumNativeLocked: BigDecimal.fromString('25'),
@@ -772,7 +772,7 @@ export function getSubgraphConfig(): SubgraphConfig {
 // Hooks that represent USD-stable <> USD-stable aggregator pools where pool price should be treated as parity.
 export function getUSDStableStableHookAddresses(): string[] {
   if (dataSource.network() == TEMPO_NETWORK_NAME) {
-    return ['0x717c31c3Ea5F9070297f239FaFD63d21Afdaa888']
+    return ['0x717c31c3ea5f9070297f239fafd63d21afdaa888']
   }
   return []
 }

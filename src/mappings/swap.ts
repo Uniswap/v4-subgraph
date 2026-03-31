@@ -1,6 +1,6 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
-import { AggregatorHook } from '../types/PoolManager/AggregatorHook'
+import { AggregatorHook, HookSwap as HookSwapEvent } from '../types/PoolManager/AggregatorHook'
 import { Swap as SwapEvent } from '../types/PoolManager/PoolManager'
 import { Bundle, Pool, PoolManager, Swap, Token } from '../types/schema'
 import { getSubgraphConfig, getUSDStableStableHookAddresses, SubgraphConfig } from '../utils/chains'
@@ -22,6 +22,128 @@ import {
 
 export function handleSwap(event: SwapEvent): void {
   handleSwapHelper(event)
+}
+
+export function handleHookSwap(event: HookSwapEvent): void {
+  const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
+  const bundle = Bundle.load('1')
+
+  if (bundle === null) {
+    return
+  }
+
+  const poolId = event.params.poolId.toHexString()
+  const pool = Pool.load(poolId)
+  if (pool === null) {
+    log.warning('Pool not found for HookSwap: {}', [poolId])
+    return
+  }
+
+  if (!usdStableStableHookAddresses.includes(pool.hooks.toLowerCase())) {
+    return
+  }
+
+  const token0 = Token.load(pool.token0)
+  const token1 = Token.load(pool.token1)
+  if (token0 === null || token1 === null) {
+    return
+  }
+
+  const amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
+  const amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals)
+  const amount0Abs = amount0.lt(ZERO_BD) ? amount0.times(BigDecimal.fromString('-1')) : amount0
+  const amount1Abs = amount1.lt(ZERO_BD) ? amount1.times(BigDecimal.fromString('-1')) : amount1
+
+  const amountTotalUSDTracked = amount0Abs.plus(amount1Abs).div(BigDecimal.fromString('2'))
+  const amountTotalUSDUntracked = amountTotalUSDTracked
+
+  pool.feeTier = BigInt.fromI32(event.params.swapFee)
+
+  const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+
+  pool.volumeToken0 = pool.volumeToken0.plus(amount0Abs)
+  pool.volumeToken1 = pool.volumeToken1.plus(amount1Abs)
+  pool.volumeUSD = pool.volumeUSD.plus(amountTotalUSDTracked)
+  pool.untrackedVolumeUSD = pool.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
+  pool.feesUSD = pool.feesUSD.plus(feesUSD)
+
+  token0.volume = token0.volume.plus(amount0Abs)
+  token0.volumeUSD = token0.volumeUSD.plus(amountTotalUSDTracked)
+  token0.untrackedVolumeUSD = token0.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
+  token0.feesUSD = token0.feesUSD.plus(feesUSD)
+
+  token1.volume = token1.volume.plus(amount1Abs)
+  token1.volumeUSD = token1.volumeUSD.plus(amountTotalUSDTracked)
+  token1.untrackedVolumeUSD = token1.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
+  token1.feesUSD = token1.feesUSD.plus(feesUSD)
+
+  const poolDayData = updatePoolDayData(poolId, event)
+  const poolHourData = updatePoolHourData(poolId, event)
+  const token0DayData = updateTokenDayData(token0, event)
+  const token1DayData = updateTokenDayData(token1, event)
+  const token0HourData = updateTokenHourData(token0, event)
+  const token1HourData = updateTokenHourData(token1, event)
+
+  // HookSwap volume is internal to the aggregator hook, so we intentionally do not
+  // update global protocol aggregates (PoolManager / UniswapDayData) here.
+
+  poolDayData.volumeUSD = poolDayData.volumeUSD.plus(amountTotalUSDTracked)
+  poolDayData.volumeToken0 = poolDayData.volumeToken0.plus(amount0Abs)
+  poolDayData.volumeToken1 = poolDayData.volumeToken1.plus(amount1Abs)
+  poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
+
+  poolHourData.volumeUSD = poolHourData.volumeUSD.plus(amountTotalUSDTracked)
+  poolHourData.volumeToken0 = poolHourData.volumeToken0.plus(amount0Abs)
+  poolHourData.volumeToken1 = poolHourData.volumeToken1.plus(amount1Abs)
+  poolHourData.feesUSD = poolHourData.feesUSD.plus(feesUSD)
+
+  token0DayData.volume = token0DayData.volume.plus(amount0Abs)
+  token0DayData.volumeUSD = token0DayData.volumeUSD.plus(amountTotalUSDTracked)
+  token0DayData.untrackedVolumeUSD = token0DayData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
+  token0DayData.feesUSD = token0DayData.feesUSD.plus(feesUSD)
+
+  token0HourData.volume = token0HourData.volume.plus(amount0Abs)
+  token0HourData.volumeUSD = token0HourData.volumeUSD.plus(amountTotalUSDTracked)
+  token0HourData.untrackedVolumeUSD = token0HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
+  token0HourData.feesUSD = token0HourData.feesUSD.plus(feesUSD)
+
+  token1DayData.volume = token1DayData.volume.plus(amount1Abs)
+  token1DayData.volumeUSD = token1DayData.volumeUSD.plus(amountTotalUSDTracked)
+  token1DayData.untrackedVolumeUSD = token1DayData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
+  token1DayData.feesUSD = token1DayData.feesUSD.plus(feesUSD)
+
+  token1HourData.volume = token1HourData.volume.plus(amount1Abs)
+  token1HourData.volumeUSD = token1HourData.volumeUSD.plus(amountTotalUSDTracked)
+  token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
+  token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
+
+  const transaction = loadTransaction(event)
+  // Persist HookSwap as Swap. Fields not emitted by HookSwap are set to zero.
+  const swap = new Swap(transaction.id + '-' + event.logIndex.toString())
+  swap.transaction = transaction.id
+  swap.timestamp = transaction.timestamp
+  swap.pool = pool.id
+  swap.token0 = pool.token0
+  swap.token1 = pool.token1
+  swap.sender = event.params.sender
+  swap.origin = event.transaction.from
+  swap.amount0 = amount0
+  swap.amount1 = amount1
+  swap.amountUSD = amountTotalUSDTracked
+  swap.tick = BigInt.zero()
+  swap.sqrtPriceX96 = BigInt.zero()
+  swap.logIndex = event.logIndex
+
+  pool.save()
+  token0.save()
+  token1.save()
+  swap.save()
+  poolDayData.save()
+  poolHourData.save()
+  token0DayData.save()
+  token1DayData.save()
+  token0HourData.save()
+  token1HourData.save()
 }
 
 export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
@@ -56,7 +178,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // Update the pool feeTier with the fee from the swap event
     // This is important for dynamic fee pools where we want to keep store the actual last fee rather storing the dynamic flag (8388608)
-    pool.feeTier = BigInt.fromI32(event.params.fee as i32)
+    pool.feeTier = BigInt.fromI32(event.params.fee)
 
     // need absolute amounts for volume
     let amount0Abs = amount0
@@ -117,7 +239,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     // Update the pool with the new active liquidity, price, and tick.
     pool.liquidity = event.params.liquidity
     pool.sqrtPrice = event.params.sqrtPriceX96
-    pool.tick = BigInt.fromI32(event.params.tick as i32)
+    pool.tick = BigInt.fromI32(event.params.tick)
     if (!isUSDStableStableHookPool) {
       pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
       pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
@@ -183,23 +305,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
 
-    // create Swap event
-    const transaction = loadTransaction(event)
-    const swap = new Swap(transaction.id + '-' + event.logIndex.toString())
-    swap.transaction = transaction.id
-    swap.timestamp = transaction.timestamp
-    swap.pool = pool.id
-    swap.token0 = pool.token0
-    swap.token1 = pool.token1
-    swap.sender = event.params.sender
-    swap.origin = event.transaction.from
-    swap.amount0 = amount0
-    swap.amount1 = amount1
-    swap.amountUSD = amountTotalUSDTracked
-    swap.tick = BigInt.fromI32(event.params.tick as i32)
-    swap.sqrtPriceX96 = event.params.sqrtPriceX96
-    swap.logIndex = event.logIndex
-
     // interval data
     const uniswapDayData = updateUniswapDayData(event, poolManagerAddress)
     const poolDayData = updatePoolDayData(event.params.id.toHexString(), event)
@@ -244,7 +349,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
     token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
 
-    swap.save()
     token0DayData.save()
     token1DayData.save()
     uniswapDayData.save()
@@ -252,6 +356,26 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolHourData.save()
     token0HourData.save()
     token1HourData.save()
+    if (!isUSDStableStableHookPool) {
+      // For aggregator hook pools, HookSwap emits the canonical swap amounts, so skip
+      // persisting the PoolManager Swap entity to avoid duplicate swap records.
+      const transaction = loadTransaction(event)
+      const swap = new Swap(transaction.id + '-' + event.logIndex.toString())
+      swap.transaction = transaction.id
+      swap.timestamp = transaction.timestamp
+      swap.pool = pool.id
+      swap.token0 = pool.token0
+      swap.token1 = pool.token1
+      swap.sender = event.params.sender
+      swap.origin = event.transaction.from
+      swap.amount0 = amount0
+      swap.amount1 = amount1
+      swap.amountUSD = amountTotalUSDTracked
+      swap.tick = BigInt.fromI32(event.params.tick)
+      swap.sqrtPriceX96 = event.params.sqrtPriceX96
+      swap.logIndex = event.logIndex
+      swap.save()
+    }
     poolManager.save()
     pool.save()
     token0.save()

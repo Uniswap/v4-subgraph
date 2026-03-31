@@ -229,6 +229,10 @@
     "PositionManager": {
       "address": "0x3fc79444f8eacc1894775493ff3fa41f1e35ce11",
       "startBlock": 6606180
+    },
+    "AggregatorHook": {
+      "address": "0x7169a78a59f136876e724b648fbb339a42f46888",
+      "startBlock": 6606180
     }
   }
 }

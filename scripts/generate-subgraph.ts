@@ -111,6 +111,29 @@ const contractTemplates = {
       ],
     },
   },
+  AggregatorHook: {
+    kind: 'ethereum/contract',
+    mapping: {
+      kind: 'ethereum/events',
+      apiVersion: '0.0.7',
+      language: 'wasm/assemblyscript',
+      file: './src/mappings/poolManager.mapping.ts',
+      entities: ['Pool', 'Token'],
+      abis: [
+        { name: 'ERC20', file: './abis/ERC20.json' },
+        { name: 'ERC20SymbolBytes', file: './abis/ERC20SymbolBytes.json' },
+        { name: 'ERC20NameBytes', file: './abis/ERC20NameBytes.json' },
+        { name: 'PoolManager', file: './abis/PoolManager.json' },
+        { name: 'AggregatorHook', file: './abis/AggregatorHook.json' },
+      ],
+      eventHandlers: [
+        {
+          event: 'HookSwap(indexed bytes32,indexed address,int256,int256,uint24)',
+          handler: 'handleHookSwap',
+        },
+      ],
+    },
+  },
 }
 
 // Base subgraph configuration

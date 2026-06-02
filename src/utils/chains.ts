@@ -694,7 +694,7 @@ export function getSubgraphConfig(): SubgraphConfig {
     const nativeToUSDT0 = '0xf1fc7e1b96823086b3821db02223910112d139b28c6a132befccada2a3ecae89'.toLowerCase()
 
     return {
-      poolManagerAddress: '0x58dd83c317b03e6ebd72c3e912adf60a8e97aa95'.toLowerCase(),
+      poolManagerAddress: '0xacb7e78fa05d562e0a5d3089ec896d57d057d38e'.toLowerCase(),
       stablecoinWrappedNativePoolId: nativeToUSDT0,
       stablecoinIsToken0: false,
       wrappedNativeAddress: WETH,

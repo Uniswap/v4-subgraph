@@ -203,12 +203,12 @@
   },
   "megaeth-mainnet": {
     "PoolManager": {
-      "address": "0x58dd83c317b03e6ebd72c3e912adf60a8e97aa95",
-      "startBlock": 3637446
+      "address": "0xacb7e78fa05d562e0a5d3089ec896d57d057d38e",
+      "startBlock": 7009653
     },
     "PositionManager": {
-      "address": "0xcae584c1f193cb3c090324ca8a1af4ce378e37e1",
-      "startBlock": 3637446
+      "address": "0x9ae0921e981aaa7308f176f8d4f9129b9247c89d",
+      "startBlock": 7009656
     }
   },
   "linea": {

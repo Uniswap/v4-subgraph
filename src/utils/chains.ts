@@ -720,6 +720,7 @@ export function getSubgraphConfig(): SubgraphConfig {
     const EURC = '0x89b50855aa3be2f677cd6303cec089b5f319d72a'.toLowerCase()
     const USYC = '0xe9185f0c5f296ed1797aae4238d26ccabeadb86c'.toLowerCase()
     const CIRBTC = '0x171a4217b86a807a64eb94757db6849fb4bdbaa0'.toLowerCase() // BTC-pegged; whitelist only
+    const WETH = '0x128cc466b61f542da60c70e3aa11c10e19b84edb'.toLowerCase() // bridged ETH; whitelist only (not the native/reference)
     return {
       poolManagerAddress: '0x8366a39cc670b4001a1121b8f6a443a643e40951'.toLowerCase(),
       stablecoinWrappedNativePoolId: '',
@@ -727,7 +728,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       wrappedNativeAddress: USDC,
       minimumNativeLocked: BigDecimal.fromString('2000'),
       stablecoinAddresses: [USDC],
-      whitelistTokens: [USDC, EURC, USYC, CIRBTC],
+      whitelistTokens: [USDC, EURC, USYC, CIRBTC, WETH],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],

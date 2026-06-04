@@ -30,6 +30,7 @@ const XLAYER_MAINNET_NETWORK_NAME = 'xlayer-mainnet'
 const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
 const LINEA_MAINNET_NETWORK_NAME = 'linea'
 const TEMPO_NETWORK_NAME = 'tempo'
+const ROBINHOOD_MAINNET_NETWORK_NAME = 'robinhood-mainnet'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -701,6 +702,34 @@ export function getSubgraphConfig(): SubgraphConfig {
       minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: [USDT0, USDm],
       whitelistTokens: [WETH, USDT0, USDm, MEGA],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: BigInt.fromI32(18),
+      },
+    }
+  } else if (selectedNetwork == ROBINHOOD_MAINNET_NETWORK_NAME) {
+    // Robinhood chain (4663) — standard ETH-native config. Reference is WETH (and native ETH =
+    // address(0)), priced via the (native) ETH/USDG v4 pool. stablecoinWrappedNativePoolId is a
+    // zero placeholder until that pool is created + seeded → USD reads 0 until then (indexing works).
+    // NOT the Arc '' sentinel (which forces a native price of 1) — WETH/ETH is a volatile reference.
+    const WETH = '0x0bd7d308f8e1639fab988df18a8011f41eacad73'.toLowerCase()
+    const USDG = '0x5fc5360d0400a0fd4f2af552add042d716f1d168'.toLowerCase()
+    return {
+      poolManagerAddress: '0x8366a39cc670b4001a1121b8f6a443a643e40951'.toLowerCase(),
+      stablecoinWrappedNativePoolId: '0x0000000000000000000000000000000000000000000000000000000000000000', // TODO: ETH/USDG v4 poolId once seeded
+      stablecoinIsToken0: false, // TODO: confirm ordering when the ETH/USDG pool exists (native ETH = 0x0 < USDG ⇒ USDG is token1)
+      wrappedNativeAddress: WETH,
+      minimumNativeLocked: BigDecimal.fromString('1'),
+      stablecoinAddresses: [USDG],
+      whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // native ETH
+        WETH,
+        USDG,
+      ],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],

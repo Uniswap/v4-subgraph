@@ -31,6 +31,7 @@ const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
 const LINEA_MAINNET_NETWORK_NAME = 'linea'
 const TEMPO_NETWORK_NAME = 'tempo'
 const ROBINHOOD_MAINNET_NETWORK_NAME = 'robinhood-mainnet'
+const ARC_MAINNET_NETWORK_NAME = 'arc-mainnet'
 
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
@@ -736,6 +737,35 @@ export function getSubgraphConfig(): SubgraphConfig {
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
+        decimals: BigInt.fromI32(18),
+      },
+    }
+  } else if (selectedNetwork == ARC_MAINNET_NETWORK_NAME) {
+    // Arc (chainId 5042) is Circle's USDC-native L1: the native gas token is USDC and there is no
+    // wrapped native (the deployment's "WETH9" slot is the UnsupportedProtocol stub), so USDC is the
+    // reference token. Reference == the dollar ⇒ native price is 1: stablecoinWrappedNativePoolId is
+    // '' (the sentinel handled in getNativePriceInUSD).
+    const USDC = '0x3600000000000000000000000000000000000000'.toLowerCase()
+    const EURC = '0x89b50855aa3be2f677cd6303cec089b5f319d72a'.toLowerCase()
+    const USYC = '0xe9185f0c5f296ed1797aae4238d26ccabeadb86c'.toLowerCase()
+    const CIRBTC = '0x171a4217b86a807a64eb94757db6849fb4bdbaa0'.toLowerCase() // BTC-pegged; whitelist only
+    const WETH = '0x128cc466b61f542da60c70e3aa11c10e19b84edb'.toLowerCase() // bridged ETH; whitelist only (not the native/reference)
+    return {
+      poolManagerAddress: '0x8366a39cc670b4001a1121b8f6a443a643e40951'.toLowerCase(),
+      stablecoinWrappedNativePoolId: '',
+      stablecoinIsToken0: false,
+      wrappedNativeAddress: USDC,
+      minimumNativeLocked: BigDecimal.fromString('2000'),
+      stablecoinAddresses: [USDC],
+      whitelistTokens: [USDC, EURC, USYC, CIRBTC, WETH],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        // address(0) native currency = Arc's USDC gas token, which uses 18-dec precision
+        // (the USDC ERC-20 interface at 0x3600... is 6-dec and read on-chain separately)
+        symbol: 'USDC',
+        name: 'USD Coin',
         decimals: BigInt.fromI32(18),
       },
     }

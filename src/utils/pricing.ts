@@ -17,13 +17,22 @@ export function sqrtPriceX96ToTokenPrices(
 
   const num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
   const denom = BigDecimal.fromString(Q192.toString())
-  const price1 = num.div(denom).times(exponentToBigDecimal(token0Decimals)).div(exponentToBigDecimal(token1Decimals))
+  const price1 = num
+    .div(denom)
+    .times(exponentToBigDecimal(token0Decimals))
+    .div(exponentToBigDecimal(token1Decimals))
 
   const price0 = safeDiv(BigDecimal.fromString('1'), price1)
   return [price0, price1]
 }
 
 export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stablecoinIsToken0: boolean): BigDecimal {
+  // On chains where the native/reference token is itself a USD stablecoin (e.g. Arc, whose native
+  // gas token is USDC and which has no wrapped-native / reference-stable pool), the native price is
+  // 1 by definition. Such chains opt in by setting stablecoinWrappedNativePoolId to '' (empty).
+  if (stablecoinWrappedNativePoolId == '') {
+    return ONE_BD
+  }
   const stablecoinWrappedNativePool = Pool.load(stablecoinWrappedNativePoolId)
   if (stablecoinWrappedNativePool !== null) {
     return stablecoinIsToken0 ? stablecoinWrappedNativePool.token0Price : stablecoinWrappedNativePool.token1Price

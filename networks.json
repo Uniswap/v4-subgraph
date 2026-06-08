@@ -221,6 +221,16 @@
       "startBlock": 9073
     }
   },
+  "arc-mainnet": {
+    "PoolManager": {
+      "address": "0x8366a39cc670b4001a1121b8f6a443a643e40951",
+      "startBlock": 1948011
+    },
+    "PositionManager": {
+      "address": "0x6049c9a0e26405c0985f9e3685c87d0ae917f82b",
+      "startBlock": 1948011
+    }
+  },
   "linea": {
     "PoolManager": {
       "address": "0x248083fb965359d82b06c1f5322480dcfc1ad857",

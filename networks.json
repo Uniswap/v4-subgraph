@@ -211,6 +211,16 @@
       "startBlock": 7009656
     }
   },
+  "robinhood-mainnet": {
+    "PoolManager": {
+      "address": "0x8366a39cc670b4001a1121b8f6a443a643e40951",
+      "startBlock": 9070
+    },
+    "PositionManager": {
+      "address": "0x58daec3116aae6d93017baaea7749052e8a04fa7",
+      "startBlock": 9073
+    }
+  },
   "arc-mainnet": {
     "PoolManager": {
       "address": "0x8366a39cc670b4001a1121b8f6a443a643e40951",

@@ -1,5 +1,7 @@
 # Uniswap V4 Subgraph
 
+This subgraph indexes the Uniswap V4 protocol from `PoolManager` and `PositionManager` events. The main entities it tracks are pools (`Pool`, `PoolManager`), tokens (`Token`, `Bundle`), swaps (`Swap`), liquidity changes (`ModifyLiquidity`), positions (`Position`, `Subscribe`, `Unsubscribe`, `Transfer`), ticks (`Tick`), transactions (`Transaction`), and time-series aggregates (`UniswapDayData`, `PoolDayData`, `PoolHourData`, `TokenDayData`, `TokenHourData`). See `schema.graphql` for the full entity definitions.
+
 ### Running Unit Tests
 
 1. Install [Docker](https://docs.docker.com/get-docker/) if you don't have it already

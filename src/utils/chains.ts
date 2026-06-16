@@ -31,6 +31,7 @@ const MEGAETH_MAINNET_NETWORK_NAME = 'megaeth-mainnet'
 const LINEA_MAINNET_NETWORK_NAME = 'linea'
 const TEMPO_NETWORK_NAME = 'tempo'
 const ROBINHOOD_MAINNET_NETWORK_NAME = 'robinhood-mainnet'
+const INK_NETWORK_NAME = 'ink'
 const ARC_MAINNET_NETWORK_NAME = 'arc-mainnet'
 
 // Note: All token and pool addresses should be lowercased!
@@ -821,6 +822,29 @@ export function getSubgraphConfig(): SubgraphConfig {
         symbol: 'pathUSD',
         name: 'PathUSD',
         decimals: BigInt.fromI32(6),
+      },
+    }
+  } else if (selectedNetwork == INK_NETWORK_NAME) {
+    const NATIVE_ETH = '0x0000000000000000000000000000000000000000'.toLowerCase()
+    const WETH = '0x4200000000000000000000000000000000000006'.toLowerCase()
+    const USDT0 = '0x0200C29006150606B650577BBE7B6248F58470c1'.toLowerCase()
+    const USDCE = '0xF1815bd50389c46847f0Bda824eC8da914045D14'.toLowerCase()
+    const ETH_USDT0_POOL = '0x26354d494b48cc544076d4afe855b5bf224e6a5d4e403bbbf04cbc7f25790b90'.toLowerCase()
+    return {
+      poolManagerAddress: '0x360e68faccca8ca495c1b759fd9eee466db9fb32',
+      stablecoinWrappedNativePoolId: ETH_USDT0_POOL,
+      stablecoinIsToken0: false,
+      wrappedNativeAddress: NATIVE_ETH,
+      minimumNativeLocked: BigDecimal.fromString('1'),
+      stablecoinAddresses: [USDT0, USDCE],
+      whitelistTokens: [WETH, NATIVE_ETH, USDT0, USDCE],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: BigInt.fromI32(18),
       },
     }
   } else {

@@ -254,5 +254,15 @@
       "address": "0x7169a78a59f136876e724b648fbb339a42f46888",
       "startBlock": 6606180
     }
+  },
+  "ink": {
+    "PoolManager": {
+      "address": "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
+      "startBlock": 4580556
+    },
+    "PositionManager": {
+      "address": "0x1b35d13a2e2528f192637f14b05f0dc0e7deb566",
+      "startBlock": 4580572
+    }
   }
 }

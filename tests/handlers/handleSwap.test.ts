@@ -49,25 +49,28 @@ const SWAP_FIXTURE: SwapFixture = {
   fee: 500,
 }
 
-const SWAP_EVENT = new Swap(
-  MOCK_EVENT.address,
-  MOCK_EVENT.logIndex,
-  MOCK_EVENT.transactionLogIndex,
-  MOCK_EVENT.logType,
-  MOCK_EVENT.block,
-  MOCK_EVENT.transaction,
-  [
-    new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(Bytes.fromHexString(SWAP_FIXTURE.id))),
-    new ethereum.EventParam('sender', ethereum.Value.fromAddress(SWAP_FIXTURE.sender)),
-    new ethereum.EventParam('amount0', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.amount0)),
-    new ethereum.EventParam('amount1', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.amount1)),
-    new ethereum.EventParam('sqrtPriceX96', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.sqrtPriceX96)),
-    new ethereum.EventParam('liquidity', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.liquidity)),
-    new ethereum.EventParam('tick', ethereum.Value.fromI32(SWAP_FIXTURE.tick)),
-    new ethereum.EventParam('fee', ethereum.Value.fromI32(SWAP_FIXTURE.fee)),
-  ],
-  MOCK_EVENT.receipt,
-)
+const createSwapEvent = (fixture: SwapFixture): Swap =>
+  new Swap(
+    MOCK_EVENT.address,
+    MOCK_EVENT.logIndex,
+    MOCK_EVENT.transactionLogIndex,
+    MOCK_EVENT.logType,
+    MOCK_EVENT.block,
+    MOCK_EVENT.transaction,
+    [
+      new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(Bytes.fromHexString(fixture.id))),
+      new ethereum.EventParam('sender', ethereum.Value.fromAddress(fixture.sender)),
+      new ethereum.EventParam('amount0', ethereum.Value.fromSignedBigInt(fixture.amount0)),
+      new ethereum.EventParam('amount1', ethereum.Value.fromSignedBigInt(fixture.amount1)),
+      new ethereum.EventParam('sqrtPriceX96', ethereum.Value.fromSignedBigInt(fixture.sqrtPriceX96)),
+      new ethereum.EventParam('liquidity', ethereum.Value.fromSignedBigInt(fixture.liquidity)),
+      new ethereum.EventParam('tick', ethereum.Value.fromI32(fixture.tick)),
+      new ethereum.EventParam('fee', ethereum.Value.fromI32(fixture.fee)),
+    ],
+    MOCK_EVENT.receipt,
+  )
+
+const SWAP_EVENT = createSwapEvent(SWAP_FIXTURE)
 
 describe('handleSwap', () => {
   beforeEach(() => {
@@ -294,25 +297,7 @@ describe('handleSwap', () => {
       fee: 500,
     }
 
-    const event = new Swap(
-      MOCK_EVENT.address,
-      MOCK_EVENT.logIndex,
-      MOCK_EVENT.transactionLogIndex,
-      MOCK_EVENT.logType,
-      MOCK_EVENT.block,
-      MOCK_EVENT.transaction,
-      [
-        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(Bytes.fromHexString(fixture.id))),
-        new ethereum.EventParam('sender', ethereum.Value.fromAddress(fixture.sender)),
-        new ethereum.EventParam('amount0', ethereum.Value.fromSignedBigInt(fixture.amount0)),
-        new ethereum.EventParam('amount1', ethereum.Value.fromSignedBigInt(fixture.amount1)),
-        new ethereum.EventParam('sqrtPriceX96', ethereum.Value.fromSignedBigInt(fixture.sqrtPriceX96)),
-        new ethereum.EventParam('liquidity', ethereum.Value.fromSignedBigInt(fixture.liquidity)),
-        new ethereum.EventParam('tick', ethereum.Value.fromI32(fixture.tick)),
-        new ethereum.EventParam('fee', ethereum.Value.fromI32(fixture.fee)),
-      ],
-      MOCK_EVENT.receipt,
-    )
+    const event = createSwapEvent(fixture)
 
     // pool deltas: negative amount0 (USDC leaves the pool), positive amount1 (WETH enters the pool)
     const amount0 = convertTokenToDecimal(fixture.amount0, BigInt.fromString(USDC_MAINNET_FIXTURE.decimals)).times(
@@ -330,6 +315,49 @@ describe('handleSwap', () => {
     const amount1TVL = amount1.minus(amount1.times(swapFeeRate))
 
     assertObjectMatches('Pool', USDC_WETH_POOL_ID, [
+      ['totalValueLockedToken0', amount0TVL.toString()],
+      ['totalValueLockedToken1', amount1TVL.toString()],
+    ])
+
+    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [['totalValueLocked', amount0TVL.toString()]])
+
+    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [['totalValueLocked', amount1TVL.toString()]])
+  })
+
+  // dynamic-fee test idea borrowed from PR #89: the per-swap event fee (4321) deliberately
+  // differs from the pool's static fee tier (500) so a handler reading a stale/static fee
+  // instead of the per-swap fee would fail this test
+  test('TVL exclusion uses the per-swap event fee, not the static fee tier (dynamic fee)', () => {
+    const fixture: SwapFixture = {
+      id: USDC_WETH_POOL_ID,
+      sender: Address.fromString('0x841B5A0b3DBc473c8A057E2391014aa4C4751351'),
+      amount0: BigInt.fromString('10000'),
+      amount1: BigInt.fromString('-10007'),
+      sqrtPriceX96: BigInt.fromString('79228162514264337514315787821'),
+      liquidity: BigInt.fromString('10000000000000000000000'),
+      tick: -1,
+      fee: 4321,
+    }
+
+    const event = createSwapEvent(fixture)
+
+    // pool deltas: negative amount0 (USDC leaves the pool), positive amount1 (WETH enters the pool)
+    const amount0 = convertTokenToDecimal(fixture.amount0, BigInt.fromString(USDC_MAINNET_FIXTURE.decimals)).times(
+      BigDecimal.fromString('-1'),
+    )
+    const amount1 = convertTokenToDecimal(fixture.amount1, BigInt.fromString(WETH_MAINNET_FIXTURE.decimals)).times(
+      BigDecimal.fromString('-1'),
+    )
+
+    handleSwapHelper(event, TEST_CONFIG)
+
+    const swapFeeRate = BigInt.fromI32(fixture.fee).toBigDecimal().div(BigDecimal.fromString('1000000'))
+    // the output side (token0) is unchanged, the input side (token1) is net of the per-swap fee
+    const amount0TVL = amount0
+    const amount1TVL = amount1.minus(amount1.times(swapFeeRate))
+
+    assertObjectMatches('Pool', USDC_WETH_POOL_ID, [
+      ['feeTier', fixture.fee.toString()],
       ['totalValueLockedToken0', amount0TVL.toString()],
       ['totalValueLockedToken1', amount1TVL.toString()],
     ])

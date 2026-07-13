@@ -283,6 +283,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
+      // save the pool before refreshing the bundle price: getNativePriceInUSD loads the
+      // stablecoin/wrapped-native pool from the store, and when that pool is the one being
+      // swapped it would otherwise read the pre-swap prices (the v3 subgraph saves here too)
+      pool.save()
       bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
     }
 

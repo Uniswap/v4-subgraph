@@ -127,9 +127,7 @@ describe('handleSwap', () => {
     const feesUSD = amountTotalUSDTracked.times(feeTierBD).div(BigDecimal.fromString('1000000'))
 
     // the swap fee is charged on the input side (positive pool delta) and is excluded from TVL
-    const swapFeeRate = BigInt.fromI32(SWAP_FIXTURE.fee)
-      .toBigDecimal()
-      .div(BigDecimal.fromString('1000000'))
+    const swapFeeRate = BigInt.fromI32(SWAP_FIXTURE.fee).toBigDecimal().div(BigDecimal.fromString('1000000'))
     let amount0TVL = amount0
     if (amount0.gt(ZERO_BD)) {
       amount0TVL = amount0.minus(amount0.times(swapFeeRate))
@@ -200,13 +198,7 @@ describe('handleSwap', () => {
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken0DerivedETH.toString()],
-      [
-        'totalValueLockedUSD',
-        amount0TVL
-          .times(newToken0DerivedETH)
-          .times(newEthPrice)
-          .toString(),
-      ],
+      ['totalValueLockedUSD', amount0TVL.times(newToken0DerivedETH).times(newEthPrice).toString()],
     ])
 
     assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [
@@ -217,13 +209,7 @@ describe('handleSwap', () => {
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken1DerivedETH.toString()],
-      [
-        'totalValueLockedUSD',
-        amount1TVL
-          .times(newToken1DerivedETH)
-          .times(newEthPrice)
-          .toString(),
-      ],
+      ['totalValueLockedUSD', amount1TVL.times(newToken1DerivedETH).times(newEthPrice).toString()],
     ])
 
     assertObjectMatches('Swap', MOCK_EVENT.transaction.hash.toHexString() + '-' + MOCK_EVENT.logIndex.toString(), [
@@ -338,9 +324,7 @@ describe('handleSwap', () => {
 
     handleSwapHelper(event, TEST_CONFIG)
 
-    const swapFeeRate = BigInt.fromI32(fixture.fee)
-      .toBigDecimal()
-      .div(BigDecimal.fromString('1000000'))
+    const swapFeeRate = BigInt.fromI32(fixture.fee).toBigDecimal().div(BigDecimal.fromString('1000000'))
     // the output side (token0) is unchanged, the input side (token1) is net of the swap fee
     const amount0TVL = amount0
     const amount1TVL = amount1.minus(amount1.times(swapFeeRate))

@@ -1,5 +1,5 @@
 import { Address, BigDecimal, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
-import { beforeAll, describe, test } from 'matchstick-as'
+import { afterEach, beforeEach, clearStore, describe, test } from 'matchstick-as'
 
 import { handleSwapHelper } from '../../src/mappings/swap'
 import { Swap } from '../../src/types/PoolManager/PoolManager'
@@ -49,28 +49,44 @@ const SWAP_FIXTURE: SwapFixture = {
   fee: 500,
 }
 
-const SWAP_EVENT = new Swap(
-  MOCK_EVENT.address,
-  MOCK_EVENT.logIndex,
-  MOCK_EVENT.transactionLogIndex,
-  MOCK_EVENT.logType,
-  MOCK_EVENT.block,
-  MOCK_EVENT.transaction,
-  [
-    new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(Bytes.fromHexString(SWAP_FIXTURE.id))),
-    new ethereum.EventParam('sender', ethereum.Value.fromAddress(SWAP_FIXTURE.sender)),
-    new ethereum.EventParam('amount0', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.amount0)),
-    new ethereum.EventParam('amount1', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.amount1)),
-    new ethereum.EventParam('sqrtPriceX96', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.sqrtPriceX96)),
-    new ethereum.EventParam('liquidity', ethereum.Value.fromSignedBigInt(SWAP_FIXTURE.liquidity)),
-    new ethereum.EventParam('tick', ethereum.Value.fromI32(SWAP_FIXTURE.tick)),
-    new ethereum.EventParam('fee', ethereum.Value.fromI32(SWAP_FIXTURE.fee)),
-  ],
-  MOCK_EVENT.receipt,
-)
+// Swap in the opposite direction (token1 in, token0 out) on a pool reporting a
+// non-standard per-swap fee, as a dynamic fee pool would.
+const DYNAMIC_FEE_SWAP_FIXTURE: SwapFixture = {
+  id: USDC_WETH_POOL_ID,
+  sender: Address.fromString('0x841B5A0b3DBc473c8A057E2391014aa4C4751351'),
+  amount0: BigInt.fromString('10000'),
+  amount1: BigInt.fromString('-10007'),
+  sqrtPriceX96: BigInt.fromString('79228162514264337514315787821'),
+  liquidity: BigInt.fromString('10000000000000000000000'),
+  tick: -1,
+  fee: 4321,
+}
+
+const createSwapEvent = (fixture: SwapFixture): Swap =>
+  new Swap(
+    MOCK_EVENT.address,
+    MOCK_EVENT.logIndex,
+    MOCK_EVENT.transactionLogIndex,
+    MOCK_EVENT.logType,
+    MOCK_EVENT.block,
+    MOCK_EVENT.transaction,
+    [
+      new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(Bytes.fromHexString(fixture.id))),
+      new ethereum.EventParam('sender', ethereum.Value.fromAddress(fixture.sender)),
+      new ethereum.EventParam('amount0', ethereum.Value.fromSignedBigInt(fixture.amount0)),
+      new ethereum.EventParam('amount1', ethereum.Value.fromSignedBigInt(fixture.amount1)),
+      new ethereum.EventParam('sqrtPriceX96', ethereum.Value.fromSignedBigInt(fixture.sqrtPriceX96)),
+      new ethereum.EventParam('liquidity', ethereum.Value.fromSignedBigInt(fixture.liquidity)),
+      new ethereum.EventParam('tick', ethereum.Value.fromI32(fixture.tick)),
+      new ethereum.EventParam('fee', ethereum.Value.fromI32(fixture.fee)),
+    ],
+    MOCK_EVENT.receipt,
+  )
+
+const SWAP_EVENT = createSwapEvent(SWAP_FIXTURE)
 
 describe('handleSwap', () => {
-  beforeAll(() => {
+  beforeEach(() => {
     invokePoolCreatedWithMockedEthCalls(MOCK_EVENT, TEST_CONFIG)
 
     const bundle = new Bundle('1')
@@ -84,6 +100,10 @@ describe('handleSwap', () => {
     const wethEntity = Token.load(WETH_MAINNET_FIXTURE.address)!
     wethEntity.derivedETH = TEST_WETH_DERIVED_ETH
     wethEntity.save()
+  })
+
+  afterEach(() => {
+    clearStore()
   })
 
   test('success', () => {
@@ -122,6 +142,12 @@ describe('handleSwap', () => {
     const feesETH = amountTotalETHTRacked.times(feeTierBD).div(BigDecimal.fromString('1000000'))
     const feesUSD = amountTotalUSDTracked.times(feeTierBD).div(BigDecimal.fromString('1000000'))
 
+    // TVL only tracks the value backing active liquidity: the swap fee retained from the
+    // input token (token0 here) accrues to LPs and is excluded from the TVL deltas
+    const feeRate = feeTierBD.div(BigDecimal.fromString('1000000'))
+    const amount0TVLDelta = amount0.gt(ZERO_BD) ? amount0.minus(amount0.times(feeRate)) : amount0
+    const amount1TVLDelta = amount1.gt(ZERO_BD) ? amount1.minus(amount1.times(feeRate)) : amount1
+
     handleSwapHelper(SWAP_EVENT, TEST_CONFIG)
 
     const newEthPrice = getNativePriceInUSD(USDC_WETH_POOL_ID, true)
@@ -144,7 +170,11 @@ describe('handleSwap', () => {
       TEST_CONFIG.minimumNativeLocked,
     )
 
-    const totalValueLockedETH = amount0.times(newToken0DerivedETH).plus(amount1.times(newToken1DerivedETH))
+    const totalValueLockedETH = amount0TVLDelta
+      .times(newToken0DerivedETH)
+      .plus(amount1TVLDelta.times(newToken1DerivedETH))
+    const token0TVLUSD = amount0TVLDelta.times(newToken0DerivedETH).times(newEthPrice)
+    const token1TVLUSD = amount1TVLDelta.times(newToken1DerivedETH).times(newEthPrice)
 
     assertObjectMatches('PoolManager', TEST_CONFIG.poolManagerAddress, [
       ['txCount', '1'],
@@ -167,8 +197,8 @@ describe('handleSwap', () => {
       ['liquidity', SWAP_FIXTURE.liquidity.toString()],
       ['tick', SWAP_FIXTURE.tick.toString()],
       ['sqrtPrice', SWAP_FIXTURE.sqrtPriceX96.toString()],
-      ['totalValueLockedToken0', amount0.toString()],
-      ['totalValueLockedToken1', amount1.toString()],
+      ['totalValueLockedToken0', amount0TVLDelta.toString()],
+      ['totalValueLockedToken1', amount1TVLDelta.toString()],
       ['token0Price', newPoolPrices[0].toString()],
       ['token1Price', newPoolPrices[1].toString()],
       ['totalValueLockedETH', totalValueLockedETH.toString()],
@@ -177,24 +207,24 @@ describe('handleSwap', () => {
 
     assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [
       ['volume', amount0Abs.toString()],
-      ['totalValueLocked', amount0.toString()],
+      ['totalValueLocked', amount0TVLDelta.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['untrackedVolumeUSD', amountTotalUSDUntracked.toString()],
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken0DerivedETH.toString()],
-      ['totalValueLockedUSD', amount0.times(newToken0DerivedETH).times(newEthPrice).toString()],
+      ['totalValueLockedUSD', token0TVLUSD.toString()],
     ])
 
     assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [
       ['volume', amount1Abs.toString()],
-      ['totalValueLocked', amount1.toString()],
+      ['totalValueLocked', amount1TVLDelta.toString()],
       ['volumeUSD', amountTotalUSDTracked.toString()],
       ['untrackedVolumeUSD', amountTotalUSDUntracked.toString()],
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken1DerivedETH.toString()],
-      ['totalValueLockedUSD', amount1.times(newToken1DerivedETH).times(newEthPrice).toString()],
+      ['totalValueLockedUSD', token1TVLUSD.toString()],
     ])
 
     assertObjectMatches('Swap', MOCK_EVENT.transaction.hash.toHexString() + '-' + MOCK_EVENT.logIndex.toString(), [
@@ -264,5 +294,65 @@ describe('handleSwap', () => {
       ['untrackedVolumeUSD', amountTotalUSDTracked.toString()],
       ['feesUSD', feesUSD.toString()],
     ])
+  })
+
+  test('success - TVL excludes the swap fee retained from the input token (token0 input)', () => {
+    const amount0 = convertTokenToDecimal(SWAP_FIXTURE.amount0, BigInt.fromString(USDC_MAINNET_FIXTURE.decimals)).times(
+      BigDecimal.fromString('-1'),
+    )
+    const amount1 = convertTokenToDecimal(SWAP_FIXTURE.amount1, BigInt.fromString(WETH_MAINNET_FIXTURE.decimals)).times(
+      BigDecimal.fromString('-1'),
+    )
+
+    handleSwapHelper(SWAP_EVENT, TEST_CONFIG)
+
+    const feeRate = BigDecimal.fromString(SWAP_FIXTURE.fee.toString()).div(BigDecimal.fromString('1000000'))
+    // token0 is the input token (positive delta into the pool), so the retained fee is
+    // excluded from its TVL delta; token1 leaves the pool in full
+    const amount0TVLDelta = amount0.minus(amount0.times(feeRate))
+    const amount1TVLDelta = amount1
+
+    assertObjectMatches('Pool', USDC_WETH_POOL_ID, [
+      ['totalValueLockedToken0', amount0TVLDelta.toString()],
+      ['totalValueLockedToken1', amount1TVLDelta.toString()],
+    ])
+
+    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [['totalValueLocked', amount0TVLDelta.toString()]])
+
+    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [['totalValueLocked', amount1TVLDelta.toString()]])
+  })
+
+  test('success - TVL excludes the per-swap event fee (dynamic fee, token1 input)', () => {
+    const swapEvent = createSwapEvent(DYNAMIC_FEE_SWAP_FIXTURE)
+
+    const amount0 = convertTokenToDecimal(
+      DYNAMIC_FEE_SWAP_FIXTURE.amount0,
+      BigInt.fromString(USDC_MAINNET_FIXTURE.decimals),
+    ).times(BigDecimal.fromString('-1'))
+    const amount1 = convertTokenToDecimal(
+      DYNAMIC_FEE_SWAP_FIXTURE.amount1,
+      BigInt.fromString(WETH_MAINNET_FIXTURE.decimals),
+    ).times(BigDecimal.fromString('-1'))
+
+    handleSwapHelper(swapEvent, TEST_CONFIG)
+
+    // the fee rate comes from the swap event, not the pool's static fee tier - this is
+    // how dynamic fee pools report the fee actually charged on each swap
+    const dynamicFeeBD = BigDecimal.fromString(DYNAMIC_FEE_SWAP_FIXTURE.fee.toString())
+    const feeRate = dynamicFeeBD.div(BigDecimal.fromString('1000000'))
+    // token1 is the input token (positive delta into the pool), so only its TVL delta is
+    // reduced by the retained fee; token0 leaves the pool in full
+    const amount0TVLDelta = amount0
+    const amount1TVLDelta = amount1.minus(amount1.times(feeRate))
+
+    assertObjectMatches('Pool', USDC_WETH_POOL_ID, [
+      ['feeTier', DYNAMIC_FEE_SWAP_FIXTURE.fee.toString()],
+      ['totalValueLockedToken0', amount0TVLDelta.toString()],
+      ['totalValueLockedToken1', amount1TVLDelta.toString()],
+    ])
+
+    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [['totalValueLocked', amount0TVLDelta.toString()]])
+
+    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [['totalValueLocked', amount1TVLDelta.toString()]])
   })
 })

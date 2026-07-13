@@ -216,6 +216,23 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     const feesETH = amountTotalETHTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
     const feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
 
+    // TVL tracks the value backing current active liquidity only. The swap fee is charged on the
+    // input token (the token with a positive delta into the pool) and is retained in the pool's
+    // balance, but it accrues to positions (and the protocol) rather than backing active liquidity,
+    // so exclude it from the TVL deltas. The fee retained is inputAmount * fee / 1,000,000, where
+    // the fee is the per-swap fee from the event (event.params.fee, mirrored into pool.feeTier
+    // above) in hundredths of a bip - so dynamic-fee pools are handled correctly. Fee collection
+    // later emits ModifyLiquidity with liquidityDelta = 0, which correctly leaves TVL unchanged.
+    const feeRate = pool.feeTier.toBigDecimal().div(BigDecimal.fromString('1000000'))
+    let amount0TVLDelta = amount0
+    if (amount0.gt(ZERO_BD)) {
+      amount0TVLDelta = amount0.minus(amount0.times(feeRate))
+    }
+    let amount1TVLDelta = amount1
+    if (amount1.gt(ZERO_BD)) {
+      amount1TVLDelta = amount1.minus(amount1.times(feeRate))
+    }
+
     // global updates
     poolManager.txCount = poolManager.txCount.plus(ONE_BI)
     poolManager.totalVolumeETH = poolManager.totalVolumeETH.plus(amountTotalETHTracked)
@@ -241,13 +258,13 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.sqrtPrice = event.params.sqrtPriceX96
     pool.tick = BigInt.fromI32(event.params.tick)
     if (!isUSDStableStableHookPool) {
-      pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
-      pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
+      pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0TVLDelta)
+      pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1TVLDelta)
     }
 
     // update token0 data
     token0.volume = token0.volume.plus(amount0Abs)
-    token0.totalValueLocked = token0.totalValueLocked.plus(amount0)
+    token0.totalValueLocked = token0.totalValueLocked.plus(amount0TVLDelta)
     token0.volumeUSD = token0.volumeUSD.plus(amountTotalUSDTracked)
     token0.untrackedVolumeUSD = token0.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
     token0.feesUSD = token0.feesUSD.plus(feesUSD)
@@ -255,7 +272,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // update token1 data
     token1.volume = token1.volume.plus(amount1Abs)
-    token1.totalValueLocked = token1.totalValueLocked.plus(amount1)
+    token1.totalValueLocked = token1.totalValueLocked.plus(amount1TVLDelta)
     token1.volumeUSD = token1.volumeUSD.plus(amountTotalUSDTracked)
     token1.untrackedVolumeUSD = token1.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
     token1.feesUSD = token1.feesUSD.plus(feesUSD)

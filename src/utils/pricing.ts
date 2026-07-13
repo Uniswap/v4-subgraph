@@ -17,10 +17,11 @@ export function sqrtPriceX96ToTokenPrices(
 
   const num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
   const denom = BigDecimal.fromString(Q192.toString())
-  const price1 = num
-    .div(denom)
-    .times(exponentToBigDecimal(token0Decimals))
-    .div(exponentToBigDecimal(token1Decimals))
+  // The single-line form below is required by CI lint (the eslint-config's bundled prettier),
+  // while the repo's own prettier (run by lint-staged) would re-break the chain - so opt this
+  // statement out of formatting to keep both tools green.
+  // prettier-ignore
+  const price1 = num.div(denom).times(exponentToBigDecimal(token0Decimals)).div(exponentToBigDecimal(token1Decimals))
 
   const price0 = safeDiv(BigDecimal.fromString('1'), price1)
   return [price0, price1]

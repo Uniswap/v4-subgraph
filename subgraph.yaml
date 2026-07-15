@@ -43,6 +43,8 @@ dataSources:
         - event: Swap(indexed bytes32,indexed
             address,int128,int128,uint160,uint128,int24,uint24)
           handler: handleSwap
+        - event: ProtocolFeeUpdated(indexed bytes32,uint24)
+          handler: handleProtocolFeeUpdated
   - source:
       abi: PositionManager
       address: "0x3fc79444f8eacc1894775493ff3fa41f1e35ce11"

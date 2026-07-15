@@ -1,6 +1,9 @@
 import { BigInt, log } from '@graphprotocol/graph-ts'
 
-import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
+import {
+  Initialize as InitializeEvent,
+  ProtocolFeeUpdated as ProtocolFeeUpdatedEvent,
+} from '../types/PoolManager/PoolManager'
 import { PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
 import {
@@ -138,6 +141,10 @@ export function handleInitializeHelper(
   pool.token0 = token0.id
   pool.token1 = token1.id
   pool.feeTier = BigInt.fromI32(event.params.fee)
+  // Pools initialize with the protocol fee off; the per-pool value is set by
+  // the fee controller via setProtocolFee, which emits ProtocolFeeUpdated
+  // (handled below). Initialize itself carries no protocolFee param.
+  pool.protocolFee = ZERO_BI
   pool.hooks = event.params.hooks.toHexString()
   pool.tickSpacing = BigInt.fromI32(event.params.tickSpacing)
   pool.createdAtTimestamp = event.block.timestamp
@@ -200,4 +207,20 @@ export function handleInitializeHelper(
 
   token0.save()
   token1.save()
+}
+
+/**
+ * Stores the pool's on-chain protocol fee as the raw packed uint24 emitted by
+ * PoolManager's ProtocolFeeUpdated (upper 12 bits = one-for-zero fee, lower
+ * 12 bits = zero-for-one fee, both in hundredths of a bip). Consumers unpack
+ * the two directions; storing the raw value keeps the subgraph lossless.
+ */
+export function handleProtocolFeeUpdated(event: ProtocolFeeUpdatedEvent): void {
+  const pool = Pool.load(event.params.id.toHexString())
+  if (pool === null) {
+    // Pool unknown (e.g. skipped via poolsToSkip at initialize); nothing to update.
+    return
+  }
+  pool.protocolFee = BigInt.fromI32(event.params.protocolFee)
+  pool.save()
 }

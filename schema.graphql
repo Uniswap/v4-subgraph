@@ -138,6 +138,13 @@ type Pool @entity(immutable: false) {
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   # hooks address
   hooks: String!
+  # on-chain protocol fee: raw packed uint24 from PoolManager's
+  # ProtocolFeeUpdated event (upper 12 bits = one-for-zero fee, lower 12 bits
+  # = zero-for-one fee, both in hundredths of a bip, max 1000 per direction).
+  # 0 = protocol fee not turned on for this pool. Nullable (rather than
+  # non-null with a default) to stay graft-compatible: pools indexed before
+  # this field existed keep null until their next ProtocolFeeUpdated.
+  protocolFee: BigInt
   # derived fields
   modifyLiquiditys: [ModifyLiquidity!]! @derivedFrom(field: "pool")
   swaps: [Swap!]! @derivedFrom(field: "pool")

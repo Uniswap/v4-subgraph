@@ -96,6 +96,9 @@ describe('handleInitialize', () => {
       ['feeTier', INITIALIZE_FIXTURE.fee],
       ['tickSpacing', INITIALIZE_FIXTURE.tickSpacing],
       ['hooks', INITIALIZE_FIXTURE.hooks],
+      // protocol fee starts off; the fee controller turns it on per pool via
+      // setProtocolFee -> ProtocolFeeUpdated.
+      ['protocolFee', '0'],
       ['sqrtPrice', INITIALIZE_FIXTURE.sqrtPriceX96],
       ['tick', INITIALIZE_FIXTURE.tick],
       ['createdAtTimestamp', MOCK_EVENT.block.timestamp.toString()],

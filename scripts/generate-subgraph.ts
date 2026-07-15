@@ -45,6 +45,10 @@ const contractTemplates = {
           event: 'Swap(indexed bytes32,indexed address,int128,int128,uint160,uint128,int24,uint24)',
           handler: 'handleSwap',
         },
+        {
+          event: 'ProtocolFeeUpdated(indexed bytes32,uint24)',
+          handler: 'handleProtocolFeeUpdated',
+        },
       ],
     },
   },

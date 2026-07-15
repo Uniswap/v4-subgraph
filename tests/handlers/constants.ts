@@ -275,6 +275,9 @@ export const createAndStoreTestPool = (poolFixture: PoolFixture): Pool => {
   pool.totalValueLockedUSDUntracked = ZERO_BD
   pool.liquidityProviderCount = ZERO_BI
   pool.hooks = ADDRESS_ZERO
+  // non-nullable since the field was added to the schema; without it any
+  // test that saves a Pool built by this helper panics in Pool#save.
+  pool.isExternalLiquidity = false
 
   pool.save()
   return pool

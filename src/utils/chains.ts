@@ -715,15 +715,14 @@ export function getSubgraphConfig(): SubgraphConfig {
     }
   } else if (selectedNetwork == ROBINHOOD_MAINNET_NETWORK_NAME) {
     // Robinhood chain (4663) — standard ETH-native config. Reference is WETH (and native ETH =
-    // address(0)), priced via the (native) ETH/USDG v4 pool. stablecoinWrappedNativePoolId is a
-    // zero placeholder until that pool is created + seeded → USD reads 0 until then (indexing works).
-    // NOT the Arc '' sentinel (which forces a native price of 1) — WETH/ETH is a volatile reference.
+    // address(0)), priced via the (native) ETH/USDG v4 pool. NOT the Arc '' sentinel (which forces
+    // a native price of 1) — WETH/ETH is a volatile reference.
     const WETH = '0x0bd7d308f8e1639fab988df18a8011f41eacad73'.toLowerCase()
     const USDG = '0x5fc5360d0400a0fd4f2af552add042d716f1d168'.toLowerCase()
     return {
       poolManagerAddress: '0x8366a39cc670b4001a1121b8f6a443a643e40951'.toLowerCase(),
-      stablecoinWrappedNativePoolId: '0x0000000000000000000000000000000000000000000000000000000000000000', // TODO: ETH/USDG v4 poolId once seeded
-      stablecoinIsToken0: false, // TODO: confirm ordering when the ETH/USDG pool exists (native ETH = 0x0 < USDG ⇒ USDG is token1)
+      stablecoinWrappedNativePoolId: '0x387bf619da4d3fb62bb276482693dba1b9b3520f573cabdfe033384a24125982', // ETH/USDG v4 pool
+      stablecoinIsToken0: false, // native ETH (0x0) is token0, USDG is token1
       wrappedNativeAddress: WETH,
       minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: [USDG],

@@ -190,6 +190,23 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       amount1Abs = amount1.times(BigDecimal.fromString('-1'))
     }
 
+    // In v4, the swap fee (LP fee plus any protocol fee portion, emitted combined as
+    // event.params.fee in hundredths of a bip) is charged on the gross input amount and
+    // accrues inside the PoolManager without ever becoming active liquidity. Exclude it
+    // from TVL so TVL tracks the value of the pool's actual liquidity instead of
+    // liquidity + all fees ever accrued (fee-collection ModifyLiquidity events emit no
+    // token amounts, so collected fees can never be subtracted later). The input side is
+    // the side the pool receives, i.e. the positive amount after the sign inversion above.
+    const swapFeeRate = pool.feeTier.toBigDecimal().div(BigDecimal.fromString('1000000'))
+    let amount0TVL = amount0
+    if (amount0.gt(ZERO_BD)) {
+      amount0TVL = amount0.minus(amount0.times(swapFeeRate))
+    }
+    let amount1TVL = amount1
+    if (amount1.gt(ZERO_BD)) {
+      amount1TVL = amount1.minus(amount1.times(swapFeeRate))
+    }
+
     const amount0ETH = amount0Abs.times(token0.derivedETH)
     const amount1ETH = amount1Abs.times(token1.derivedETH)
     const amount0USD = amount0ETH.times(bundle.ethPriceUSD)
@@ -241,13 +258,13 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     pool.sqrtPrice = event.params.sqrtPriceX96
     pool.tick = BigInt.fromI32(event.params.tick)
     if (!isUSDStableStableHookPool) {
-      pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0)
-      pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1)
+      pool.totalValueLockedToken0 = pool.totalValueLockedToken0.plus(amount0TVL)
+      pool.totalValueLockedToken1 = pool.totalValueLockedToken1.plus(amount1TVL)
     }
 
     // update token0 data
     token0.volume = token0.volume.plus(amount0Abs)
-    token0.totalValueLocked = token0.totalValueLocked.plus(amount0)
+    token0.totalValueLocked = token0.totalValueLocked.plus(amount0TVL)
     token0.volumeUSD = token0.volumeUSD.plus(amountTotalUSDTracked)
     token0.untrackedVolumeUSD = token0.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
     token0.feesUSD = token0.feesUSD.plus(feesUSD)
@@ -255,7 +272,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // update token1 data
     token1.volume = token1.volume.plus(amount1Abs)
-    token1.totalValueLocked = token1.totalValueLocked.plus(amount1)
+    token1.totalValueLocked = token1.totalValueLocked.plus(amount1TVL)
     token1.volumeUSD = token1.volumeUSD.plus(amountTotalUSDTracked)
     token1.untrackedVolumeUSD = token1.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
     token1.feesUSD = token1.feesUSD.plus(feesUSD)
@@ -266,6 +283,10 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
+      // save the pool before refreshing the bundle price: getNativePriceInUSD loads the
+      // stablecoin/wrapped-native pool from the store, and when that pool is the one being
+      // swapped it would otherwise read the pre-swap prices (the v3 subgraph saves here too)
+      pool.save()
       bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
     }
 

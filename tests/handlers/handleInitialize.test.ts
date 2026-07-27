@@ -112,6 +112,7 @@ describe('handleInitialize', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
     )
     assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [['derivedETH', expectedToken0Price.toString()]])
 
@@ -120,6 +121,7 @@ describe('handleInitialize', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
     )
     assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [['derivedETH', expectedToken1Price.toString()]])
   })
@@ -178,6 +180,7 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('1'))
   })
@@ -189,6 +192,7 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('1'))
   })
@@ -200,6 +204,7 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
     )
     const expectedStablecoinPrice = safeDiv(BigDecimal.fromString('1'), TEST_ETH_PRICE_USD)
     assert.assertTrue(ethPerToken == expectedStablecoinPrice)
@@ -228,6 +233,7 @@ describe('findNativePerToken', () => {
       WETH_MAINNET_FIXTURE.address,
       [USDC_MAINNET_FIXTURE.address],
       minimumEthLocked,
+      Bundle.load('1')!,
     )
 
     assert.assertTrue(ethPerToken == BigDecimal.fromString('50'))
@@ -240,6 +246,7 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('0'))
   })
@@ -254,6 +261,7 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('0'))
   })

@@ -193,10 +193,10 @@ export function handleInitializeHelper(
     bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
   }
   bundle.save()
-  updatePoolDayData(poolId, event)
-  updatePoolHourData(poolId, event)
-  token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-  token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  updatePoolDayData(pool, event)
+  updatePoolHourData(pool, event)
+  token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked, bundle)
+  token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked, bundle)
 
   token0.save()
   token1.save()

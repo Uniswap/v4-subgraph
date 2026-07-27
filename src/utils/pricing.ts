@@ -6,6 +6,15 @@ import { ADDRESS_ZERO, ONE_BD, ZERO_BD, ZERO_BI } from './constants'
 import { NativeTokenDetails } from './nativeTokenDetails'
 
 const Q192 = BigInt.fromI32(2).pow(192 as u8)
+
+/**
+ * Cap how many whitelist pools findNativePerToken will walk. Tokens with long
+ * whitelistPools lists otherwise cost O(N) store.gets (Pool + other Token) per
+ * call, twice per swap. Prefer the first K entries; pool init appends newest
+ * pools at the end so older/larger pools tend to sit earlier.
+ */
+const MAX_WHITELIST_POOLS_TO_WALK = 8
+
 export function sqrtPriceX96ToTokenPrices(
   sqrtPriceX96: BigInt,
   token0: Token,
@@ -43,6 +52,7 @@ export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stabl
 
 /**
  * Search through graph to find derived Eth per token.
+ * Callers pass the already-loaded Bundle to avoid a redundant store.get.
  * @todo update to be derived ETH (add stablecoin estimates)
  **/
 export function findNativePerToken(
@@ -50,6 +60,7 @@ export function findNativePerToken(
   wrappedNativeAddress: string,
   stablecoinAddresses: string[],
   minimumNativeLocked: BigDecimal,
+  bundle: Bundle,
 ): BigDecimal {
   if (token.id == wrappedNativeAddress || token.id == ADDRESS_ZERO) {
     return ONE_BD
@@ -59,14 +70,14 @@ export function findNativePerToken(
   // need to update this to actually detect best rate based on liquidity distribution
   let largestLiquidityETH = ZERO_BD
   let priceSoFar = ZERO_BD
-  const bundle = Bundle.load('1')!
 
   // hardcoded fix for incorrect rates
   // if whitelist includes token - get the safe price
   if (stablecoinAddresses.includes(token.id)) {
     priceSoFar = safeDiv(ONE_BD, bundle.ethPriceUSD)
   } else {
-    for (let i = 0; i < whiteList.length; ++i) {
+    const walkLimit = whiteList.length < MAX_WHITELIST_POOLS_TO_WALK ? whiteList.length : MAX_WHITELIST_POOLS_TO_WALK
+    for (let i = 0; i < walkLimit; ++i) {
       const poolAddress = whiteList[i]
       const pool = Pool.load(poolAddress)
 
@@ -109,6 +120,8 @@ export function findNativePerToken(
  * If one token on whitelist, return amount in that token converted to USD * 2.
  * If both are, return sum of two amounts
  * If neither is, return 0
+ *
+ * Callers pass the already-loaded Bundle to avoid a redundant store.get.
  */
 export function getTrackedAmountUSD(
   tokenAmount0: BigDecimal,
@@ -116,8 +129,8 @@ export function getTrackedAmountUSD(
   tokenAmount1: BigDecimal,
   token1: Token,
   whitelistTokens: string[],
+  bundle: Bundle,
 ): BigDecimal {
-  const bundle = Bundle.load('1')!
   const price0USD = token0.derivedETH.times(bundle.ethPriceUSD)
   const price1USD = token1.derivedETH.times(bundle.ethPriceUSD)
 

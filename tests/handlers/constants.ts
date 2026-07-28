@@ -112,8 +112,8 @@ export const USDC_WETH_05_MAINNET_POOL_FIXTURE: PoolFixture = {
   tickSpacing: '10',
   liquidity: '100',
   hooks: ADDRESS_ZERO,
-  sqrtPrice: '1',
-  tick: '1',
+  sqrtPrice: '79228162514264337514315787821',
+  tick: '-1',
 }
 
 export const WBTC_WETH_03_MAINNET_POOL_FIXTURE: PoolFixture = {
@@ -275,6 +275,7 @@ export const createAndStoreTestPool = (poolFixture: PoolFixture): Pool => {
   pool.totalValueLockedUSDUntracked = ZERO_BD
   pool.liquidityProviderCount = ZERO_BI
   pool.hooks = ADDRESS_ZERO
+  pool.isExternalLiquidity = false
 
   pool.save()
   return pool

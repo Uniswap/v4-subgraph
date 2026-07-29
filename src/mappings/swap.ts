@@ -266,7 +266,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
-      bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+      bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0, pool)
     }
 
     bundle.save()
@@ -276,6 +276,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       stablecoinAddresses,
       minimumNativeLocked,
       bundle,
+      event.block.timestamp,
+      pool,
+      token1,
     )
     token1.derivedETH = findNativePerToken(
       token1,
@@ -283,6 +286,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       stablecoinAddresses,
       minimumNativeLocked,
       bundle,
+      event.block.timestamp,
+      pool,
+      token0,
     )
 
     /**

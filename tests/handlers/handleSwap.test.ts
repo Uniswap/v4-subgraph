@@ -138,6 +138,9 @@ describe('handleSwap', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     const newToken1DerivedETH = findNativePerToken(
       token1,
@@ -145,6 +148,9 @@ describe('handleSwap', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
 
     const totalValueLockedETH = amount0.times(newToken0DerivedETH).plus(amount1.times(newToken1DerivedETH))

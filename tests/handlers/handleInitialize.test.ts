@@ -113,6 +113,9 @@ describe('handleInitialize', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [['derivedETH', expectedToken0Price.toString()]])
 
@@ -122,6 +125,9 @@ describe('handleInitialize', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [['derivedETH', expectedToken1Price.toString()]])
   })
@@ -181,6 +187,9 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('1'))
   })
@@ -193,6 +202,9 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('1'))
   })
@@ -205,6 +217,9 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     const expectedStablecoinPrice = safeDiv(BigDecimal.fromString('1'), TEST_ETH_PRICE_USD)
     assert.assertTrue(ethPerToken == expectedStablecoinPrice)
@@ -234,6 +249,9 @@ describe('findNativePerToken', () => {
       [USDC_MAINNET_FIXTURE.address],
       minimumEthLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
 
     assert.assertTrue(ethPerToken == BigDecimal.fromString('50'))
@@ -247,6 +265,9 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('0'))
   })
@@ -262,7 +283,71 @@ describe('findNativePerToken', () => {
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
       Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     assert.assertTrue(ethPerToken == BigDecimal.fromString('0'))
+  })
+
+  test('selects the largest pool beyond the first eight whitelist entries', () => {
+    const dustPool = createAndStoreTestPool(USDC_WETH_05_MAINNET_POOL_FIXTURE)
+    const bestPool = createAndStoreTestPool(WBTC_WETH_03_MAINNET_POOL_FIXTURE)
+    bestPool.liquidity = BigInt.fromString('100')
+    bestPool.totalValueLockedToken1 = BigDecimal.fromString('100')
+    bestPool.token1Price = BigDecimal.fromString('5')
+    bestPool.save()
+
+    const token = createAndStoreTestToken(WBTC_MAINNET_FIXTURE)
+    token.whitelistPools = [
+      dustPool.id,
+      dustPool.id,
+      dustPool.id,
+      dustPool.id,
+      dustPool.id,
+      dustPool.id,
+      dustPool.id,
+      dustPool.id,
+      bestPool.id,
+    ]
+    token.save()
+
+    const wrappedNative = createAndStoreTestToken(WETH_MAINNET_FIXTURE)
+    wrappedNative.derivedETH = BigDecimal.fromString('10')
+    wrappedNative.save()
+
+    const ethPerToken = findNativePerToken(
+      token,
+      WETH_MAINNET_FIXTURE.address,
+      [USDC_MAINNET_FIXTURE.address],
+      BigDecimal.fromString('0'),
+      Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
+    )
+
+    assert.assertTrue(ethPerToken == BigDecimal.fromString('50'))
+    assert.assertTrue(token.pricingPool == bestPool.id)
+
+    dustPool.token0 = token.id
+    dustPool.token1 = wrappedNative.id
+    dustPool.liquidity = BigInt.fromString('200')
+    dustPool.totalValueLockedToken1 = BigDecimal.fromString('200')
+    dustPool.token1Price = BigDecimal.fromString('7')
+
+    const updatedEthPerToken = findNativePerToken(
+      token,
+      WETH_MAINNET_FIXTURE.address,
+      [USDC_MAINNET_FIXTURE.address],
+      BigDecimal.fromString('0'),
+      Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp.plus(BigInt.fromI32(1)),
+      dustPool,
+      wrappedNative,
+    )
+
+    assert.assertTrue(updatedEthPerToken == BigDecimal.fromString('70'))
+    assert.assertTrue(token.pricingPool == dustPool.id)
   })
 })

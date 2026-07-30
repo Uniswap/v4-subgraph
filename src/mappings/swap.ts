@@ -26,11 +26,11 @@ export function handleSwap(event: SwapEvent): void {
 
 export function handleHookSwap(event: HookSwapEvent): void {
   const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
-  const bundle = Bundle.load('1')
-
-  if (bundle === null) {
+  const bundleOrNull = Bundle.load('1')
+  if (bundleOrNull === null) {
     return
   }
+  const bundle = bundleOrNull as Bundle
 
   const poolId = event.params.poolId.toHexString()
   const pool = Pool.load(poolId)
@@ -77,12 +77,12 @@ export function handleHookSwap(event: HookSwapEvent): void {
   token1.untrackedVolumeUSD = token1.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
   token1.feesUSD = token1.feesUSD.plus(feesUSD)
 
-  const poolDayData = updatePoolDayData(poolId, event)
-  const poolHourData = updatePoolHourData(poolId, event)
-  const token0DayData = updateTokenDayData(token0, event)
-  const token1DayData = updateTokenDayData(token1, event)
-  const token0HourData = updateTokenHourData(token0, event)
-  const token1HourData = updateTokenHourData(token1, event)
+  const poolDayData = updatePoolDayData(pool, event)
+  const poolHourData = updatePoolHourData(pool, event)
+  const token0DayData = updateTokenDayData(token0, event, bundle)
+  const token1DayData = updateTokenDayData(token1, event, bundle)
+  const token0HourData = updateTokenHourData(token0, event, bundle)
+  const token1HourData = updateTokenHourData(token1, event, bundle)
 
   // HookSwap volume is internal to the aggregator hook, so we intentionally do not
   // update global protocol aggregates (PoolManager / UniswapDayData) here.
@@ -206,7 +206,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       amountTotalUSDUntracked = amountTotalUSDTracked
     } else {
       // get amount that should be tracked only - div 2 because cant count both input and output as volume
-      amountTotalUSDTracked = getTrackedAmountUSD(amount0Abs, token0, amount1Abs, token1, whitelistTokens).div(
+      amountTotalUSDTracked = getTrackedAmountUSD(amount0Abs, token0, amount1Abs, token1, whitelistTokens, bundle).div(
         BigDecimal.fromString('2'),
       )
       amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
@@ -266,12 +266,30 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
-      bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+      bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0, pool)
     }
 
     bundle.save()
-    token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-    token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+    token0.derivedETH = findNativePerToken(
+      token0,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+      bundle,
+      event.block.timestamp,
+      pool,
+      token1,
+    )
+    token1.derivedETH = findNativePerToken(
+      token1,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+      bundle,
+      event.block.timestamp,
+      pool,
+      token0,
+    )
 
     /**
      * Things afffected by new USD rates
@@ -306,13 +324,13 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
 
     // interval data
-    const uniswapDayData = updateUniswapDayData(event, poolManagerAddress)
-    const poolDayData = updatePoolDayData(event.params.id.toHexString(), event)
-    const poolHourData = updatePoolHourData(event.params.id.toHexString(), event)
-    const token0DayData = updateTokenDayData(token0, event)
-    const token1DayData = updateTokenDayData(token1, event)
-    const token0HourData = updateTokenHourData(token0, event)
-    const token1HourData = updateTokenHourData(token1, event)
+    const uniswapDayData = updateUniswapDayData(event, poolManager)
+    const poolDayData = updatePoolDayData(pool, event)
+    const poolHourData = updatePoolHourData(pool, event)
+    const token0DayData = updateTokenDayData(token0, event, bundle)
+    const token1DayData = updateTokenDayData(token1, event, bundle)
+    const token0HourData = updateTokenHourData(token0, event, bundle)
+    const token1HourData = updateTokenHourData(token1, event, bundle)
 
     // update volume metrics
     uniswapDayData.volumeETH = uniswapDayData.volumeETH.plus(amountTotalETHTracked)

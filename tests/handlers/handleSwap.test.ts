@@ -107,6 +107,7 @@ describe('handleSwap', () => {
       amount1Abs,
       token1,
       TEST_CONFIG.whitelistTokens,
+      Bundle.load('1')!,
     ).div(BigDecimal.fromString('2'))
 
     const amount0ETH = amount0Abs.times(TEST_USDC_DERIVED_ETH)
@@ -136,12 +137,20 @@ describe('handleSwap', () => {
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
     const newToken1DerivedETH = findNativePerToken(
       token1,
       TEST_CONFIG.wrappedNativeAddress,
       TEST_CONFIG.stablecoinAddresses,
       TEST_CONFIG.minimumNativeLocked,
+      Bundle.load('1')!,
+      MOCK_EVENT.block.timestamp,
+      null,
+      null,
     )
 
     const totalValueLockedETH = amount0.times(newToken0DerivedETH).plus(amount1.times(newToken1DerivedETH))
@@ -183,7 +192,13 @@ describe('handleSwap', () => {
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken0DerivedETH.toString()],
-      ['totalValueLockedUSD', amount0.times(newToken0DerivedETH).times(newEthPrice).toString()],
+      [
+        'totalValueLockedUSD',
+        amount0
+          .times(newToken0DerivedETH)
+          .times(newEthPrice)
+          .toString(),
+      ],
     ])
 
     assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [
@@ -194,7 +209,13 @@ describe('handleSwap', () => {
       ['feesUSD', feesUSD.toString()],
       ['txCount', '1'],
       ['derivedETH', newToken1DerivedETH.toString()],
-      ['totalValueLockedUSD', amount1.times(newToken1DerivedETH).times(newEthPrice).toString()],
+      [
+        'totalValueLockedUSD',
+        amount1
+          .times(newToken1DerivedETH)
+          .times(newEthPrice)
+          .toString(),
+      ],
     ])
 
     assertObjectMatches('Swap', MOCK_EVENT.transaction.hash.toHexString() + '-' + MOCK_EVENT.logIndex.toString(), [

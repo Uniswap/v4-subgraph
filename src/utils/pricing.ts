@@ -6,6 +6,9 @@ import { ADDRESS_ZERO, ONE_BD, ZERO_BD, ZERO_BI } from './constants'
 import { NativeTokenDetails } from './nativeTokenDetails'
 
 const Q192 = BigInt.fromI32(2).pow(192 as u8)
+
+const PRICING_POOL_RESCAN_INTERVAL_SECONDS = BigInt.fromI32(86400)
+
 export function sqrtPriceX96ToTokenPrices(
   sqrtPriceX96: BigInt,
   token0: Token,
@@ -26,14 +29,21 @@ export function sqrtPriceX96ToTokenPrices(
   return [price0, price1]
 }
 
-export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stablecoinIsToken0: boolean): BigDecimal {
+export function getNativePriceInUSD(
+  stablecoinWrappedNativePoolId: string,
+  stablecoinIsToken0: boolean,
+  loadedPool: Pool | null = null,
+): BigDecimal {
   // On chains where the native/reference token is itself a USD stablecoin (e.g. Arc, whose native
   // gas token is USDC and which has no wrapped-native / reference-stable pool), the native price is
   // 1 by definition. Such chains opt in by setting stablecoinWrappedNativePoolId to '' (empty).
   if (stablecoinWrappedNativePoolId == '') {
     return ONE_BD
   }
-  const stablecoinWrappedNativePool = Pool.load(stablecoinWrappedNativePoolId)
+  const stablecoinWrappedNativePool =
+    loadedPool !== null && loadedPool.id == stablecoinWrappedNativePoolId
+      ? loadedPool
+      : Pool.load(stablecoinWrappedNativePoolId)
   if (stablecoinWrappedNativePool !== null) {
     return stablecoinIsToken0 ? stablecoinWrappedNativePool.token0Price : stablecoinWrappedNativePool.token1Price
   } else {
@@ -41,8 +51,43 @@ export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stabl
   }
 }
 
+function getPoolNativeLiquidityAndPrice(token: Token, pool: Pool, loadedReferenceToken: Token | null): BigDecimal[] {
+  if (!pool.liquidity.gt(ZERO_BI)) {
+    return [ZERO_BD, ZERO_BD]
+  }
+
+  let referenceToken = loadedReferenceToken
+  if (pool.token0 == token.id) {
+    if (referenceToken === null || referenceToken.id != pool.token1) {
+      referenceToken = Token.load(pool.token1)
+    }
+    if (referenceToken) {
+      return [
+        pool.totalValueLockedToken1.times(referenceToken.derivedETH),
+        pool.token1Price.times(referenceToken.derivedETH),
+      ]
+    }
+  } else if (pool.token1 == token.id) {
+    if (referenceToken === null || referenceToken.id != pool.token0) {
+      referenceToken = Token.load(pool.token0)
+    }
+    if (referenceToken) {
+      return [
+        pool.totalValueLockedToken0.times(referenceToken.derivedETH),
+        pool.token0Price.times(referenceToken.derivedETH),
+      ]
+    }
+  }
+
+  return [ZERO_BD, ZERO_BD]
+}
+
 /**
  * Search through graph to find derived Eth per token.
+ * Callers pass the already-loaded Bundle to avoid a redundant store.get.
+ * The best pool is cached on Token and compared with the active pool on each
+ * call. A periodic full scan repairs stale cache entries and seeds grafted
+ * tokens without assuming whitelistPools creation order reflects liquidity.
  * @todo update to be derived ETH (add stablecoin estimates)
  **/
 export function findNativePerToken(
@@ -50,57 +95,78 @@ export function findNativePerToken(
   wrappedNativeAddress: string,
   stablecoinAddresses: string[],
   minimumNativeLocked: BigDecimal,
+  bundle: Bundle,
+  timestamp: BigInt,
+  activePool: Pool | null,
+  activeReferenceToken: Token | null,
 ): BigDecimal {
   if (token.id == wrappedNativeAddress || token.id == ADDRESS_ZERO) {
     return ONE_BD
   }
-  const whiteList = token.whitelistPools
-  // for now just take USD from pool with greatest TVL
-  // need to update this to actually detect best rate based on liquidity distribution
-  let largestLiquidityETH = ZERO_BD
-  let priceSoFar = ZERO_BD
-  const bundle = Bundle.load('1')!
-
   // hardcoded fix for incorrect rates
   // if whitelist includes token - get the safe price
   if (stablecoinAddresses.includes(token.id)) {
-    priceSoFar = safeDiv(ONE_BD, bundle.ethPriceUSD)
-  } else {
+    return safeDiv(ONE_BD, bundle.ethPriceUSD)
+  }
+
+  const whiteList = token.whitelistPools
+  const cachedPoolId = token.pricingPool
+  const lastScanTimestamp = token.pricingPoolLastScanTimestamp
+  let shouldRescan =
+    lastScanTimestamp === null || timestamp.minus(lastScanTimestamp).ge(PRICING_POOL_RESCAN_INTERVAL_SECONDS)
+  let largestLiquidityETH = ZERO_BD
+  let priceSoFar = ZERO_BD
+  let bestPoolId: string | null = null
+
+  if (!shouldRescan && cachedPoolId !== null) {
+    const cachedPool = activePool !== null && activePool.id == cachedPoolId ? activePool : Pool.load(cachedPoolId)
+    if (cachedPool !== null) {
+      const loadedReferenceToken = activePool !== null && activePool.id == cachedPoolId ? activeReferenceToken : null
+      const cachedValues = getPoolNativeLiquidityAndPrice(token, cachedPool, loadedReferenceToken)
+      if (cachedValues[0].gt(minimumNativeLocked)) {
+        largestLiquidityETH = cachedValues[0]
+        priceSoFar = cachedValues[1]
+        bestPoolId = cachedPool.id
+      } else {
+        shouldRescan = true
+      }
+    } else {
+      shouldRescan = true
+    }
+  }
+
+  if (shouldRescan) {
+    largestLiquidityETH = ZERO_BD
+    priceSoFar = ZERO_BD
+    bestPoolId = null
+
     for (let i = 0; i < whiteList.length; ++i) {
       const poolAddress = whiteList[i]
-      const pool = Pool.load(poolAddress)
-
-      if (pool) {
-        if (pool.liquidity.gt(ZERO_BI)) {
-          if (pool.token0 == token.id) {
-            // whitelist token is token1
-            const token1 = Token.load(pool.token1)
-            // get the derived ETH in pool
-            if (token1) {
-              const ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
-              if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(minimumNativeLocked)) {
-                largestLiquidityETH = ethLocked
-                // token1 per our token * Eth per token1
-                priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
-              }
-            }
-          }
-          if (pool.token1 == token.id) {
-            const token0 = Token.load(pool.token0)
-            // get the derived ETH in pool
-            if (token0) {
-              const ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
-              if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(minimumNativeLocked)) {
-                largestLiquidityETH = ethLocked
-                // token0 per our token * ETH per token0
-                priceSoFar = pool.token0Price.times(token0.derivedETH as BigDecimal)
-              }
-            }
-          }
+      const pool = activePool !== null && activePool.id == poolAddress ? activePool : Pool.load(poolAddress)
+      if (pool !== null) {
+        const loadedReferenceToken = activePool !== null && activePool.id == poolAddress ? activeReferenceToken : null
+        const values = getPoolNativeLiquidityAndPrice(token, pool, loadedReferenceToken)
+        if (values[0].gt(largestLiquidityETH) && values[0].gt(minimumNativeLocked)) {
+          largestLiquidityETH = values[0]
+          priceSoFar = values[1]
+          bestPoolId = pool.id
         }
       }
     }
+    token.pricingPoolLastScanTimestamp = timestamp
+  } else if (
+    activePool !== null &&
+    (cachedPoolId === null || activePool.id != cachedPoolId) &&
+    whiteList.includes(activePool.id)
+  ) {
+    const values = getPoolNativeLiquidityAndPrice(token, activePool, activeReferenceToken)
+    if (values[0].gt(largestLiquidityETH) && values[0].gt(minimumNativeLocked)) {
+      priceSoFar = values[1]
+      bestPoolId = activePool.id
+    }
   }
+
+  token.pricingPool = bestPoolId
   return priceSoFar
 }
 
@@ -109,6 +175,8 @@ export function findNativePerToken(
  * If one token on whitelist, return amount in that token converted to USD * 2.
  * If both are, return sum of two amounts
  * If neither is, return 0
+ *
+ * Callers pass the already-loaded Bundle to avoid a redundant store.get.
  */
 export function getTrackedAmountUSD(
   tokenAmount0: BigDecimal,
@@ -116,8 +184,8 @@ export function getTrackedAmountUSD(
   tokenAmount1: BigDecimal,
   token1: Token,
   whitelistTokens: string[],
+  bundle: Bundle,
 ): BigDecimal {
-  const bundle = Bundle.load('1')!
   const price0USD = token0.derivedETH.times(bundle.ethPriceUSD)
   const price1USD = token1.derivedETH.times(bundle.ethPriceUSD)
 

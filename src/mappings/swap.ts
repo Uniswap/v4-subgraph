@@ -14,6 +14,7 @@ import {
   updateUniswapDayData,
 } from '../utils/intervalUpdates'
 import {
+  EntityLoadCache,
   findNativePerToken,
   getNativePriceInUSD,
   getTrackedAmountUSD,
@@ -262,11 +263,18 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1.txCount = token1.txCount.plus(ONE_BI)
 
     // updated pool rates
+    const cache = new EntityLoadCache()
+    cache.putPool(pool)
+    cache.putToken(token0)
+    cache.putToken(token1)
+
     if (!isUSDStableStableHookPool) {
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
-      bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
+      if (poolId == stablecoinWrappedNativePoolId) {
+        bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0, cache)
+      }
     }
 
     bundle.save()
@@ -276,6 +284,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       stablecoinAddresses,
       minimumNativeLocked,
       bundle,
+      cache,
+      pool,
     )
     token1.derivedETH = findNativePerToken(
       token1,
@@ -283,6 +293,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       stablecoinAddresses,
       minimumNativeLocked,
       bundle,
+      cache,
+      pool,
     )
 
     /**

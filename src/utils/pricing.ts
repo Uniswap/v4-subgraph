@@ -15,6 +15,56 @@ const Q192 = BigInt.fromI32(2).pow(192 as u8)
  */
 const MAX_WHITELIST_POOLS_TO_WALK = 8
 
+class NativeQuote {
+  price: BigDecimal
+  ethLocked: BigDecimal
+
+  constructor(price: BigDecimal, ethLocked: BigDecimal) {
+    this.price = price
+    this.ethLocked = ethLocked
+  }
+}
+
+export class EntityLoadCache {
+  private pools: Map<string, Pool>
+  private tokens: Map<string, Token>
+
+  constructor() {
+    this.pools = new Map<string, Pool>()
+    this.tokens = new Map<string, Token>()
+  }
+
+  putPool(pool: Pool): void {
+    this.pools.set(pool.id, pool)
+  }
+
+  putToken(token: Token): void {
+    this.tokens.set(token.id, token)
+  }
+
+  getPool(id: string): Pool | null {
+    if (this.pools.has(id)) {
+      return this.pools.get(id)
+    }
+    const loaded = Pool.load(id)
+    if (loaded !== null) {
+      this.pools.set(id, loaded)
+    }
+    return loaded
+  }
+
+  getToken(id: string): Token | null {
+    if (this.tokens.has(id)) {
+      return this.tokens.get(id)
+    }
+    const loaded = Token.load(id)
+    if (loaded !== null) {
+      this.tokens.set(id, loaded)
+    }
+    return loaded
+  }
+}
+
 export function sqrtPriceX96ToTokenPrices(
   sqrtPriceX96: BigInt,
   token0: Token,
@@ -35,14 +85,18 @@ export function sqrtPriceX96ToTokenPrices(
   return [price0, price1]
 }
 
-export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stablecoinIsToken0: boolean): BigDecimal {
+export function getNativePriceInUSD(
+  stablecoinWrappedNativePoolId: string,
+  stablecoinIsToken0: boolean,
+  cache: EntityLoadCache = new EntityLoadCache(),
+): BigDecimal {
   // On chains where the native/reference token is itself a USD stablecoin (e.g. Arc, whose native
   // gas token is USDC and which has no wrapped-native / reference-stable pool), the native price is
   // 1 by definition. Such chains opt in by setting stablecoinWrappedNativePoolId to '' (empty).
   if (stablecoinWrappedNativePoolId == '') {
     return ONE_BD
   }
-  const stablecoinWrappedNativePool = Pool.load(stablecoinWrappedNativePoolId)
+  const stablecoinWrappedNativePool = cache.getPool(stablecoinWrappedNativePoolId)
   if (stablecoinWrappedNativePool !== null) {
     return stablecoinIsToken0 ? stablecoinWrappedNativePool.token0Price : stablecoinWrappedNativePool.token1Price
   } else {
@@ -50,69 +104,126 @@ export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stabl
   }
 }
 
+function quoteFromPool(token: Token, pool: Pool, cache: EntityLoadCache): NativeQuote | null {
+  if (pool.liquidity.le(ZERO_BI)) {
+    return null
+  }
+  if (pool.token0 == token.id) {
+    const token1 = cache.getToken(pool.token1)
+    if (token1 === null) {
+      return null
+    }
+    return new NativeQuote(
+      pool.token1Price.times(token1.derivedETH as BigDecimal),
+      pool.totalValueLockedToken1.times(token1.derivedETH),
+    )
+  }
+  if (pool.token1 == token.id) {
+    const token0 = cache.getToken(pool.token0)
+    if (token0 === null) {
+      return null
+    }
+    return new NativeQuote(
+      pool.token0Price.times(token0.derivedETH as BigDecimal),
+      pool.totalValueLockedToken0.times(token0.derivedETH),
+    )
+  }
+  return null
+}
+
+function walkWhitelist(token: Token, minimumNativeLocked: BigDecimal, cache: EntityLoadCache): NativeQuote | null {
+  const whiteList = token.whitelistPools
+  let largestLiquidityETH = ZERO_BD
+  let priceSoFar = ZERO_BD
+  let bestPoolId: string | null = null
+  const walkLimit = whiteList.length < MAX_WHITELIST_POOLS_TO_WALK ? whiteList.length : MAX_WHITELIST_POOLS_TO_WALK
+  for (let i = 0; i < walkLimit; ++i) {
+    const poolAddress = whiteList[i]
+    const pool = cache.getPool(poolAddress)
+    if (pool === null) {
+      continue
+    }
+    const quote = quoteFromPool(token, pool, cache)
+    if (quote === null) {
+      continue
+    }
+    if (quote.ethLocked.gt(largestLiquidityETH) && quote.ethLocked.gt(minimumNativeLocked)) {
+      largestLiquidityETH = quote.ethLocked
+      priceSoFar = quote.price
+      bestPoolId = pool.id
+    }
+  }
+  if (bestPoolId !== null) {
+    token.derivedETHPool = bestPoolId
+    return new NativeQuote(priceSoFar, largestLiquidityETH)
+  }
+  return null
+}
+
 /**
  * Search through graph to find derived Eth per token.
  * Callers pass the already-loaded Bundle to avoid a redundant store.get.
- * @todo update to be derived ETH (add stablecoin estimates)
- **/
+ * `cache` reuses Pool/Token loads within one handler.
+ * `candidate` is the pool that just swapped; if it is (or becomes) the best
+ * pricing pool we skip the whitelist walk.
+ */
 export function findNativePerToken(
   token: Token,
   wrappedNativeAddress: string,
   stablecoinAddresses: string[],
   minimumNativeLocked: BigDecimal,
   bundle: Bundle,
+  cache: EntityLoadCache = new EntityLoadCache(),
+  candidate: Pool | null = null,
 ): BigDecimal {
   if (token.id == wrappedNativeAddress || token.id == ADDRESS_ZERO) {
     return ONE_BD
   }
-  const whiteList = token.whitelistPools
-  // for now just take USD from pool with greatest TVL
-  // need to update this to actually detect best rate based on liquidity distribution
-  let largestLiquidityETH = ZERO_BD
-  let priceSoFar = ZERO_BD
 
   // hardcoded fix for incorrect rates
   // if whitelist includes token - get the safe price
   if (stablecoinAddresses.includes(token.id)) {
-    priceSoFar = safeDiv(ONE_BD, bundle.ethPriceUSD)
-  } else {
-    const walkLimit = whiteList.length < MAX_WHITELIST_POOLS_TO_WALK ? whiteList.length : MAX_WHITELIST_POOLS_TO_WALK
-    for (let i = 0; i < walkLimit; ++i) {
-      const poolAddress = whiteList[i]
-      const pool = Pool.load(poolAddress)
+    return safeDiv(ONE_BD, bundle.ethPriceUSD)
+  }
 
-      if (pool) {
-        if (pool.liquidity.gt(ZERO_BI)) {
-          if (pool.token0 == token.id) {
-            // whitelist token is token1
-            const token1 = Token.load(pool.token1)
-            // get the derived ETH in pool
-            if (token1) {
-              const ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
-              if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(minimumNativeLocked)) {
-                largestLiquidityETH = ethLocked
-                // token1 per our token * Eth per token1
-                priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
-              }
-            }
+  cache.putToken(token)
+
+  let candidateQuote: NativeQuote | null = null
+  if (candidate !== null) {
+    cache.putPool(candidate)
+    candidateQuote = quoteFromPool(token, candidate, cache)
+  }
+
+  const stickyId = token.derivedETHPool
+  if (stickyId !== null) {
+    if (candidate !== null && stickyId == candidate.id) {
+      if (candidateQuote !== null && candidateQuote.ethLocked.gt(minimumNativeLocked)) {
+        return candidateQuote.price
+      }
+    } else {
+      const stickyPool = cache.getPool(stickyId)
+      if (stickyPool !== null) {
+        const stickyQuote = quoteFromPool(token, stickyPool, cache)
+        if (stickyQuote !== null && stickyQuote.ethLocked.gt(minimumNativeLocked)) {
+          if (candidateQuote !== null && candidate !== null && candidateQuote.ethLocked.gt(stickyQuote.ethLocked)) {
+            token.derivedETHPool = candidate.id
+            return candidateQuote.price
           }
-          if (pool.token1 == token.id) {
-            const token0 = Token.load(pool.token0)
-            // get the derived ETH in pool
-            if (token0) {
-              const ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
-              if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(minimumNativeLocked)) {
-                largestLiquidityETH = ethLocked
-                // token0 per our token * ETH per token0
-                priceSoFar = pool.token0Price.times(token0.derivedETH as BigDecimal)
-              }
-            }
-          }
+          return stickyQuote.price
         }
       }
     }
   }
-  return priceSoFar
+
+  const walked = walkWhitelist(token, minimumNativeLocked, cache)
+  if (walked !== null) {
+    return walked.price
+  }
+  if (candidateQuote !== null && candidate !== null && candidateQuote.ethLocked.gt(minimumNativeLocked)) {
+    token.derivedETHPool = candidate.id
+    return candidateQuote.price
+  }
+  return ZERO_BD
 }
 
 /**

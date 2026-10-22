@@ -368,4 +368,69 @@ describe('handleModifyLiquidity', () => {
       ],
     )
   })
+
+  test('success - fee collection event (liquidityDelta = 0) leaves TVL unchanged', () => {
+    // put the pools tick in range
+    const pool = Pool.load(USDC_WETH_POOL_ID)!
+    pool.tick = BigInt.fromI32(MODIFY_LIQUIDITY_FIXTURE_ADD.tickLower + MODIFY_LIQUIDITY_FIXTURE_ADD.tickUpper).div(
+      BigInt.fromI32(2),
+    )
+    pool.sqrtPrice = TickMath.getSqrtRatioAtTick(pool.tick!.toI32())
+    pool.save()
+
+    // seed the pool with liquidity first
+    handleModifyLiquidityHelper(MODIFY_LIQUIDITY_EVENT_ADD, TEST_CONFIG)
+
+    const poolAfterAdd = Pool.load(USDC_WETH_POOL_ID)!
+    const tvlToken0AfterAdd = poolAfterAdd.totalValueLockedToken0
+    const tvlToken1AfterAdd = poolAfterAdd.totalValueLockedToken1
+    const tvlETHAfterAdd = poolAfterAdd.totalValueLockedETH
+    const tvlUSDAfterAdd = poolAfterAdd.totalValueLockedUSD
+    const liquidityAfterAdd = poolAfterAdd.liquidity
+    const token0TVLAfterAdd = Token.load(USDC_MAINNET_FIXTURE.address)!.totalValueLocked
+    const token1TVLAfterAdd = Token.load(WETH_MAINNET_FIXTURE.address)!.totalValueLocked
+
+    // fee collection calls modifyLiquidity with liquidityDelta = 0 and must not move TVL
+    const feeCollectionLogIndex = MOCK_EVENT.logIndex.plus(BigInt.fromI32(1))
+    const feeCollectionEvent = new ModifyLiquidity(
+      MOCK_EVENT.address,
+      feeCollectionLogIndex,
+      MOCK_EVENT.transactionLogIndex,
+      MOCK_EVENT.logType,
+      MOCK_EVENT.block,
+      MOCK_EVENT.transaction,
+      [
+        new ethereum.EventParam('id', ethereum.Value.fromFixedBytes(id)),
+        new ethereum.EventParam('sender', ethereum.Value.fromAddress(MODIFY_LIQUIDITY_FIXTURE_ADD.sender)),
+        new ethereum.EventParam('tickLower', ethereum.Value.fromI32(MODIFY_LIQUIDITY_FIXTURE_ADD.tickLower as i32)),
+        new ethereum.EventParam('tickUpper', ethereum.Value.fromI32(MODIFY_LIQUIDITY_FIXTURE_ADD.tickUpper as i32)),
+        new ethereum.EventParam('liquidityDelta', ethereum.Value.fromSignedBigInt(BigInt.zero())),
+      ],
+      MOCK_EVENT.receipt,
+    )
+
+    handleModifyLiquidityHelper(feeCollectionEvent, TEST_CONFIG)
+
+    assertObjectMatches('Pool', USDC_WETH_POOL_ID, [
+      ['liquidity', liquidityAfterAdd.toString()],
+      ['totalValueLockedToken0', tvlToken0AfterAdd.toString()],
+      ['totalValueLockedToken1', tvlToken1AfterAdd.toString()],
+      ['totalValueLockedETH', tvlETHAfterAdd.toString()],
+      ['totalValueLockedUSD', tvlUSDAfterAdd.toString()],
+    ])
+
+    assertObjectMatches('Token', USDC_MAINNET_FIXTURE.address, [['totalValueLocked', token0TVLAfterAdd.toString()]])
+
+    assertObjectMatches('Token', WETH_MAINNET_FIXTURE.address, [['totalValueLocked', token1TVLAfterAdd.toString()]])
+
+    assertObjectMatches(
+      'ModifyLiquidity',
+      MOCK_EVENT.transaction.hash.toHexString() + '-' + feeCollectionLogIndex.toString(),
+      [
+        ['amount', '0'],
+        ['amount0', '0'],
+        ['amount1', '0'],
+      ],
+    )
+  })
 })

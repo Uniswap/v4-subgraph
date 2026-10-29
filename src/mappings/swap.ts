@@ -267,6 +267,8 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       const prices = sqrtPriceX96ToTokenPrices(pool.sqrtPrice, token0, token1, nativeTokenDetails)
       pool.token0Price = prices[0]
       pool.token1Price = prices[1]
+      // getNativePriceInUSD reads the stored pool, so persist the new prices first
+      pool.save()
       bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
     }
 

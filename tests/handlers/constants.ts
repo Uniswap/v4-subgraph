@@ -275,6 +275,7 @@ export const createAndStoreTestPool = (poolFixture: PoolFixture): Pool => {
   pool.totalValueLockedETH = ZERO_BD
   pool.totalValueLockedUSDUntracked = ZERO_BD
   pool.liquidityProviderCount = ZERO_BI
+  pool.isExternalLiquidity = false
   pool.hooks = ADDRESS_ZERO
 
   pool.save()

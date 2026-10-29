@@ -74,6 +74,11 @@ export class SubgraphConfig {
   // initialize this list of pools and token addresses on factory creation. for new chains this is typically empty.
   poolMappings: Array<Address[]>
 
+  // tokens minted and redeemed 1:1 for the native token (e.g. Flaunch flETH), priced at exactly 1
+  // native. their only native pool is a zero-liquidity wrapper hook pool by design, so a price can't
+  // be derived from pools. for new chains this is typically empty.
+  nativePeggedTokens: string[]
+
   // native token details for the chain.
   nativeTokenDetails: NativeTokenDetails
 }
@@ -102,6 +107,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -126,6 +132,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -150,6 +157,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -175,6 +183,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -182,6 +191,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
     }
   } else if (selectedNetwork == ARBITRUM_ONE_NETWORK_NAME) {
+    const FLETH = '0x0000000006e53afede11caeb440b6fff4398337d'
     return {
       poolManagerAddress: '0x360e68faccca8ca495c1b759fd9eee466db9fb32',
       stablecoinWrappedNativePoolId: '0xfc7b3ad139daaf1e9c3637ed921c154d1b04286f8a82b805a6c352da57028653', // https://arbiscan.io/tx/0xd2542ab5fa8cb1b0606c6f114d9589e35db6d02dee426b7d874bda7c6e05f641#eventlog
@@ -201,6 +211,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', // USDT
         '0xaf88d065e77c8cc2239327c5edb3a432268e5831', // USDC
         '0x0000000000000000000000000000000000000000', // Native ETH
+        FLETH,
       ],
       tokenOverrides: [
         {
@@ -218,6 +229,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       ],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [FLETH],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -225,6 +237,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
     }
   } else if (selectedNetwork == BASE_NETWORK_NAME) {
+    const FLETH = '0x000000000d564d5be76f7f0d28fe52605afc7cf8'
     return {
       poolManagerAddress: '0x498581ff718922c3f8e6a244956af099b2652b2b',
       stablecoinWrappedNativePoolId: '0x90333bb05c258fe0dddb2840ef66f1a05165aa7dac6815d24e807cc6ebd943a0', // https://basescan.org/tx/0xf7f4eb1aef74a635a1bf42d598049afbed8ec9e303be81bf168b94a71045decb#eventlog
@@ -239,10 +252,12 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', // USDC
         '0x0000000000000000000000000000000000000000', // Native ETH
         '0x1111111111166b7fe7bd91427724b487980afc69', // ZORA
+        FLETH,
       ],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [FLETH],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -272,6 +287,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'POL',
         name: 'Polygon',
@@ -298,6 +314,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'BNB',
         name: 'Binance Coin',
@@ -339,6 +356,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       ],
       poolMappings: [],
       poolsToSkip: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -374,6 +392,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'AVAX',
         name: 'Avalanche',
@@ -401,6 +420,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -425,6 +445,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -432,6 +453,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
     }
   } else if (selectedNetwork == MAINNET_NETWORK_NAME) {
+    const FLETH = '0x000000000bb1f9944965c64066d10038a84f9af2'
     return {
       poolManagerAddress: '0x000000000004444c5dc75cb358380d2e3de08a90',
       stablecoinWrappedNativePoolId: '0x4f88f7c99022eace4740c6898f59ce6a2e798a1e64ce54589720b7153eb224a7', // https://etherscan.io/tx/0x4e63fcc0dd42a2b317e77d17e236cadf77464a08ccece33a354bd8648b5f7419#eventlog
@@ -468,6 +490,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9', // AAVE
         '0xfe2e637202056d30016725477c5da089ab0a043a', // sETH2
         '0x0000000000000000000000000000000000000000', // Native ETH
+        FLETH,
       ],
       tokenOverrides: [
         {
@@ -509,6 +532,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       ],
       poolMappings: [],
       poolsToSkip: [],
+      nativePeggedTokens: [FLETH],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -533,6 +557,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -540,6 +565,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       },
     }
   } else if (selectedNetwork == UNICHAIN_MAINNET_NETWORK_NAME) {
+    const FLETH = '0x000000000dd39073cfc60e7102288ccbd7bf23fe'
     return {
       poolManagerAddress: '0x1f98400000000000000000000000000000000004',
       stablecoinWrappedNativePoolId: '0x25939956ef14a098d95051d86c75890cfd623a9eeba055e46d8dd9135980b37c',
@@ -558,10 +584,12 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x0000000000000000000000000000000000000000', // Native ETH
         '0x9151434b16b9763660705744891fa906f660ecc5', // USDT0
         '0x927b51f251480a681271180da4de28d44ec4afb8', // WBTC
+        FLETH,
       ],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [FLETH],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -586,6 +614,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -622,6 +651,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'CELO',
         name: 'Celo',
@@ -653,6 +683,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'MON',
         name: 'MON',
@@ -683,6 +714,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'OKB',
         name: 'OKB',
@@ -707,6 +739,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -719,6 +752,7 @@ export function getSubgraphConfig(): SubgraphConfig {
     // a native price of 1) — WETH/ETH is a volatile reference.
     const WETH = '0x0bd7d308f8e1639fab988df18a8011f41eacad73'.toLowerCase()
     const USDG = '0x5fc5360d0400a0fd4f2af552add042d716f1d168'.toLowerCase()
+    const FLETH = '0x00000000043c1117dafa3a3d0c7148eb48b30130'
     return {
       poolManagerAddress: '0x8366a39cc670b4001a1121b8f6a443a643e40951'.toLowerCase(),
       stablecoinWrappedNativePoolId: '0x387bf619da4d3fb62bb276482693dba1b9b3520f573cabdfe033384a24125982', // ETH/USDG v4 pool
@@ -730,10 +764,12 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x0000000000000000000000000000000000000000', // native ETH
         WETH,
         USDG,
+        FLETH,
       ],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [FLETH],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -761,6 +797,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         // address(0) native currency = Arc's USDC gas token, which uses 18-dec precision
         // (the USDC ERC-20 interface at 0x3600... is 6-dec and read on-chain separately)
@@ -793,6 +830,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -817,6 +855,7 @@ export function getSubgraphConfig(): SubgraphConfig {
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [],
       nativeTokenDetails: {
         symbol: 'pathUSD',
         name: 'PathUSD',
@@ -829,6 +868,7 @@ export function getSubgraphConfig(): SubgraphConfig {
     const USDT0 = '0x0200C29006150606B650577BBE7B6248F58470c1'.toLowerCase()
     const USDCE = '0xF1815bd50389c46847f0Bda824eC8da914045D14'.toLowerCase()
     const ETH_USDT0_POOL = '0x26354d494b48cc544076d4afe855b5bf224e6a5d4e403bbbf04cbc7f25790b90'.toLowerCase()
+    const FLETH = '0x000000000dd39073cfc60e7102288ccbd7bf23fe'
     return {
       poolManagerAddress: '0x360e68faccca8ca495c1b759fd9eee466db9fb32',
       stablecoinWrappedNativePoolId: ETH_USDT0_POOL,
@@ -836,10 +876,11 @@ export function getSubgraphConfig(): SubgraphConfig {
       wrappedNativeAddress: NATIVE_ETH,
       minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: [USDT0, USDCE],
-      whitelistTokens: [WETH, NATIVE_ETH, USDT0, USDCE],
+      whitelistTokens: [WETH, NATIVE_ETH, USDT0, USDCE, FLETH],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
+      nativePeggedTokens: [FLETH],
       nativeTokenDetails: {
         symbol: 'ETH',
         name: 'Ethereum',

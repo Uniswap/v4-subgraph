@@ -33,6 +33,7 @@ export function handleInitializeHelper(
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
+  const nativePeggedTokens = subgraphConfig.nativePeggedTokens
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
   const poolId = event.params.id.toHexString()
   const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
@@ -195,8 +196,20 @@ export function handleInitializeHelper(
   bundle.save()
   updatePoolDayData(poolId, event)
   updatePoolHourData(poolId, event)
-  token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-  token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  token1.derivedETH = findNativePerToken(
+    token1,
+    wrappedNativeAddress,
+    stablecoinAddresses,
+    minimumNativeLocked,
+    nativePeggedTokens,
+  )
+  token0.derivedETH = findNativePerToken(
+    token0,
+    wrappedNativeAddress,
+    stablecoinAddresses,
+    minimumNativeLocked,
+    nativePeggedTokens,
+  )
 
   token0.save()
   token1.save()

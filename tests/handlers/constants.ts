@@ -28,6 +28,7 @@ export const TEST_CONFIG: SubgraphConfig = {
   tokenOverrides: [],
   poolsToSkip: [],
   poolMappings: [],
+  nativePeggedTokens: [],
   nativeTokenDetails: {
     symbol: 'ETH',
     name: 'Ethereum',

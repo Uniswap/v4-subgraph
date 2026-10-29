@@ -153,6 +153,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
   const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
   const stablecoinAddresses = subgraphConfig.stablecoinAddresses
   const minimumNativeLocked = subgraphConfig.minimumNativeLocked
+  const nativePeggedTokens = subgraphConfig.nativePeggedTokens
   const whitelistTokens = subgraphConfig.whitelistTokens
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
   const usdStableStableHookAddresses = getUSDStableStableHookAddresses()
@@ -270,8 +271,20 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     }
 
     bundle.save()
-    token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
-    token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+    token0.derivedETH = findNativePerToken(
+      token0,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+      nativePeggedTokens,
+    )
+    token1.derivedETH = findNativePerToken(
+      token1,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+      nativePeggedTokens,
+    )
 
     /**
      * Things afffected by new USD rates
